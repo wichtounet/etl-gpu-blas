@@ -1,8 +1,7 @@
-default: release
+default: release_debug
 
 .PHONY: default release debug all clean test debug_test release_debug_test release_test
-.PHONY: valgrind_test benchmark cppcheck coverage coverage_view format modernize tidy tidy_all doc
-.PHONY: full_bench
+.PHONY: valgrind_test tag version
 
 include make-utils/flags-gpu.mk
 include make-utils/cpp-utils.mk
@@ -45,11 +44,11 @@ $(eval $(call add_executable,egblas_test,$(TEST_FILES)))
 $(eval $(call add_executable_set,egblas_test,egblas_test))
 
 # Create the shared library
-$(eval $(call add_shared_library,egblas,$(CPP_SRC_FILES)))
+$(eval $(call add_shared_library,libegblas,$(CPP_SRC_FILES)))
 
-release: release_egblas_test
-release_debug: release_debug_egblas_test
-debug: debug_egblas_test
+release: release/lib/libegblas.so
+release_debug: release_debug/lib/libegblas.so
+debug: debug/lib/libegblas.so
 
 all: release release_debug debug
 
@@ -67,11 +66,22 @@ test: all
 	./release_debug/bin/egblas_test
 	./release/bin/egblas_test
 
+debug_install: debug/lib/libegblas.so
+	cp -r include/* $(DESTDIR)/usr/include/
+	install -m 0644 debug/lib/libegblas.so $(DESTDIR)/usr/lib/
+
+release_debug_install: release_debug/lib/libegblas.so
+	cp -r include/* $(DESTDIR)/usr/include/
+	install -m 0644 release_debug/lib/libegblas.so $(DESTDIR)/usr/lib/
+
+release_install: release/lib/libegblas.so
+	cp -r include/* $(DESTDIR)/usr/include/
+	install -m 0644 release/lib/libegblas.so $(DESTDIR)/usr/lib/
+
+install: release_debug_install
+
 valgrind_test: debug
 	valgrind --leak-check=full ./debug/bin/egblas_test
-
-doc:
-	doxygen Doxyfile
 
 clean: base_clean
 	rm -rf reports
