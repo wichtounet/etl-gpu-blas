@@ -1,3 +1,6 @@
 [submodule "make-utils"]
 	path = make-utils
 	url = https://github.com/wichtounet/make-utils
+[submodule "lib/include/cpp_utils"]
+	path = lib/include/cpp_utils
+	url = https://github.com/wichtounet/cpp_utils.git
