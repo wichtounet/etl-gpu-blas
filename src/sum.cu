@@ -16,7 +16,7 @@ float egblas_ssum(float* x, size_t n, size_t s){
     return thrust::reduce(x, x + n);
 }
 
-float egblas_dsum(float* x, size_t n, size_t s){
+float egblas_dsum(double* x, size_t n, size_t s){
     cpp_assert(s == 1, "Stride is not yet supported for egblas_dsum");
     cpp_unused(s);
 
