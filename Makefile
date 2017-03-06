@@ -35,13 +35,7 @@ $(eval $(call folder_compile_gpu,test/src, -ICatch/include -Itest/include))
 CPP_TEST_FILES=$(wildcard test/src/*.cpp)
 CPP_SRC_FILES=$(wildcard src/*.cu)
 
-
 TEST_FILES=$(CPP_TEST_FILES) ${CPP_SRC_FILES}
-
-info:
-	echo ${CPP_TEST_FILES}
-	echo ${CPP_SRC_FILES}
-	echo ${TEST_FILES}
 
 # Create executables
 $(eval $(call add_executable,egblas_test,$(TEST_FILES)))
