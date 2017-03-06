@@ -17,7 +17,7 @@ RELEASE_DEBUG_FLAGS += --use_fast_math
 CXX_FLAGS += -Xcompiler -fPIC
 
 # Be stricter
-CXX_FLAGS += -Xcompiler -Werror -Xcompiler -Winvalid-pch -Xcompiler -Wno-uninitialized
+CXX_FLAGS += -Xcompiler -Werror -Xcompiler -Winvalid-pch -Xcompiler -Wno-uninitialized -Xcompiler -Wno-unused-parameter
 
 # Add includes
 CXX_FLAGS += -Ilib/include
