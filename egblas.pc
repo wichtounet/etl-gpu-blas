@@ -1,0 +1,10 @@
+prefix=/usr/
+libdir=${prefix}/lib/
+includedir=${prefix}/include
+
+Name: egblas
+Description: etl-gpu-blas
+Version: 2017
+URL: https://github.com/wichtounet/etl-gpu-blas
+Libs: -L${libdir} -legblas -lcudart -lcuda
+Cflags: -I${includedir}
