@@ -7,6 +7,13 @@ default: release
 include make-utils/flags-gpu.mk
 include make-utils/cpp-utils.mk
 
+# Use compute capabilities 3.0
+CXX_FLAGS += -m64 -arch=sm_30
+
+# NVCC optimizations
+RELEASE_FLAGS += --use_fast_math
+RELEASE_DEBUG_FLAGS += --use_fast_math
+
 # Be stricter
 CXX_FLAGS += -Xcompiler -Werror -Xcompiler -Winvalid-pch -Xcompiler -Wno-uninitialized
 
