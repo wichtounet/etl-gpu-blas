@@ -24,3 +24,6 @@ float egblas_ssum(float* x, size_t n, size_t s);
  * \return the sum of the elements of the vector
  */
 double egblas_dsum(double* x, size_t n, size_t s);
+
+#define EGBLAS_HAS_SSUM true
+#define EGBLAS_HAS_DSUM true
