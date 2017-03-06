@@ -7,18 +7,18 @@
 
 #include <thrust/reduce.h>
 
-#include "cpp_utils/assert.hpp"
+#include "egblas/assert.hpp"
 
 float egblas_ssum(float* x, size_t n, size_t s){
-    cpp_assert(s == 1, "Stride is not yet supported for egblas_ssum");
-    cpp_unused(s);
+    egblas_assert(s == 1, "Stride is not yet supported for egblas_ssum");
+    egblas_unused(s);
 
     return thrust::reduce(x, x + n);
 }
 
 float egblas_dsum(double* x, size_t n, size_t s){
-    cpp_assert(s == 1, "Stride is not yet supported for egblas_dsum");
-    cpp_unused(s);
+    egblas_assert(s == 1, "Stride is not yet supported for egblas_dsum");
+    egblas_unused(s);
 
     return thrust::reduce(x, x + n);
 }
