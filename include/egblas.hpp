@@ -8,3 +8,4 @@
 #pragma once
 
 #include "egblas/sum.hpp"
+#include "egblas/scalar_add.hpp"
