@@ -61,7 +61,7 @@ release_debug_test: release_debug_egblas_test
 release_test: release_egblas_test
 	./release/bin/egblas_test
 
-test: all
+test: release/bin/egblas_test release_debug/bin/egblas_test debug/bin/egblas_test
 	./debug/bin/egblas_test
 	./release_debug/bin/egblas_test
 	./release/bin/egblas_test
