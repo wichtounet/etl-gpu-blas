@@ -5,6 +5,7 @@
 //  http://opensource.org/licenses/MIT)
 //=======================================================================
 
+#include <thrust/execution_policy.h>
 #include <thrust/reduce.h>
 
 #include "egblas/assert.hpp"
@@ -13,12 +14,12 @@ float egblas_ssum(float* x, size_t n, size_t s){
     egblas_assert(s == 1, "Stride is not yet supported for egblas_ssum");
     egblas_unused(s);
 
-    return thrust::reduce(x, x + n);
+    return thrust::reduce(thrust::device, x, x + n);
 }
 
-float egblas_dsum(double* x, size_t n, size_t s){
+double egblas_dsum(double* x, size_t n, size_t s){
     egblas_assert(s == 1, "Stride is not yet supported for egblas_dsum");
     egblas_unused(s);
 
-    return thrust::reduce(x, x + n);
+    return thrust::reduce(thrust::device, x, x + n);
 }
