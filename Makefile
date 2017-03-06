@@ -14,6 +14,9 @@ CXX_FLAGS += -m64 -arch=sm_30
 RELEASE_FLAGS += --use_fast_math
 RELEASE_DEBUG_FLAGS += --use_fast_math
 
+# Relocatable shared library
+CXX_FLAGS += -Xcompiler -fPIC
+
 # Be stricter
 CXX_FLAGS += -Xcompiler -Werror -Xcompiler -Winvalid-pch -Xcompiler -Wno-uninitialized
 
@@ -40,6 +43,9 @@ TEST_FILES=$(CPP_TEST_FILES) ${CPP_SRC_FILES}
 # Create executables
 $(eval $(call add_executable,egblas_test,$(TEST_FILES)))
 $(eval $(call add_executable_set,egblas_test,egblas_test))
+
+# Create the shared library
+$(eval $(call add_shared_library,egblas,$(CPP_SRC_FILES)))
 
 release: release_egblas_test
 release_debug: release_debug_egblas_test
