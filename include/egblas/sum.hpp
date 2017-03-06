@@ -8,7 +8,7 @@
 #pragma once
 
 /*!
- * \brief Compute the single-precision of the given vector
+ * \brief Compute the single-precision sum of the given vector
  * \param x The vector to compute the sum from (GPU pointer)
  * \param n The size of the vector
  * \param s The stride of the vector
@@ -17,7 +17,7 @@
 float egblas_ssum(float* x, size_t n, size_t s);
 
 /*!
- * \brief Compute the single-precision of the given vector
+ * \brief Compute the single-precision sum of the given vector
  * \param x The vector to compute the sum from (GPU pointer)
  * \param n The size of the vector
  * \param s The stride of the vector
