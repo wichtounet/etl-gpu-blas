@@ -12,6 +12,7 @@
 #include "cuda_runtime_api.h"
 
 #include "egblas.hpp"
+#include "test.hpp"
 
 #include "catch.hpp"
 
@@ -25,13 +26,13 @@ TEST_CASE( "sum/float/0", "[float][sum]"){
     }
 
     float* gpu_vec;
-    cudaMalloc((void **)&gpu_vec, N*sizeof(float));
+    cuda_check(cudaMalloc((void **)&gpu_vec, N*sizeof(float)));
 
-    cudaMemcpy(cpu_vec, gpu_vec, N*sizeof(float), cudaMemcpyHostToDevice);
+    cuda_check(cudaMemcpy(gpu_vec, cpu_vec, N*sizeof(float), cudaMemcpyHostToDevice));
 
     REQUIRE(egblas_ssum(cpu_vec, N, 1) == Approx(float(7503)));
 
-    cudaFree(gpu_vec);
+    cuda_check(cudaFree(gpu_vec));
 
     delete[] cpu_vec;
 }
@@ -46,13 +47,13 @@ TEST_CASE( "sum/float/1", "[float][sum]"){
     }
 
     float* gpu_vec;
-    cudaMalloc((void **)&gpu_vec, N*sizeof(float));
+    cuda_check(cudaMalloc((void **)&gpu_vec, N*sizeof(float)));
 
-    cudaMemcpy(cpu_vec, gpu_vec, N*sizeof(float), cudaMemcpyHostToDevice);
+    cuda_check(cudaMemcpy(gpu_vec, cpu_vec, N*sizeof(float), cudaMemcpyHostToDevice));
 
     REQUIRE(egblas_ssum(cpu_vec, N, 1) == Approx(float(116972)));
 
-    cudaFree(gpu_vec);
+    cuda_check(cudaFree(gpu_vec));
 
     delete[] cpu_vec;
 }
@@ -67,13 +68,13 @@ TEST_CASE( "sum/double/0", "[double][sum]"){
     }
 
     double* gpu_vec;
-    cudaMalloc((void **)&gpu_vec, N*sizeof(double));
+    cuda_check(cudaMalloc((void **)&gpu_vec, N*sizeof(double)));
 
-    cudaMemcpy(cpu_vec, gpu_vec, N*sizeof(double), cudaMemcpyHostToDevice);
+    cuda_check(cudaMemcpy(gpu_vec, cpu_vec, N*sizeof(float), cudaMemcpyHostToDevice));
 
     REQUIRE(egblas_dsum(cpu_vec, N, 1) == Approx(double(7503)));
 
-    cudaFree(gpu_vec);
+    cuda_check(cudaFree(gpu_vec));
 
     delete[] cpu_vec;
 }
@@ -88,13 +89,13 @@ TEST_CASE( "sum/double/1", "[double][sum]"){
     }
 
     double* gpu_vec;
-    cudaMalloc((void **)&gpu_vec, N*sizeof(double));
+    cuda_check(cudaMalloc((void **)&gpu_vec, N*sizeof(double)));
 
-    cudaMemcpy(cpu_vec, gpu_vec, N*sizeof(double), cudaMemcpyHostToDevice);
+    cuda_check(cudaMemcpy(gpu_vec, cpu_vec, N*sizeof(float), cudaMemcpyHostToDevice));
 
     REQUIRE(egblas_dsum(cpu_vec, N, 1) == Approx(double(116972)));
 
-    cudaFree(gpu_vec);
+    cuda_check(cudaFree(gpu_vec));
 
     delete[] cpu_vec;
 }

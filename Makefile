@@ -22,7 +22,7 @@ LD_FLAGS += $(shell pkg-config --libs cuda)
 
 # Compile folders
 $(eval $(call folder_compile_gpu,src))
-$(eval $(call folder_compile_gpu,test/src, -ICatch/include))
+$(eval $(call folder_compile_gpu,test/src, -ICatch/include -Itest/include))
 
 # Collect files for the test executable
 CPP_TEST_FILES=$(wildcard test/src/*.cpp)
