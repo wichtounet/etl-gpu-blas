@@ -9,3 +9,4 @@
 
 #include "egblas/sum.hpp"
 #include "egblas/scalar_add.hpp"
+#include "egblas/axmy.hpp"
