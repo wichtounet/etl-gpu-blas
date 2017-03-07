@@ -8,6 +8,7 @@ node {
        sh 'sloccount --duplicates --wide --details include/ test src > sloccount.sc'
        sh 'cccc include/egblas/*.hpp include/*.hpp test/*.cpp src/*.cu || true'
 
+       env.PATH="${env.PATH}:/opt/cuda/bin/"
        env.CXX="nvcc"
        env.LD="nvcc"
 
