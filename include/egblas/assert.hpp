@@ -15,10 +15,10 @@
 
 #else
 
-#define egblas_assert(condition, message)                                      \
-  (condition ? ((void)0)                                                       \
-             : assertion_failed_msg(#condition, message, __PRETTY_FUNCTION__,  \
-                                    __FILE__, __LINE__))
+#define egblas_assert(condition, message)                                       \
+    (condition ? ((void)0)                                                      \
+               : assertion_failed_msg(#condition, message, __PRETTY_FUNCTION__, \
+                                      __FILE__, __LINE__))
 
 template <typename CharT>
 inline void assertion_failed_msg(const CharT* expr, const char* msg, const char* function, const char* file, long line) {

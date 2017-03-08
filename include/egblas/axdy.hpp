@@ -18,7 +18,7 @@
  * \param y The vector y (GPU memory)
  * \param incy The stride of y
  */
-void egblas_saxdy (size_t n, float alpha, const float *x, size_t incx, float *y, size_t incy);
+void egblas_saxdy(size_t n, float alpha, const float* x, size_t incx, float* y, size_t incy);
 
 /*!
  * \brief Compute y = y / (alpha * x) (element wise), in double-precision
@@ -29,7 +29,7 @@ void egblas_saxdy (size_t n, float alpha, const float *x, size_t incx, float *y,
  * \param y The vector y (GPU memory)
  * \param incy The stride of y
  */
-void egblas_daxdy (size_t n, double alpha, const double *x, size_t incx, double *y, size_t incy);
+void egblas_daxdy(size_t n, double alpha, const double* x, size_t incx, double* y, size_t incy);
 
 /*!
  * \brief Compute y = y / (alpha * x) (element wise), in complex single-precision
@@ -40,7 +40,7 @@ void egblas_daxdy (size_t n, double alpha, const double *x, size_t incx, double 
  * \param y The vector y (GPU memory)
  * \param incy The stride of y
  */
-void egblas_caxdy (size_t n, cuComplex alpha, const cuComplex *x, size_t incx, cuComplex *y, size_t incy);
+void egblas_caxdy(size_t n, cuComplex alpha, const cuComplex* x, size_t incx, cuComplex* y, size_t incy);
 
 /*!
  * \brief Compute y = y / (alpha * x) (element wise), in complex double-precision
@@ -51,7 +51,7 @@ void egblas_caxdy (size_t n, cuComplex alpha, const cuComplex *x, size_t incx, c
  * \param y The vector y (GPU memory)
  * \param incy The stride of y
  */
-void egblas_zaxdy (size_t n, cuDoubleComplex alpha, const cuDoubleComplex *x, size_t incx, cuDoubleComplex *y, size_t incy);
+void egblas_zaxdy(size_t n, cuDoubleComplex alpha, const cuDoubleComplex* x, size_t incx, cuDoubleComplex* y, size_t incy);
 
 #define EGBLAS_HAS_SAXDY true
 #define EGBLAS_HAS_DAXDY true
