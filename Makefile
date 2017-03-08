@@ -96,4 +96,7 @@ version:
 tag:
 	@echo `git rev-list HEAD --count`-`git rev-parse HEAD`
 
+format:
+	git ls-files "*.hpp" "*.cu" "*.cpp" | xargs clang-format -i -style=file
+
 include make-utils/cpp-utils-finalize.mk
