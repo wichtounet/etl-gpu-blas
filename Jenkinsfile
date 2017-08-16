@@ -30,7 +30,7 @@ pipeline {
         stage ('build'){
             steps {
                 sh 'make clean'
-                sh 'make -j6 release'
+                sh 'PATH="$PATH:/opt/cuda/bin/" make -j6 release'
             }
         }
 
