@@ -10,4 +10,5 @@
 #include "egblas/axdy.hpp"
 #include "egblas/axmy.hpp"
 #include "egblas/scalar_add.hpp"
+#include "egblas/scalar_div.hpp"
 #include "egblas/sum.hpp"
