@@ -16,8 +16,11 @@ RELEASE_DEBUG_FLAGS += --use_fast_math
 # Relocatable shared library
 CXX_FLAGS += -Xcompiler -fPIC
 
+# Fix for CUDA
+CXX_FLAGS += -D_FORCE_INLINES
+
 # Be stricter
-CXX_FLAGS += -Xcompiler -Werror -Xcompiler -Winvalid-pch -Xcompiler -Wno-uninitialized -Xcompiler -Wno-unused-parameter
+CXX_FLAGS += -Xcompiler -Werror -Xcompiler -Winvalid-pch -Xcompiler -Wno-uninitialized -Xcompiler -Wno-unused-parameter -Xcompiler -Wno-strict-aliasing
 
 # Add includes
 CXX_FLAGS += -Ilib/include
