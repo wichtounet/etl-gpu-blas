@@ -4,7 +4,6 @@ pipeline {
     environment {
        CXX = "nvcc"
        LD = "nvcc"
-       PATH = "${env.PATH}:/opt/cuda/bin/"
     }
 
     stages {
@@ -37,7 +36,7 @@ pipeline {
 
         stage ('test'){
             steps {
-                sh './scripts/test_runner.sh'
+                sh 'PATH="$PATH:/opt/cuda/bin/" ./scripts/test_runner.sh'
                 archive 'catch_report.xml'
                 junit 'catch_report.xml'
             }
