@@ -4,6 +4,7 @@ pipeline {
     environment {
        CXX = "nvcc"
        LD = "nvcc"
+       PATH = "${env.PATH}:/opt/cuda/bin/"
     }
 
     stages {
