@@ -132,3 +132,131 @@ TEST_CASE("scalar_div/d/1", "[double][scalar_div]") {
 
     delete[] cpu_vec;
 }
+
+
+
+
+
+
+
+
+
+TEST_CASE("scalar_div/c/0", "[float][scalar_div]") {
+    const size_t N = 123;
+
+    std::complex<float>* cpu_vec = new std::complex<float>[ N ];
+    std::complex<float>* results = new std::complex<float>[ N ];
+
+    for (size_t i = 0; i < N; ++i) {
+        cpu_vec[i] = std::complex<float>((i+1), (i+1));
+        results[i] = std::complex<float>(1.1, 1.2) / cpu_vec[i];
+    }
+
+    std::complex<float>* gpu_vec;
+    cuda_check(cudaMalloc((void**)&gpu_vec, N * sizeof(std::complex<float>)));
+
+    cuda_check(cudaMemcpy(gpu_vec, cpu_vec, N * sizeof(std::complex<float>), cudaMemcpyHostToDevice));
+
+    egblas_scalar_cdiv(make_cuComplex(1.1, 1.2), reinterpret_cast<cuComplex*>(gpu_vec), N, 1);
+
+    cuda_check(cudaMemcpy(cpu_vec, gpu_vec, N * sizeof(std::complex<float>), cudaMemcpyDeviceToHost));
+
+    for (size_t i = 0; i < N; ++i) {
+        REQUIRE(cpu_vec[i].real() == Approx(results[i].real()));
+        REQUIRE(cpu_vec[i].imag() == Approx(results[i].imag()));
+    }
+
+    cuda_check(cudaFree(gpu_vec));
+
+    delete[] cpu_vec;
+}
+
+TEST_CASE("scalar_div/c/1", "[float][scalar_div]") {
+    const size_t N = 321;
+
+    std::complex<float>* cpu_vec = new std::complex<float>[ N ];
+    std::complex<float>* results = new std::complex<float>[ N ];
+
+    for (size_t i = 0; i < N; ++i) {
+        cpu_vec[i] = std::complex<float>(2 * (i+1), -3 * (i+1));
+        results[i] = std::complex<float>(1.3, -1.2) / cpu_vec[i];
+    }
+
+    std::complex<float>* gpu_vec;
+    cuda_check(cudaMalloc((void**)&gpu_vec, N * sizeof(std::complex<float>)));
+
+    cuda_check(cudaMemcpy(gpu_vec, cpu_vec, N * sizeof(std::complex<float>), cudaMemcpyHostToDevice));
+
+    egblas_scalar_cdiv(make_cuComplex(1.3, -1.2), reinterpret_cast<cuComplex*>(gpu_vec), N, 1);
+
+    cuda_check(cudaMemcpy(cpu_vec, gpu_vec, N * sizeof(std::complex<float>), cudaMemcpyDeviceToHost));
+
+    for (size_t i = 0; i < N; ++i) {
+        REQUIRE(cpu_vec[i].real() == Approx(results[i].real()));
+        REQUIRE(cpu_vec[i].imag() == Approx(results[i].imag()));
+    }
+
+    cuda_check(cudaFree(gpu_vec));
+
+    delete[] cpu_vec;
+}
+
+TEST_CASE("scalar_div/z/0", "[double][scalar_div]") {
+    const size_t N = 128;
+
+    std::complex<double>* cpu_vec = new std::complex<double>[ N ];
+    std::complex<double>* results = new std::complex<double>[ N ];
+
+    for (size_t i = 0; i < N; ++i) {
+        cpu_vec[i] = std::complex<double>((i+1), (i+1));
+        results[i] = std::complex<double>(1.1, 1.2) / cpu_vec[i];
+    }
+
+    std::complex<double>* gpu_vec;
+    cuda_check(cudaMalloc((void**)&gpu_vec, N * sizeof(std::complex<double>)));
+
+    cuda_check(cudaMemcpy(gpu_vec, cpu_vec, N * sizeof(std::complex<double>), cudaMemcpyHostToDevice));
+
+    egblas_scalar_zdiv(make_cuDoubleComplex(1.1, 1.2), reinterpret_cast<cuDoubleComplex*>(gpu_vec), N, 1);
+
+    cuda_check(cudaMemcpy(cpu_vec, gpu_vec, N * sizeof(std::complex<double>), cudaMemcpyDeviceToHost));
+
+    for (size_t i = 0; i < N; ++i) {
+        REQUIRE(cpu_vec[i].real() == Approx(results[i].real()));
+        REQUIRE(cpu_vec[i].imag() == Approx(results[i].imag()));
+    }
+
+    cuda_check(cudaFree(gpu_vec));
+
+    delete[] cpu_vec;
+}
+
+TEST_CASE("scalar_div/z/1", "[double][scalar_div]") {
+    const size_t N = 1025;
+
+    std::complex<double>* cpu_vec = new std::complex<double>[ N ];
+    std::complex<double>* results = new std::complex<double>[ N ];
+
+    for (size_t i = 0; i < N; ++i) {
+        cpu_vec[i] = std::complex<double>(2 * (i+1), -3 * (i+1));
+        results[i] = std::complex<double>(1.3, -1.2) / cpu_vec[i];
+    }
+
+    std::complex<double>* gpu_vec;
+    cuda_check(cudaMalloc((void**)&gpu_vec, N * sizeof(std::complex<double>)));
+
+    cuda_check(cudaMemcpy(gpu_vec, cpu_vec, N * sizeof(std::complex<double>), cudaMemcpyHostToDevice));
+
+    egblas_scalar_zdiv(make_cuDoubleComplex(1.3, -1.2), reinterpret_cast<cuDoubleComplex*>(gpu_vec), N, 1);
+
+    cuda_check(cudaMemcpy(cpu_vec, gpu_vec, N * sizeof(std::complex<double>), cudaMemcpyDeviceToHost));
+
+    for (size_t i = 0; i < N; ++i) {
+        REQUIRE(cpu_vec[i].real() == Approx(results[i].real()));
+        REQUIRE(cpu_vec[i].imag() == Approx(results[i].imag()));
+    }
+
+    cuda_check(cudaFree(gpu_vec));
+
+    delete[] cpu_vec;
+}
