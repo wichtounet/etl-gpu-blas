@@ -12,3 +12,4 @@
 #include "egblas/scalar_add.hpp"
 #include "egblas/scalar_div.hpp"
 #include "egblas/sum.hpp"
+#include "egblas/sqrt.hpp"
