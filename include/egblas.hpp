@@ -13,3 +13,4 @@
 #include "egblas/scalar_div.hpp"
 #include "egblas/sum.hpp"
 #include "egblas/sqrt.hpp"
+#include "egblas/log.hpp"
