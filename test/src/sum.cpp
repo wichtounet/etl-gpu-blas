@@ -18,12 +18,12 @@
 #include "catch.hpp"
 
 TEST_CASE("sum/s/0", "[float][sum]") {
-    const size_t N = 123;
+    const size_t N = 257;
 
     float* cpu_vec = new float[N];
 
     for (size_t i = 0; i < N; ++i) {
-        cpu_vec[i] = i;
+        cpu_vec[i] = i + 1;
     }
 
     float* gpu_vec;
@@ -31,7 +31,7 @@ TEST_CASE("sum/s/0", "[float][sum]") {
 
     cuda_check(cudaMemcpy(gpu_vec, cpu_vec, N * sizeof(float), cudaMemcpyHostToDevice));
 
-    REQUIRE(egblas_ssum(gpu_vec, N, 1) == Approx(float(7503)));
+    REQUIRE(egblas_ssum(gpu_vec, N, 1) == Approx(float((N * (N + 1)) / 2)));
 
     cuda_check(cudaFree(gpu_vec));
 
@@ -53,6 +53,48 @@ TEST_CASE("sum/s/1", "[float][sum]") {
     cuda_check(cudaMemcpy(gpu_vec, cpu_vec, N * sizeof(float), cudaMemcpyHostToDevice));
 
     REQUIRE(egblas_ssum(gpu_vec, N, 1) == Approx(float(116972)));
+
+    cuda_check(cudaFree(gpu_vec));
+
+    delete[] cpu_vec;
+}
+
+TEST_CASE("sum/s/2", "[float][sum]") {
+    const size_t N = 1024 * 128 + 5;
+
+    float* cpu_vec = new float[N];
+
+    for (size_t i = 0; i < N; ++i) {
+        cpu_vec[i] = i + 1;
+    }
+
+    float* gpu_vec;
+    cuda_check(cudaMalloc((void**)&gpu_vec, N * sizeof(float)));
+
+    cuda_check(cudaMemcpy(gpu_vec, cpu_vec, N * sizeof(float), cudaMemcpyHostToDevice));
+
+    REQUIRE(egblas_ssum(gpu_vec, N, 1) == Approx(float((N * (N + 1)) / 2)));
+
+    cuda_check(cudaFree(gpu_vec));
+
+    delete[] cpu_vec;
+}
+
+TEST_CASE("sum/s/3", "[float][sum]") {
+    const size_t N = 1024 * 1024 * 6 + 126;
+
+    float* cpu_vec = new float[N];
+
+    for (size_t i = 0; i < N; ++i) {
+        cpu_vec[i] = i + 1;
+    }
+
+    float* gpu_vec;
+    cuda_check(cudaMalloc((void**)&gpu_vec, N * sizeof(float)));
+
+    cuda_check(cudaMemcpy(gpu_vec, cpu_vec, N * sizeof(float), cudaMemcpyHostToDevice));
+
+    REQUIRE(egblas_ssum(gpu_vec, N, 1) == Approx(float((N * (N + 1)) / 2)));
 
     cuda_check(cudaFree(gpu_vec));
 
