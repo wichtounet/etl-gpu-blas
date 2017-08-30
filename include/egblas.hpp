@@ -14,3 +14,4 @@
 #include "egblas/sum.hpp"
 #include "egblas/sqrt.hpp"
 #include "egblas/log.hpp"
+#include "egblas/cce.hpp"
