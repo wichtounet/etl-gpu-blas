@@ -188,7 +188,7 @@ T sum_kernel_run(size_t n, const T* input, size_t incx) {
 
     const size_t cpu_threshold = 1024;
 
-    if (n <= cpu_threshold) {
+    if (n <= cpu_threshold && incx == 1) {
         if (n > 1) {
             T* host_data = new T[n];
 
