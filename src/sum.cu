@@ -28,10 +28,10 @@ __global__ void sum_kernel(unsigned int n, const T* g_idata, size_t incx, T* g_o
     T mySum = 0;
 
     while (i < n) {
-        mySum += g_idata[i];
+        mySum += g_idata[i * incx];
 
         if (i + blockSize < n){
-            mySum += g_idata[i + blockSize];
+            mySum += g_idata[(i + blockSize) * incx];
         }
 
         i += gridSize;
@@ -238,7 +238,7 @@ T sum_kernel_run(size_t n, const T* input, size_t incx) {
 
         cuda_check(cudaMemcpy(y_gpu_1, y_gpu_2, s * sizeof(T), cudaMemcpyDeviceToDevice));
 
-        invoke_sum_kernel<T>(s, y_gpu_1, incx, y_gpu_2, numThreads, numBlocks);
+        invoke_sum_kernel<T>(s, y_gpu_1, 1, y_gpu_2, numThreads, numBlocks);
 
         s = (s + numThreads * 2 - 1) / (numThreads * 2);
     }
