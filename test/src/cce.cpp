@@ -85,8 +85,8 @@ TEST_CASE("cce/error/s/0", "[float][cce]") {
     float* y_cpu = new float[N * M];
 
     for (size_t i = 0; i < N * M; ++i) {
-        x_cpu[i] = 0.1 * (i + 1);
-        y_cpu[i] = 0.1 * ((i + 1) % 4);
+        x_cpu[i] = (i + 1);
+        y_cpu[i] = ((i + 1) % 9);
     }
 
     float* x_gpu;
@@ -99,7 +99,7 @@ TEST_CASE("cce/error/s/0", "[float][cce]") {
 
     float loss = egblas_cce_serror(N, M, 1.0 / 137.0f, x_gpu, y_gpu);
 
-    REQUIRE(loss == Approx(0.375f));
+    REQUIRE(loss == Approx(0.76642));
 
     cuda_check(cudaFree(x_gpu));
     cuda_check(cudaFree(y_gpu));
@@ -116,8 +116,8 @@ TEST_CASE("cce/error/d/0", "[double][cce]") {
     double* y_cpu = new double[N * M];
 
     for (size_t i = 0; i < N * M; ++i) {
-        x_cpu[i] = 0.1 * (i + 1);
-        y_cpu[i] = 0.1 * ((i + 1) % 4);
+        x_cpu[i] = (i + 1);
+        y_cpu[i] = ((i + 1) % 11);
     }
 
     double* x_gpu;
@@ -130,7 +130,7 @@ TEST_CASE("cce/error/d/0", "[double][cce]") {
 
     double loss = egblas_cce_derror(N, M, 1.0 / 128.0f, x_gpu, y_gpu);
 
-    REQUIRE(loss == Approx(0.305555));
+    REQUIRE(loss == Approx(0.71875));
 
     cuda_check(cudaFree(x_gpu));
     cuda_check(cudaFree(y_gpu));

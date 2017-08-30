@@ -31,30 +31,24 @@ __global__ void cce_error_kernel(size_t n, size_t m, const T* output, const T* l
     for (; index < n; index += stride) {
         auto i = index;
 
-        T max_l = labels[i * m + 0];
-        T max_o = output[i * m + 0];
+        int max_l = 0;
+        int max_o = 0;
 
         // Compute the max for argmax
 
         for (size_t j = 1; j < m; ++j) {
-            if (labels[i * m + j] > max_l) {
-                max_l = labels[i * m + j];
+            if (labels[i * m + j] > labels[i * m + max_l]) {
+                max_l = j;
             }
 
-            if (output[i * m + j] > max_o) {
-                max_o = output[i * m + j];
+            if (output[i * m + j] > output[i * m + max_o]) {
+                max_o = j;
             }
         }
 
         // Compute the final value
 
-        for (size_t j = 0; j < m; ++j) {
-            // argmax(l) __ argmax(o)
-            T a_l = labels[i * m + j] == max_l ? 1.0 : 0.0;
-            T a_o = output[i * m + j] == max_o ? 1.0 : 0.0;
-
-            y[i * m + j] = fabs(a_l - a_o);
-        }
+        y[i] = fmin(abs(max_l - max_o), T(1.0));
     }
 }
 
@@ -114,26 +108,26 @@ double egblas_cce_dloss(size_t n, double alpha, const double* output, size_t inc
 
 float egblas_cce_serror(size_t n, size_t m, float alpha, const float* output, const float* labels) {
     float* temp;
-    cuda_check(cudaMalloc((void**)&temp, (n * m) * sizeof(float)));
+    cuda_check(cudaMalloc((void**)&temp, n * sizeof(float)));
 
     cce_error_kernel_run(n, m, output, labels, temp);
 
-    float loss = thrust::reduce(thrust::device, temp, temp + n * m);
+    float loss = thrust::reduce(thrust::device, temp, temp + n);
 
     cuda_check(cudaFree(temp));
 
-    return alpha * loss * (1.0f / m);
+    return alpha * loss * 1.0f;
 }
 
 double egblas_cce_derror(size_t n, size_t m, double alpha, const double* output, const double* labels) {
     double* temp;
-    cuda_check(cudaMalloc((void**)&temp, (n * m) * sizeof(double)));
+    cuda_check(cudaMalloc((void**)&temp, n * sizeof(double)));
 
     cce_error_kernel_run(n, m, output, labels, temp);
 
-    double loss = thrust::reduce(thrust::device, temp, temp + n * m);
+    double loss = thrust::reduce(thrust::device, temp, temp + n);
 
     cuda_check(cudaFree(temp));
 
-    return alpha * loss * (1.0 / m);
+    return alpha * loss;
 }
