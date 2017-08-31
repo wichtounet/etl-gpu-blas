@@ -33,7 +33,7 @@ __global__ void sum_kernel(unsigned int n, const T* g_idata, size_t incx, T* g_o
     while (i < n) {
         mySum += g_idata[i * incx];
 
-        if (i + blockSize < n){
+        if (i + blockSize < n) {
             mySum += g_idata[(i + blockSize) * incx];
         }
 
@@ -93,7 +93,6 @@ void invoke_sum_kernel(unsigned int n, const T* input, size_t incx, T* output, s
             break;
     }
 }
-
 
 template <typename T>
 T sum_kernel_run(size_t n, const T* input, size_t incx) {
