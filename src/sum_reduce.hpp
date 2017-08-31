@@ -6,26 +6,26 @@
 //=======================================================================
 
 template <class T, size_t blockSize>
-__device__ void sum_reduce_impl(unsigned int n, const T* g_idata, size_t incx, T* g_odata, volatile T* sdata, T mySum){
-    unsigned int tid      = threadIdx.x;
+__device__ void sum_reduce_impl(T* output, volatile T* shared_data, T mySum){
+    size_t tid      = threadIdx.x;
 
     // Do the reduction in shared memory
     // This part is fully unrolled
 
     if ((blockSize >= 512) && (tid < 256)) {
-        sdata[tid] = mySum = mySum + sdata[tid + 256];
+        shared_data[tid] = mySum = mySum + shared_data[tid + 256];
     }
 
     __syncthreads();
 
     if ((blockSize >= 256) && (tid < 128)) {
-        sdata[tid] = mySum = mySum + sdata[tid + 128];
+        shared_data[tid] = mySum = mySum + shared_data[tid + 128];
     }
 
     __syncthreads();
 
     if ((blockSize >= 128) && (tid < 64)) {
-        sdata[tid] = mySum = mySum + sdata[tid + 64];
+        shared_data[tid] = mySum = mySum + shared_data[tid + 64];
     }
 
     __syncthreads();
@@ -38,7 +38,7 @@ __device__ void sum_reduce_impl(unsigned int n, const T* g_idata, size_t incx, T
     if (tid < 32) {
         // Fetch final intermediate sum from 2nd warp
         if (blockSize >= 64){
-            mySum += sdata[tid + 32];
+            mySum += shared_data[tid + 32];
         }
 
         // Reduce final warp using shuffle
@@ -50,37 +50,37 @@ __device__ void sum_reduce_impl(unsigned int n, const T* g_idata, size_t incx, T
     // Fully unroll the reduction within a single warp
 
     if ((blockSize >= 64) && (tid < 32)) {
-        sdata[tid] = mySum = mySum + sdata[tid + 32];
+        shared_data[tid] = mySum = mySum + shared_data[tid + 32];
     }
 
     __syncthreads();
 
     if ((blockSize >= 32) && (tid < 16)) {
-        sdata[tid] = mySum = mySum + sdata[tid + 16];
+        shared_data[tid] = mySum = mySum + shared_data[tid + 16];
     }
 
     __syncthreads();
 
     if ((blockSize >= 16) && (tid < 8)) {
-        sdata[tid] = mySum = mySum + sdata[tid + 8];
+        shared_data[tid] = mySum = mySum + shared_data[tid + 8];
     }
 
     __syncthreads();
 
     if ((blockSize >= 8) && (tid < 4)) {
-        sdata[tid] = mySum = mySum + sdata[tid + 4];
+        shared_data[tid] = mySum = mySum + shared_data[tid + 4];
     }
 
     __syncthreads();
 
     if ((blockSize >= 4) && (tid < 2)) {
-        sdata[tid] = mySum = mySum + sdata[tid + 2];
+        shared_data[tid] = mySum = mySum + shared_data[tid + 2];
     }
 
     __syncthreads();
 
     if ((blockSize >= 2) && (tid < 1)) {
-        sdata[tid] = mySum = mySum + sdata[tid + 1];
+        shared_data[tid] = mySum = mySum + shared_data[tid + 1];
     }
 
     __syncthreads();
@@ -88,6 +88,6 @@ __device__ void sum_reduce_impl(unsigned int n, const T* g_idata, size_t incx, T
 
     // write result for this block to global mem
     if (tid == 0){
-        g_odata[blockIdx.x] = mySum;
+        output[blockIdx.x] = mySum;
     }
 }

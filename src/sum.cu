@@ -16,14 +16,14 @@
 #include "sum_reduce.hpp"
 
 template <class T, size_t blockSize>
-__global__ void sum_kernel(unsigned int n, const T* g_idata, size_t incx, T* g_odata) {
-    extern __shared__ __align__(sizeof(T)) volatile unsigned char sdata_raw[];
+__global__ void sum_kernel(size_t n, const T* input, size_t incx, T* output) {
+    extern __shared__ __align__(sizeof(T)) volatile unsigned char shared_data_raw[];
 
-    volatile T* sdata = reinterpret_cast<volatile T*>(sdata_raw);
+    volatile T* shared_data = reinterpret_cast<volatile T*>(shared_data_raw);
 
-    unsigned int tid      = threadIdx.x;
-    unsigned int i        = blockIdx.x * (2 * blockDim.x) + threadIdx.x;
-    unsigned int gridSize = blockSize * 2 * gridDim.x;
+    size_t tid      = threadIdx.x;
+    size_t i        = blockIdx.x * (2 * blockDim.x) + threadIdx.x;
+    size_t gridSize = blockSize * 2 * gridDim.x;
 
     // Perform first level of durection,
     // reading from global memory and writing to shared memory
@@ -31,24 +31,24 @@ __global__ void sum_kernel(unsigned int n, const T* g_idata, size_t incx, T* g_o
     T mySum = 0;
 
     while (i < n) {
-        mySum += g_idata[i * incx];
+        mySum += input[i * incx];
 
         if (i + blockSize < n) {
-            mySum += g_idata[(i + blockSize) * incx];
+            mySum += input[(i + blockSize) * incx];
         }
 
         i += gridSize;
     }
 
-    sdata[tid] = mySum;
+    shared_data[tid] = mySum;
 
     __syncthreads();
 
-    sum_reduce_impl<T, blockSize>(n, g_idata, incx, g_odata, sdata, mySum);
+    sum_reduce_impl<T, blockSize>(output, shared_data, mySum);
 }
 
 template <typename T>
-void invoke_sum_kernel(unsigned int n, const T* input, size_t incx, T* output, size_t numThreads, size_t numBlocks) {
+void invoke_sum_kernel(size_t n, const T* input, size_t incx, T* output, size_t numThreads, size_t numBlocks) {
     int sharedSize = (numThreads <= 32) ? 64 * sizeof(T) : numThreads * sizeof(T);
 
     switch (numThreads) {
