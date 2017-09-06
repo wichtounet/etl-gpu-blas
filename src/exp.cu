@@ -17,6 +17,30 @@ __global__ void exp_kernel(size_t n, T alpha, const T* x, size_t incx, T* y, siz
     }
 }
 
+template <>
+__global__ void exp_kernel(size_t n, cuComplex alpha, const cuComplex* x, size_t incx, cuComplex* y, size_t incy) {
+    auto index  = threadIdx.x + blockIdx.x * blockDim.x;
+    auto stride = blockDim.x * gridDim.x;
+
+    for (; index < n; index += stride) {
+        cuComplex c = x[incx * index];
+        float e = expf(c.x);
+        y[incy * index] = cuCmulf(alpha, make_cuComplex(e * cosf(c.y), e * sinf(c.y)));
+    }
+}
+
+template <>
+__global__ void exp_kernel(size_t n, cuDoubleComplex alpha, const cuDoubleComplex* x, size_t incx, cuDoubleComplex* y, size_t incy) {
+    auto index  = threadIdx.x + blockIdx.x * blockDim.x;
+    auto stride = blockDim.x * gridDim.x;
+
+    for (; index < n; index += stride) {
+        cuDoubleComplex c = x[incx * index];
+        double e = expf(c.x);
+        y[incy * index] = cuCmul(alpha, make_cuDoubleComplex(e * cosf(c.y), e * sinf(c.y)));
+    }
+}
+
 template <typename T>
 __global__ void exp_kernel1(size_t n, const T* x, size_t incx, T* y, size_t incy) {
     auto index  = threadIdx.x + blockIdx.x * blockDim.x;
@@ -27,6 +51,30 @@ __global__ void exp_kernel1(size_t n, const T* x, size_t incx, T* y, size_t incy
     }
 }
 
+template <>
+__global__ void exp_kernel1(size_t n, const cuComplex* x, size_t incx, cuComplex* y, size_t incy) {
+    auto index  = threadIdx.x + blockIdx.x * blockDim.x;
+    auto stride = blockDim.x * gridDim.x;
+
+    for (; index < n; index += stride) {
+        cuComplex c = x[incx * index];
+        float e = expf(c.x);
+        y[incy * index] = make_cuComplex(e * cosf(c.y), e * sinf(c.y));
+    }
+}
+
+template <>
+__global__ void exp_kernel1(size_t n, const cuDoubleComplex* x, size_t incx, cuDoubleComplex* y, size_t incy) {
+    auto index  = threadIdx.x + blockIdx.x * blockDim.x;
+    auto stride = blockDim.x * gridDim.x;
+
+    for (; index < n; index += stride) {
+        cuDoubleComplex c = x[incx * index];
+        double e = expf(c.x);
+        y[incy * index] = make_cuDoubleComplex(e * cosf(c.y), e * sinf(c.y));
+    }
+}
+
 template <typename T>
 __global__ void exp_kernel0(size_t n, T* y, size_t incy) {
     auto index  = threadIdx.x + blockIdx.x * blockDim.x;
@@ -34,6 +82,26 @@ __global__ void exp_kernel0(size_t n, T* y, size_t incy) {
 
     for (; index < n; index += stride) {
         y[incy * index] = T(0);
+    }
+}
+
+template <>
+__global__ void exp_kernel0(size_t n, cuComplex* y, size_t incy) {
+    auto index  = threadIdx.x + blockIdx.x * blockDim.x;
+    auto stride = blockDim.x * gridDim.x;
+
+    for (; index < n; index += stride) {
+        y[incy * index] = make_cuComplex(0, 0);
+    }
+}
+
+template <>
+__global__ void exp_kernel0(size_t n, cuDoubleComplex* y, size_t incy) {
+    auto index  = threadIdx.x + blockIdx.x * blockDim.x;
+    auto stride = blockDim.x * gridDim.x;
+
+    for (; index < n; index += stride) {
+        y[incy * index] = make_cuDoubleComplex(0, 0);
     }
 }
 
@@ -93,6 +161,26 @@ void egblas_dexp(size_t n, double alpha, const double* x, size_t incx, double* y
     if (alpha == 1.0) {
         exp_kernel1_run(n, x, incx, y, incy);
     } else if (alpha == 0.0) {
+        exp_kernel0_run(n, y, incy);
+    } else {
+        exp_kernel_run(n, alpha, x, incx, y, incy);
+    }
+}
+
+void egblas_cexp(size_t n, cuComplex alpha, const cuComplex* x, size_t incx, cuComplex* y, size_t incy) {
+    if (alpha.x == 1.0f && alpha.y == 0.0f) {
+        exp_kernel1_run(n, x, incx, y, incy);
+    } else if (alpha.x == 0.0f && alpha.y == 0.0f) {
+        exp_kernel0_run(n, y, incy);
+    } else {
+        exp_kernel_run(n, alpha, x, incx, y, incy);
+    }
+}
+
+void egblas_zexp(size_t n, cuDoubleComplex alpha, const cuDoubleComplex* x, size_t incx, cuDoubleComplex* y, size_t incy) {
+    if (alpha.x == 1.0 && alpha.y == 0.0) {
+        exp_kernel1_run(n, x, incx, y, incy);
+    } else if (alpha.x == 0.0 && alpha.y == 0.0) {
         exp_kernel0_run(n, y, incy);
     } else {
         exp_kernel_run(n, alpha, x, incx, y, incy);

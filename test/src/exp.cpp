@@ -5,17 +5,7 @@
 //  http://opensource.org/licenses/MIT)
 //=======================================================================
 
-#include <complex>
-#include <iostream>
-
-#include "cuda.h"
-#include "cuda_runtime.h"
-#include "cuda_runtime_api.h"
-
-#include "egblas.hpp"
 #include "test.hpp"
-
-#include "catch.hpp"
 
 TEST_CASE("exp/s/0", "[float][exp]") {
     const size_t N = 137;
@@ -140,6 +130,138 @@ TEST_CASE("exp/d/1", "[double][exp]") {
 
     for (size_t i = 0; i < N; ++i) {
         REQUIRE(y_cpu[i] == Approx(0.2 * std::exp((1.1 * (i + 1)) / 998.9f)));
+    }
+
+    cuda_check(cudaFree(x_gpu));
+    cuda_check(cudaFree(y_gpu));
+
+    delete[] x_cpu;
+    delete[] y_cpu;
+}
+
+TEST_CASE("exp/c/0", "[float][exp]") {
+    const size_t N = 137;
+
+    std::complex<float>* x_cpu = new std::complex<float>[N];
+    std::complex<float>* y_cpu = new std::complex<float>[N];
+
+    for (size_t i = 0; i < N; ++i) {
+        x_cpu[i] = std::complex<float>(i / 1000.0f, -1.0f * i);
+    }
+
+    std::complex<float>* x_gpu;
+    std::complex<float>* y_gpu;
+    cuda_check(cudaMalloc((void**)&x_gpu, N * sizeof(std::complex<float>)));
+    cuda_check(cudaMalloc((void**)&y_gpu, N * sizeof(std::complex<float>)));
+
+    cuda_check(cudaMemcpy(x_gpu, x_cpu, N * sizeof(std::complex<float>), cudaMemcpyHostToDevice));
+    cuda_check(cudaMemcpy(y_gpu, y_cpu, N * sizeof(std::complex<float>), cudaMemcpyHostToDevice));
+
+    egblas_cexp(N, make_cuComplex(1.0f, 0.0f), reinterpret_cast<cuComplex*>(x_gpu), 1, reinterpret_cast<cuComplex*>(y_gpu), 1);
+
+    cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(std::complex<float>), cudaMemcpyDeviceToHost));
+
+    for (size_t i = 0; i < N; ++i) {
+        REQUIRE(y_cpu[i] == ComplexApprox<float>(std::exp(std::complex<float>(i / 1000.0f, -1.0f * i))));
+    }
+
+    cuda_check(cudaFree(x_gpu));
+    cuda_check(cudaFree(y_gpu));
+
+    delete[] x_cpu;
+    delete[] y_cpu;
+}
+
+TEST_CASE("exp/c/1", "[float][exp]") {
+    const size_t N = 338;
+
+    std::complex<float>* x_cpu = new std::complex<float>[N];
+    std::complex<float>* y_cpu = new std::complex<float>[N];
+
+    for (size_t i = 0; i < N; ++i) {
+        x_cpu[i] = std::complex<float>(i / 998.0f, -2.0f * i);
+    }
+
+    std::complex<float>* x_gpu;
+    std::complex<float>* y_gpu;
+    cuda_check(cudaMalloc((void**)&x_gpu, N * sizeof(std::complex<float>)));
+    cuda_check(cudaMalloc((void**)&y_gpu, N * sizeof(std::complex<float>)));
+
+    cuda_check(cudaMemcpy(x_gpu, x_cpu, N * sizeof(std::complex<float>), cudaMemcpyHostToDevice));
+    cuda_check(cudaMemcpy(y_gpu, y_cpu, N * sizeof(std::complex<float>), cudaMemcpyHostToDevice));
+
+    egblas_cexp(N, make_cuComplex(1.0f, 1.0f), reinterpret_cast<cuComplex*>(x_gpu), 1, reinterpret_cast<cuComplex*>(y_gpu), 1);
+
+    cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(std::complex<float>), cudaMemcpyDeviceToHost));
+
+    for (size_t i = 0; i < N; ++i) {
+        REQUIRE(y_cpu[i] == ComplexApprox<float>(std::complex<float>(1.0f, 1.0f) * std::exp(std::complex<float>(i / 998.0f, -2.0f * i))));
+    }
+
+    cuda_check(cudaFree(x_gpu));
+    cuda_check(cudaFree(y_gpu));
+
+    delete[] x_cpu;
+    delete[] y_cpu;
+}
+
+TEST_CASE("exp/z/0", "[double][exp]") {
+    const size_t N = 137;
+
+    std::complex<double>* x_cpu = new std::complex<double>[N];
+    std::complex<double>* y_cpu = new std::complex<double>[N];
+
+    for (size_t i = 0; i < N; ++i) {
+        x_cpu[i] = std::complex<double>(i / 999.0, -1.1 * i);
+    }
+
+    std::complex<double>* x_gpu;
+    std::complex<double>* y_gpu;
+    cuda_check(cudaMalloc((void**)&x_gpu, N * sizeof(std::complex<double>)));
+    cuda_check(cudaMalloc((void**)&y_gpu, N * sizeof(std::complex<double>)));
+
+    cuda_check(cudaMemcpy(x_gpu, x_cpu, N * sizeof(std::complex<double>), cudaMemcpyHostToDevice));
+    cuda_check(cudaMemcpy(y_gpu, y_cpu, N * sizeof(std::complex<double>), cudaMemcpyHostToDevice));
+
+    egblas_zexp(N, make_cuDoubleComplex(1.0, 0.0), reinterpret_cast<cuDoubleComplex*>(x_gpu), 1, reinterpret_cast<cuDoubleComplex*>(y_gpu), 1);
+
+    cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(std::complex<double>), cudaMemcpyDeviceToHost));
+
+    for (size_t i = 0; i < N; ++i) {
+        REQUIRE(y_cpu[i] == ComplexApprox<double>(std::exp(std::complex<double>(i / 999.0, -1.1 * i))));
+    }
+
+    cuda_check(cudaFree(x_gpu));
+    cuda_check(cudaFree(y_gpu));
+
+    delete[] x_cpu;
+    delete[] y_cpu;
+}
+
+TEST_CASE("exp/z/1", "[double][exp]") {
+    const size_t N = 338;
+
+    std::complex<double>* x_cpu = new std::complex<double>[N];
+    std::complex<double>* y_cpu = new std::complex<double>[N];
+
+    for (size_t i = 0; i < N; ++i) {
+        x_cpu[i] = std::complex<double>(i / 996.0, -2.4 * i);
+    }
+
+    std::complex<double>* x_gpu;
+    std::complex<double>* y_gpu;
+    cuda_check(cudaMalloc((void**)&x_gpu, N * sizeof(std::complex<double>)));
+    cuda_check(cudaMalloc((void**)&y_gpu, N * sizeof(std::complex<double>)));
+
+    cuda_check(cudaMemcpy(x_gpu, x_cpu, N * sizeof(std::complex<double>), cudaMemcpyHostToDevice));
+    cuda_check(cudaMemcpy(y_gpu, y_cpu, N * sizeof(std::complex<double>), cudaMemcpyHostToDevice));
+
+    egblas_zexp(N, make_cuDoubleComplex(0.1, 2.0), reinterpret_cast<cuDoubleComplex*>(x_gpu), 1, reinterpret_cast<cuDoubleComplex*>(y_gpu), 1);
+
+    cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(std::complex<double>), cudaMemcpyDeviceToHost));
+
+    for (size_t i = 0; i < N; ++i) {
+        REQUIRE(y_cpu[i] == ComplexApprox<double>(std::complex<double>(0.1, 2.0) * std::exp(std::complex<double>(i / 996.0, -2.4 * i))));
     }
 
     cuda_check(cudaFree(x_gpu));
