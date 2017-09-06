@@ -17,6 +17,7 @@ So far, the library supports the following features:
  * Vector scalar division (egblas_scalar_Xdiv)
  * Vector element-wise sqrt (egblas_Xsqrt)
  * Vector element-wise log (egblas_Xlog)
+ * Vector element-wise exp (egblas_Xexp)
  * y = (alpha * x) * y (egblas_Xaxmy)
  * y = (alpha * x) / y (egblas_Xaxdy)
 
