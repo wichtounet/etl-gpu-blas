@@ -15,5 +15,6 @@
 #include "egblas/sum.hpp"
 #include "egblas/sqrt.hpp"
 #include "egblas/log.hpp"
+#include "egblas/exp.hpp"
 #include "egblas/cce.hpp"
 #include "egblas/relu_der_out.hpp"
