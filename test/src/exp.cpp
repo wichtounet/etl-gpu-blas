@@ -162,7 +162,7 @@ TEST_CASE("exp/c/0", "[float][exp]") {
     cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(std::complex<float>), cudaMemcpyDeviceToHost));
 
     for (size_t i = 0; i < N; ++i) {
-        REQUIRE(y_cpu[i] == ComplexApprox<float>(std::exp(std::complex<float>(i / 1000.0f, -1.0f * i))));
+        REQUIRE(y_cpu[i] == TestComplex<float>(std::exp(std::complex<float>(i / 1000.0f, -1.0f * i))));
     }
 
     cuda_check(cudaFree(x_gpu));
@@ -195,7 +195,7 @@ TEST_CASE("exp/c/1", "[float][exp]") {
     cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(std::complex<float>), cudaMemcpyDeviceToHost));
 
     for (size_t i = 0; i < N; ++i) {
-        REQUIRE(y_cpu[i] == ComplexApprox<float>(std::complex<float>(1.0f, 1.0f) * std::exp(std::complex<float>(i / 998.0f, -2.0f * i))));
+        REQUIRE(y_cpu[i] == TestComplex<float>(std::complex<float>(1.0f, 1.0f) * std::exp(std::complex<float>(i / 998.0f, -2.0f * i))));
     }
 
     cuda_check(cudaFree(x_gpu));
@@ -228,7 +228,7 @@ TEST_CASE("exp/z/0", "[double][exp]") {
     cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(std::complex<double>), cudaMemcpyDeviceToHost));
 
     for (size_t i = 0; i < N; ++i) {
-        REQUIRE(y_cpu[i] == ComplexApprox<double>(std::exp(std::complex<double>(i / 999.0, -1.1 * i))));
+        REQUIRE(y_cpu[i] == TestComplex<double>(std::exp(std::complex<double>(i / 999.0, -1.1 * i))));
     }
 
     cuda_check(cudaFree(x_gpu));
@@ -261,7 +261,7 @@ TEST_CASE("exp/z/1", "[double][exp]") {
     cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(std::complex<double>), cudaMemcpyDeviceToHost));
 
     for (size_t i = 0; i < N; ++i) {
-        REQUIRE(y_cpu[i] == ComplexApprox<double>(std::complex<double>(0.1, 2.0) * std::exp(std::complex<double>(i / 996.0, -2.4 * i))));
+        REQUIRE(y_cpu[i] == TestComplex<double>(std::complex<double>(0.1, 2.0) * std::exp(std::complex<double>(i / 996.0, -2.4 * i))));
     }
 
     cuda_check(cudaFree(x_gpu));
