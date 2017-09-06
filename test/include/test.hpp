@@ -5,6 +5,18 @@
 //  http://opensource.org/licenses/MIT)
 //=======================================================================
 
+#include <complex>
+#include <iostream>
+
+#include "cuda.h"
+#include "cuda_runtime.h"
+#include "cuda_runtime_api.h"
+
+#include "egblas.hpp"
+
+#include "catch.hpp"
+#include "catch_complex_approx.hpp"
+
 #define cuda_check(call)                                                                                \
     {                                                                                                   \
         auto status = call;                                                                             \
