@@ -24,8 +24,8 @@ struct ComplexApprox {
      * \brief Construct a ComplexApprox for the given complex value
      * \param value the expected complex value
      */
-    explicit ComplexApprox(const std::complex<T>& value)
-            : eps(std::numeric_limits<float>::epsilon() * 100), value(value) {
+    explicit ComplexApprox(const std::complex<T>& value, T eps = std::numeric_limits<float>::epsilon() * 10000)
+            : eps(eps), value(value) {
         //Nothing else to init
     }
 
@@ -34,8 +34,8 @@ struct ComplexApprox {
      * \param real the expected real part
      * \param imag the expected imaginary part
      */
-    ComplexApprox(T real, T imag)
-            : eps(std::numeric_limits<float>::epsilon() * 100), value(real, imag) {
+    ComplexApprox(T real, T imag, T eps = std::numeric_limits<float>::epsilon() * 10000)
+            : eps(eps), value(real, imag) {
         //Nothing else to init
     }
 
@@ -48,7 +48,8 @@ struct ComplexApprox {
      * \return true if they are approximatily the same
      */
     friend bool operator==(const std::complex<T>& lhs, const ComplexApprox& rhs) {
-        return fabs(lhs.real() - rhs.value.real()) < rhs.eps * (1.0 + std::max(fabs(lhs.real()), fabs(rhs.value.real()))) && fabs(lhs.imag() - rhs.value.imag()) < rhs.eps * (1.0 + std::max(fabs(lhs.imag()), fabs(rhs.value.imag())));
+        return std::abs(lhs.real() - rhs.value.real()) < rhs.eps * (T(1) + std::max(std::abs(lhs.real()), std::abs(rhs.value.real())))
+            && std::abs(lhs.imag() - rhs.value.imag()) < rhs.eps * (T(1) + std::max(std::abs(lhs.imag()), std::abs(rhs.value.imag())));
     }
 
     /*!
@@ -92,7 +93,7 @@ struct ComplexApprox {
     }
 
 private:
-    double eps;            ///< The epsilon for comparison
+    T eps;                 ///< The epsilon for comparison
     std::complex<T> value; ///< The expected value
 };
 
