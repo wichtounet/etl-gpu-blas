@@ -52,7 +52,7 @@ void egblas_clog2(size_t n, cuComplex alpha, const cuComplex* x, size_t incx, cu
  */
 void egblas_zlog2(size_t n, cuDoubleComplex alpha, const cuDoubleComplex* x, size_t incx, cuDoubleComplex* y, size_t incy);
 
-#define EGBLAS_HAS_Slog2 true
-#define EGBLAS_HAS_Dlog2 true
-#define EGBLAS_HAS_Clog2 true
-#define EGBLAS_HAS_Zlog2 true
+#define EGBLAS_HAS_SLOG2 true
+#define EGBLAS_HAS_DLOG2 true
+#define EGBLAS_HAS_CLOG2 true
+#define EGBLAS_HAS_ZLOG2 true
