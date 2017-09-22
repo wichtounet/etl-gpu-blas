@@ -10,6 +10,7 @@
 // Binary functions
 #include "egblas/axdy.hpp"
 #include "egblas/axmy.hpp"
+#include "egblas/pow.hpp"
 
 // Scalar manipulations
 #include "egblas/scalar_set.hpp"
