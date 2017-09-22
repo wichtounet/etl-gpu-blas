@@ -19,6 +19,7 @@
 // Unary element-wise functions
 #include "egblas/sqrt.hpp"
 #include "egblas/log.hpp"
+#include "egblas/log10.hpp"
 #include "egblas/exp.hpp"
 
 // Reductions
