@@ -11,6 +11,7 @@
 #include "egblas/axdy.hpp"
 #include "egblas/axmy.hpp"
 #include "egblas/pow.hpp"
+#include "egblas/pow_yx.hpp"
 
 // Scalar manipulations
 #include "egblas/scalar_set.hpp"
