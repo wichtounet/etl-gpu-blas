@@ -24,7 +24,7 @@ __global__ void pow_kernel(size_t n, cuComplex alpha, const cuComplex* x, size_t
 
     for (; index < n; index += stride) {
         auto x_ =  x[incx * index];
-        auto y_ =  y[incx * index];
+        auto y_ =  y[incy * index];
 
         float c_abs = hypot(x_.x, x_.y);
         float c_arg = atan2f(x_.y, x_.x);
@@ -46,7 +46,7 @@ __global__ void pow_kernel(size_t n, cuDoubleComplex alpha, const cuDoubleComple
 
     for (; index < n; index += stride) {
         auto x_ =  x[incx * index];
-        auto y_ =  y[incx * index];
+        auto y_ =  y[incy * index];
 
         double c_abs = hypot(x_.x, x_.y);
         double c_arg = atan2(x_.y, x_.x);
@@ -78,7 +78,7 @@ __global__ void pow_kernel1(size_t n, const cuComplex* x, size_t incx, cuComplex
 
     for (; index < n; index += stride) {
         auto x_ =  x[incx * index];
-        auto y_ =  y[incx * index];
+        auto y_ =  y[incy * index];
 
         float c_abs = hypot(x_.x, x_.y);
         float c_arg = atan2f(x_.y, x_.x);
@@ -101,7 +101,7 @@ __global__ void pow_kernel1(size_t n, const cuDoubleComplex* x, size_t incx, cuD
 
     for (; index < n; index += stride) {
         auto x_ =  x[incx * index];
-        auto y_ =  y[incx * index];
+        auto y_ =  y[incy * index];
 
         double c_abs = hypot(x_.x, x_.y);
         double c_arg = atan2(x_.y, x_.x);
