@@ -123,6 +123,39 @@ TEST_CASE("pow_yx/s/2", "[float][pow_yx]") {
     delete[] y_cpu;
 }
 
+TEST_CASE("pow_yx/s/3", "[float][pow_yx]") {
+    const size_t N = 111;
+
+    float* y_cpu = new float[N];
+
+    for (size_t i = 0; i < N; ++i) {
+        y_cpu[i] = 0.1 + 0.023f * i;
+    }
+
+    float x_cpu = 2.2;
+
+    float* x_gpu;
+    float* y_gpu;
+    cuda_check(cudaMalloc((void**)&x_gpu, 1 * sizeof(float)));
+    cuda_check(cudaMalloc((void**)&y_gpu, N * sizeof(float)));
+
+    cuda_check(cudaMemcpy(x_gpu, &x_cpu, 1 * sizeof(float), cudaMemcpyHostToDevice));
+    cuda_check(cudaMemcpy(y_gpu, y_cpu, N * sizeof(float), cudaMemcpyHostToDevice));
+
+    egblas_spow_yx(N, 0.2, x_gpu, 0, y_gpu, 1);
+
+    cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
+
+    for (size_t i = 0; i < N; ++i) {
+        REQUIRE(y_cpu[i] == Approx(0.2f * std::pow(0.1 + 0.023f * i, 2.2)));
+    }
+
+    cuda_check(cudaFree(x_gpu));
+    cuda_check(cudaFree(y_gpu));
+
+    delete[] y_cpu;
+}
+
 TEST_CASE("pow_yx/d/0", "[double][pow_yx]") {
     const size_t N = 137;
 
