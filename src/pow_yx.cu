@@ -13,7 +13,7 @@ __global__ void pow_yx_kernel(size_t n, T alpha, const T* x, size_t incx, T* y, 
     auto stride = blockDim.x * gridDim.x;
 
     for (; index < n; index += stride) {
-        y[incy * index] = alpha * pow(y[incx * index], x[incy * index]);
+        y[incy * index] = alpha * pow(y[incy * index], x[incx * index]);
     }
 }
 
@@ -67,7 +67,7 @@ __global__ void pow_yx_kernel1(size_t n, const T* x, size_t incx, T* y, size_t i
     auto stride = blockDim.x * gridDim.x;
 
     for (; index < n; index += stride) {
-        y[incy * index] = pow(y[incx * index], x[incy * index]);
+        y[incy * index] = pow(y[incy * index], x[incx * index]);
     }
 }
 
