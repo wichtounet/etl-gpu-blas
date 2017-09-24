@@ -6,14 +6,26 @@
 //=======================================================================
 
 #include "egblas/pow.hpp"
-
 template <typename T>
-__global__ void pow_yx_kernel(size_t n, T alpha, const T* x, size_t incx, T* y, size_t incy) {
+__global__ void pow_yx_kernel(size_t n, T alpha, const T* x, size_t incx, T* y, size_t incy);
+
+template <>
+__global__ void pow_yx_kernel(size_t n, double alpha, const double* x, size_t incx, double* y, size_t incy) {
     auto index  = threadIdx.x + blockIdx.x * blockDim.x;
     auto stride = blockDim.x * gridDim.x;
 
     for (; index < n; index += stride) {
         y[incy * index] = alpha * pow(y[incy * index], x[incx * index]);
+    }
+}
+
+template <>
+__global__ void pow_yx_kernel(size_t n, float alpha, const float* x, size_t incx, float* y, size_t incy) {
+    auto index  = threadIdx.x + blockIdx.x * blockDim.x;
+    auto stride = blockDim.x * gridDim.x;
+
+    for (; index < n; index += stride) {
+        y[incy * index] = alpha * powf(y[incy * index], x[incx * index]);
     }
 }
 
@@ -62,12 +74,25 @@ __global__ void pow_yx_kernel(size_t n, cuDoubleComplex alpha, const cuDoubleCom
 }
 
 template <typename T>
-__global__ void pow_yx_kernel1(size_t n, const T* x, size_t incx, T* y, size_t incy) {
+__global__ void pow_yx_kernel1(size_t n, const T* x, size_t incx, T* y, size_t incy);
+
+template <>
+__global__ void pow_yx_kernel1(size_t n, const double* x, size_t incx, double* y, size_t incy) {
     auto index  = threadIdx.x + blockIdx.x * blockDim.x;
     auto stride = blockDim.x * gridDim.x;
 
     for (; index < n; index += stride) {
         y[incy * index] = pow(y[incy * index], x[incx * index]);
+    }
+}
+
+template <>
+__global__ void pow_yx_kernel1(size_t n, const float* x, size_t incx, float* y, size_t incy) {
+    auto index  = threadIdx.x + blockIdx.x * blockDim.x;
+    auto stride = blockDim.x * gridDim.x;
+
+    for (; index < n; index += stride) {
+        y[incy * index] = powf(y[incy * index], x[incx * index]);
     }
 }
 
