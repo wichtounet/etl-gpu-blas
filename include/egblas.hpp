@@ -30,6 +30,7 @@
 #include "egblas/cosh.hpp"
 #include "egblas/sinh.hpp"
 #include "egblas/tanh.hpp"
+#include "egblas/minus.hpp"
 
 // Reductions
 #include "egblas/sum.hpp"
