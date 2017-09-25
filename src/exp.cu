@@ -13,7 +13,7 @@ __global__ void exp_kernel(size_t n, T alpha, const T* x, size_t incx, T* y, siz
     auto stride = blockDim.x * gridDim.x;
 
     for (; index < n; index += stride) {
-        y[incy * index] = alpha * expf(x[incx * index]);
+        y[incy * index] = alpha * exp(x[incx * index]);
     }
 }
 
@@ -24,8 +24,8 @@ __global__ void exp_kernel(size_t n, cuComplex alpha, const cuComplex* x, size_t
 
     for (; index < n; index += stride) {
         cuComplex c = x[incx * index];
-        float e = expf(c.x);
-        y[incy * index] = cuCmulf(alpha, make_cuComplex(e * cosf(c.y), e * sinf(c.y)));
+        float e = exp(c.x);
+        y[incy * index] = cuCmulf(alpha, make_cuComplex(e * cos(c.y), e * sin(c.y)));
     }
 }
 
@@ -36,8 +36,8 @@ __global__ void exp_kernel(size_t n, cuDoubleComplex alpha, const cuDoubleComple
 
     for (; index < n; index += stride) {
         cuDoubleComplex c = x[incx * index];
-        double e = expf(c.x);
-        y[incy * index] = cuCmul(alpha, make_cuDoubleComplex(e * cosf(c.y), e * sinf(c.y)));
+        double e = exp(c.x);
+        y[incy * index] = cuCmul(alpha, make_cuDoubleComplex(e * cos(c.y), e * sin(c.y)));
     }
 }
 
@@ -47,7 +47,7 @@ __global__ void exp_kernel1(size_t n, const T* x, size_t incx, T* y, size_t incy
     auto stride = blockDim.x * gridDim.x;
 
     for (; index < n; index += stride) {
-        y[incy * index] = expf(x[incx * index]);
+        y[incy * index] = exp(x[incx * index]);
     }
 }
 
@@ -58,8 +58,8 @@ __global__ void exp_kernel1(size_t n, const cuComplex* x, size_t incx, cuComplex
 
     for (; index < n; index += stride) {
         cuComplex c = x[incx * index];
-        float e = expf(c.x);
-        y[incy * index] = make_cuComplex(e * cosf(c.y), e * sinf(c.y));
+        float e = exp(c.x);
+        y[incy * index] = make_cuComplex(e * cos(c.y), e * sin(c.y));
     }
 }
 
@@ -70,8 +70,8 @@ __global__ void exp_kernel1(size_t n, const cuDoubleComplex* x, size_t incx, cuD
 
     for (; index < n; index += stride) {
         cuDoubleComplex c = x[incx * index];
-        double e = expf(c.x);
-        y[incy * index] = make_cuDoubleComplex(e * cosf(c.y), e * sinf(c.y));
+        double e = exp(c.x);
+        y[incy * index] = make_cuDoubleComplex(e * cos(c.y), e * sin(c.y));
     }
 }
 
