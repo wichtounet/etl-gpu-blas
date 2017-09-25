@@ -24,6 +24,9 @@
 #include "egblas/log10.hpp"
 #include "egblas/log2.hpp"
 #include "egblas/exp.hpp"
+#include "egblas/cos.hpp"
+#include "egblas/sin.hpp"
+#include "egblas/tan.hpp"
 
 // Reductions
 #include "egblas/sum.hpp"
