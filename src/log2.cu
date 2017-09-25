@@ -13,7 +13,7 @@ __global__ void log2_kernel(size_t n, T alpha, const T* x, size_t incx, T* y, si
     auto stride = blockDim.x * gridDim.x;
 
     for (; index < n; index += stride) {
-        y[incy * index] = alpha * log2f(x[incx * index]);
+        y[incy * index] = alpha * log2(x[incx * index]);
     }
 }
 
@@ -22,15 +22,15 @@ __global__ void log2_kernel(size_t n, cuComplex alpha, const cuComplex* x, size_
     auto index  = threadIdx.x + blockIdx.x * blockDim.x;
     auto stride = blockDim.x * gridDim.x;
 
-    auto log2 = make_cuComplex(logf(2.0f), 0.0f);
+    auto log2 = make_cuComplex(log(2.0f), 0.0f);
 
     for (; index < n; index += stride) {
         cuComplex c = x[incx * index];
 
         float c_abs = hypot(c.x, c.y);
-        float c_arg = atan2f(c.y, c.x);
+        float c_arg = atan2(c.y, c.x);
 
-        auto logx = make_cuComplex(logf(c_abs), c_arg);
+        auto logx = make_cuComplex(log(c_abs), c_arg);
 
         auto res = cuCdivf(logx, log2);
 
@@ -49,7 +49,7 @@ __global__ void log2_kernel(size_t n, cuDoubleComplex alpha, const cuDoubleCompl
         cuDoubleComplex c = x[incx * index];
 
         double c_abs = hypot(c.x, c.y);
-        double c_arg = atan2f(c.y, c.x);
+        double c_arg = atan2(c.y, c.x);
 
         auto logx = make_cuDoubleComplex(log(c_abs), c_arg);
 
@@ -65,7 +65,7 @@ __global__ void log2_kernel1(size_t n, const T* x, size_t incx, T* y, size_t inc
     auto stride = blockDim.x * gridDim.x;
 
     for (; index < n; index += stride) {
-        y[incy * index] = log2f(x[incx * index]);
+        y[incy * index] = log2(x[incx * index]);
     }
 }
 
@@ -74,15 +74,15 @@ __global__ void log2_kernel1(size_t n, const cuComplex* x, size_t incx, cuComple
     auto index  = threadIdx.x + blockIdx.x * blockDim.x;
     auto stride = blockDim.x * gridDim.x;
 
-    auto log2 = make_cuComplex(logf(2.0f), 0.0f);
+    auto log2 = make_cuComplex(log(2.0f), 0.0f);
 
     for (; index < n; index += stride) {
         cuComplex c = x[incx * index];
 
         float c_abs = hypot(c.x, c.y);
-        float c_arg = atan2f(c.y, c.x);
+        float c_arg = atan2(c.y, c.x);
 
-        auto logx = make_cuComplex(logf(c_abs), c_arg);
+        auto logx = make_cuComplex(log(c_abs), c_arg);
 
         auto res = cuCdivf(logx, log2);
 
@@ -101,7 +101,7 @@ __global__ void log2_kernel1(size_t n, const cuDoubleComplex* x, size_t incx, cu
         cuDoubleComplex c = x[incx * index];
 
         double c_abs = hypot(c.x, c.y);
-        double c_arg = atan2f(c.y, c.x);
+        double c_arg = atan2(c.y, c.x);
 
         auto logx = make_cuDoubleComplex(log(c_abs), c_arg);
 

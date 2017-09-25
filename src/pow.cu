@@ -27,13 +27,13 @@ __global__ void pow_kernel(size_t n, cuComplex alpha, const cuComplex* x, size_t
         auto y_ =  y[incy * index];
 
         float c_abs = hypot(x_.x, x_.y);
-        float c_arg = atan2f(x_.y, x_.x);
+        float c_arg = atan2(x_.y, x_.x);
 
-        auto logx = make_cuComplex(logf(c_abs), c_arg);
+        auto logx = make_cuComplex(log(c_abs), c_arg);
         auto ylogx = cuCmulf(y_, logx);
 
-        float e = expf(ylogx.x);
-        auto res = make_cuComplex(e * cosf(ylogx.y), e * sinf(ylogx.y));
+        float e = exp(ylogx.x);
+        auto res = make_cuComplex(e * cos(ylogx.y), e * sin(ylogx.y));
 
         y[incy * index] = cuCmulf(alpha, res);
     }
@@ -54,7 +54,7 @@ __global__ void pow_kernel(size_t n, cuDoubleComplex alpha, const cuDoubleComple
         auto logx = make_cuDoubleComplex(log(c_abs), c_arg);
         auto ylogx = cuCmul(y_, logx);
 
-        double e = expf(ylogx.x);
+        double e = exp(ylogx.x);
         auto res = make_cuDoubleComplex(e * cos(ylogx.y), e * sin(ylogx.y));
 
         y[incy * index] = cuCmul(alpha, res);
@@ -81,14 +81,14 @@ __global__ void pow_kernel1(size_t n, const cuComplex* x, size_t incx, cuComplex
         auto y_ =  y[incy * index];
 
         float c_abs = hypot(x_.x, x_.y);
-        float c_arg = atan2f(x_.y, x_.x);
+        float c_arg = atan2(x_.y, x_.x);
 
-        auto logx = make_cuComplex(logf(c_abs), c_arg);
+        auto logx = make_cuComplex(log(c_abs), c_arg);
 
         auto ylogx = cuCmulf(y_, logx);
 
-        float e = expf(ylogx.x);
-        auto res = make_cuComplex(e * cosf(ylogx.y), e * sinf(ylogx.y));
+        float e = exp(ylogx.x);
+        auto res = make_cuComplex(e * cos(ylogx.y), e * sin(ylogx.y));
 
         y[incy * index] = res;
     }
