@@ -26,3 +26,5 @@
             FAIL();                                                                                     \
         }                                                                                               \
     }
+
+extern float large_eps;

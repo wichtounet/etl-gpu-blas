@@ -7,14 +7,14 @@
 
 #include "test.hpp"
 
-TEST_CASE("tan/s/0", "[float][tan]") {
+TEST_CASE("sinh/s/0", "[float][sinh]") {
     const size_t N = 137;
 
     float* x_cpu = new float[N];
     float* y_cpu = new float[N];
 
     for (size_t i = 0; i < N; ++i) {
-        x_cpu[i] = i + 1;
+        x_cpu[i] = -1.0 + i * 0.01;
     }
 
     float* x_gpu;
@@ -25,12 +25,12 @@ TEST_CASE("tan/s/0", "[float][tan]") {
     cuda_check(cudaMemcpy(x_gpu, x_cpu, N * sizeof(float), cudaMemcpyHostToDevice));
     cuda_check(cudaMemcpy(y_gpu, y_cpu, N * sizeof(float), cudaMemcpyHostToDevice));
 
-    egblas_stan(N, 1.0, x_gpu, 1, y_gpu, 1);
+    egblas_ssinh(N, 1.0, x_gpu, 1, y_gpu, 1);
 
     cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
 
     for (size_t i = 0; i < N; ++i) {
-        REQUIRE(y_cpu[i] == Approx(1.0f * std::tan(x_cpu[i])).epsilon(large_eps));
+        REQUIRE(y_cpu[i] == Approx(1.0f * std::sinh(x_cpu[i])).epsilon(large_eps));
     }
 
     cuda_check(cudaFree(x_gpu));
@@ -40,14 +40,14 @@ TEST_CASE("tan/s/0", "[float][tan]") {
     delete[] y_cpu;
 }
 
-TEST_CASE("tan/s/1", "[float][tan]") {
+TEST_CASE("sinh/s/1", "[float][sinh]") {
     const size_t N = 333;
 
     float* x_cpu = new float[N];
     float* y_cpu = new float[N];
 
     for (size_t i = 0; i < N; ++i) {
-        x_cpu[i] = 1.1f * (i + 1);
+        x_cpu[i] = 0.01f * (i + 1);
     }
 
     float* x_gpu;
@@ -58,12 +58,12 @@ TEST_CASE("tan/s/1", "[float][tan]") {
     cuda_check(cudaMemcpy(x_gpu, x_cpu, N * sizeof(float), cudaMemcpyHostToDevice));
     cuda_check(cudaMemcpy(y_gpu, y_cpu, N * sizeof(float), cudaMemcpyHostToDevice));
 
-    egblas_stan(N, 0.2f, x_gpu, 1, y_gpu, 1);
+    egblas_ssinh(N, 0.2f, x_gpu, 1, y_gpu, 1);
 
     cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
 
     for (size_t i = 0; i < N; ++i) {
-        REQUIRE(y_cpu[i] == Approx(0.2f * std::tan(x_cpu[i])).epsilon(large_eps));
+        REQUIRE(y_cpu[i] == Approx(0.2f * std::sinh(x_cpu[i])).epsilon(large_eps));
     }
 
     cuda_check(cudaFree(x_gpu));
@@ -73,7 +73,7 @@ TEST_CASE("tan/s/1", "[float][tan]") {
     delete[] y_cpu;
 }
 
-TEST_CASE("tan/d/0", "[double][tan]") {
+TEST_CASE("sinh/d/0", "[double][sinh]") {
     const size_t N = 137;
 
     double* x_cpu = new double[N];
@@ -91,12 +91,12 @@ TEST_CASE("tan/d/0", "[double][tan]") {
     cuda_check(cudaMemcpy(x_gpu, x_cpu, N * sizeof(double), cudaMemcpyHostToDevice));
     cuda_check(cudaMemcpy(y_gpu, y_cpu, N * sizeof(double), cudaMemcpyHostToDevice));
 
-    egblas_dtan(N, 1.0, x_gpu, 1, y_gpu, 1);
+    egblas_dsinh(N, 1.0, x_gpu, 1, y_gpu, 1);
 
     cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(double), cudaMemcpyDeviceToHost));
 
     for (size_t i = 0; i < N; ++i) {
-        REQUIRE(y_cpu[i] == Approx(1.0 * std::tan(x_cpu[i])));
+        REQUIRE(y_cpu[i] == Approx(1.0 * std::sinh(x_cpu[i])));
     }
 
     cuda_check(cudaFree(x_gpu));
@@ -106,7 +106,7 @@ TEST_CASE("tan/d/0", "[double][tan]") {
     delete[] y_cpu;
 }
 
-TEST_CASE("tan/d/1", "[double][tan]") {
+TEST_CASE("sinh/d/1", "[double][sinh]") {
     const size_t N = 333;
 
     double* x_cpu = new double[N];
@@ -124,12 +124,12 @@ TEST_CASE("tan/d/1", "[double][tan]") {
     cuda_check(cudaMemcpy(x_gpu, x_cpu, N * sizeof(double), cudaMemcpyHostToDevice));
     cuda_check(cudaMemcpy(y_gpu, y_cpu, N * sizeof(double), cudaMemcpyHostToDevice));
 
-    egblas_dtan(N, 0.2, x_gpu, 1, y_gpu, 1);
+    egblas_dsinh(N, 0.2, x_gpu, 1, y_gpu, 1);
 
     cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(double), cudaMemcpyDeviceToHost));
 
     for (size_t i = 0; i < N; ++i) {
-        REQUIRE(y_cpu[i] == Approx(0.2 * std::tan(x_cpu[i])));
+        REQUIRE(y_cpu[i] == Approx(0.2 * std::sinh(x_cpu[i])));
     }
 
     cuda_check(cudaFree(x_gpu));
@@ -139,7 +139,7 @@ TEST_CASE("tan/d/1", "[double][tan]") {
     delete[] y_cpu;
 }
 
-TEST_CASE("tan/c/0", "[float][tan]") {
+TEST_CASE("sinh/c/0", "[float][sinh]") {
     const size_t N = 137;
 
     std::complex<float>* x_cpu = new std::complex<float>[N];
@@ -157,12 +157,12 @@ TEST_CASE("tan/c/0", "[float][tan]") {
     cuda_check(cudaMemcpy(x_gpu, x_cpu, N * sizeof(std::complex<float>), cudaMemcpyHostToDevice));
     cuda_check(cudaMemcpy(y_gpu, y_cpu, N * sizeof(std::complex<float>), cudaMemcpyHostToDevice));
 
-    egblas_ctan(N, make_cuComplex(1.0f, 0.0f), reinterpret_cast<cuComplex*>(x_gpu), 1, reinterpret_cast<cuComplex*>(y_gpu), 1);
+    egblas_csinh(N, make_cuComplex(1.0f, 0.0f), reinterpret_cast<cuComplex*>(x_gpu), 1, reinterpret_cast<cuComplex*>(y_gpu), 1);
 
     cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(std::complex<float>), cudaMemcpyDeviceToHost));
 
     for (size_t i = 0; i < N; ++i) {
-        REQUIRE(y_cpu[i] == TestComplex<float>(std::tan(x_cpu[i])));
+        REQUIRE(y_cpu[i] == TestComplex<float>(std::sinh(x_cpu[i])));
     }
 
     cuda_check(cudaFree(x_gpu));
@@ -172,7 +172,7 @@ TEST_CASE("tan/c/0", "[float][tan]") {
     delete[] y_cpu;
 }
 
-TEST_CASE("tan/c/1", "[float][tan]") {
+TEST_CASE("sinh/c/1", "[float][sinh]") {
     const size_t N = 338;
 
     std::complex<float>* x_cpu = new std::complex<float>[N];
@@ -190,12 +190,12 @@ TEST_CASE("tan/c/1", "[float][tan]") {
     cuda_check(cudaMemcpy(x_gpu, x_cpu, N * sizeof(std::complex<float>), cudaMemcpyHostToDevice));
     cuda_check(cudaMemcpy(y_gpu, y_cpu, N * sizeof(std::complex<float>), cudaMemcpyHostToDevice));
 
-    egblas_ctan(N, make_cuComplex(1.0f, 1.0f), reinterpret_cast<cuComplex*>(x_gpu), 1, reinterpret_cast<cuComplex*>(y_gpu), 1);
+    egblas_csinh(N, make_cuComplex(1.0f, 1.0f), reinterpret_cast<cuComplex*>(x_gpu), 1, reinterpret_cast<cuComplex*>(y_gpu), 1);
 
     cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(std::complex<float>), cudaMemcpyDeviceToHost));
 
     for (size_t i = 0; i < N; ++i) {
-        REQUIRE(y_cpu[i] == TestComplex<float>(std::complex<float>(1.0f, 1.0f) * std::tan(x_cpu[i])));
+        REQUIRE(y_cpu[i] == TestComplex<float>(std::complex<float>(1.0f, 1.0f) * std::sinh(x_cpu[i])));
     }
 
     cuda_check(cudaFree(x_gpu));
@@ -205,7 +205,7 @@ TEST_CASE("tan/c/1", "[float][tan]") {
     delete[] y_cpu;
 }
 
-TEST_CASE("tan/z/0", "[double][tan]") {
+TEST_CASE("sinh/z/0", "[double][sinh]") {
     const size_t N = 137;
 
     std::complex<double>* x_cpu = new std::complex<double>[N];
@@ -223,12 +223,12 @@ TEST_CASE("tan/z/0", "[double][tan]") {
     cuda_check(cudaMemcpy(x_gpu, x_cpu, N * sizeof(std::complex<double>), cudaMemcpyHostToDevice));
     cuda_check(cudaMemcpy(y_gpu, y_cpu, N * sizeof(std::complex<double>), cudaMemcpyHostToDevice));
 
-    egblas_ztan(N, make_cuDoubleComplex(1.0, 0.0), reinterpret_cast<cuDoubleComplex*>(x_gpu), 1, reinterpret_cast<cuDoubleComplex*>(y_gpu), 1);
+    egblas_zsinh(N, make_cuDoubleComplex(1.0, 0.0), reinterpret_cast<cuDoubleComplex*>(x_gpu), 1, reinterpret_cast<cuDoubleComplex*>(y_gpu), 1);
 
     cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(std::complex<double>), cudaMemcpyDeviceToHost));
 
     for (size_t i = 0; i < N; ++i) {
-        REQUIRE(y_cpu[i] == TestComplex<double>(std::tan(x_cpu[i])));
+        REQUIRE(y_cpu[i] == TestComplex<double>(std::sinh(x_cpu[i])));
     }
 
     cuda_check(cudaFree(x_gpu));
@@ -238,7 +238,7 @@ TEST_CASE("tan/z/0", "[double][tan]") {
     delete[] y_cpu;
 }
 
-TEST_CASE("tan/z/1", "[double][tan]") {
+TEST_CASE("sinh/z/1", "[double][sinh]") {
     const size_t N = 338;
 
     std::complex<double>* x_cpu = new std::complex<double>[N];
@@ -256,12 +256,12 @@ TEST_CASE("tan/z/1", "[double][tan]") {
     cuda_check(cudaMemcpy(x_gpu, x_cpu, N * sizeof(std::complex<double>), cudaMemcpyHostToDevice));
     cuda_check(cudaMemcpy(y_gpu, y_cpu, N * sizeof(std::complex<double>), cudaMemcpyHostToDevice));
 
-    egblas_ztan(N, make_cuDoubleComplex(0.1, 2.0), reinterpret_cast<cuDoubleComplex*>(x_gpu), 1, reinterpret_cast<cuDoubleComplex*>(y_gpu), 1);
+    egblas_zsinh(N, make_cuDoubleComplex(0.1, 2.0), reinterpret_cast<cuDoubleComplex*>(x_gpu), 1, reinterpret_cast<cuDoubleComplex*>(y_gpu), 1);
 
     cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(std::complex<double>), cudaMemcpyDeviceToHost));
 
     for (size_t i = 0; i < N; ++i) {
-        REQUIRE(y_cpu[i] == TestComplex<double>(std::complex<double>(0.1, 2.0) * std::tan(x_cpu[i])));
+        REQUIRE(y_cpu[i] == TestComplex<double>(std::complex<double>(0.1, 2.0) * std::sinh(x_cpu[i])));
     }
 
     cuda_check(cudaFree(x_gpu));

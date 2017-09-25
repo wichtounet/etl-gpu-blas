@@ -27,6 +27,9 @@
 #include "egblas/cos.hpp"
 #include "egblas/sin.hpp"
 #include "egblas/tan.hpp"
+#include "egblas/cosh.hpp"
+#include "egblas/sinh.hpp"
+#include "egblas/tanh.hpp"
 
 // Reductions
 #include "egblas/sum.hpp"
