@@ -88,3 +88,23 @@ __forceinline__ __device__ cuDoubleComplex sqrt(cuDoubleComplex z){
         }
     }
 }
+
+__forceinline__ __device__ cuComplex cbrt(cuComplex z){
+    auto z_abs = abs(z);
+    auto z_arg = arg(z);
+
+    auto new_abs = cbrt(z_abs);
+    auto new_arg = z_arg / 3.0f;
+
+    return make_cuComplex(new_abs * cos(new_arg), new_abs * sin(new_arg));
+}
+
+__forceinline__ __device__ cuDoubleComplex cbrt(cuDoubleComplex z){
+    auto z_abs = abs(z);
+    auto z_arg = arg(z);
+
+    auto new_abs = cbrt(z_abs);
+    auto new_arg = z_arg / 3.0;
+
+    return make_cuDoubleComplex(new_abs * cos(new_arg), new_abs * sin(new_arg));
+}
