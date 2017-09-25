@@ -37,6 +37,20 @@ __forceinline__ __device__ double abs(const cuDoubleComplex z){
     return s * sqrt(x * x + y * y);
 }
 
+__forceinline__ __device__ float arg(const cuComplex z){
+    auto x = z.x;
+    auto y = z.y;
+
+    return atan2f(y, x);
+}
+
+__forceinline__ __device__ double arg(const cuDoubleComplex z){
+    auto x = z.x;
+    auto y = z.y;
+
+    return atan2(y, x);
+}
+
 __forceinline__ __device__ cuComplex sqrt(cuComplex z){
     auto x = z.x;
     auto y = z.y;
