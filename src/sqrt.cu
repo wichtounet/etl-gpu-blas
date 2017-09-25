@@ -15,7 +15,7 @@ __global__ void sqrt_kernel(size_t n, T alpha, const T* x, size_t incx, T* y, si
     auto stride = blockDim.x * gridDim.x;
 
     for (; index < n; index += stride) {
-        y[incy * index] = alpha * sqrtf(x[incx * index]);
+        y[incy * index] = alpha * sqrt(x[incx * index]);
     }
 }
 
@@ -53,7 +53,7 @@ __global__ void sqrt_kernel1(size_t n, const T* x, size_t incx, T* y, size_t inc
     auto stride = blockDim.x * gridDim.x;
 
     for (; index < n; index += stride) {
-        y[incy * index] = sqrtf(x[incx * index]);
+        y[incy * index] = sqrt(x[incx * index]);
     }
 }
 
