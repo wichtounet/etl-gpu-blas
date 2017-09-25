@@ -42,21 +42,28 @@ struct TestComplex {
     TestComplex(const TestComplex& other) = default;
 
     /*!
+     * \brief Compare two numbers for approx equality
+     * \param lhs The number
+     * \param rhs The expected number
+     * \return true if they are approximately the same
+     */
+    static bool check_two(T lhs, T rhs, T eps){
+        if(std::isinf(lhs) || std::isnan(lhs)){
+            return std::isinf(rhs) || std::isnan(rhs);
+        }
+
+        return (std::abs(lhs - rhs) < eps * (T(1) + std::max(std::abs(lhs), std::abs(rhs))));
+    }
+
+    /*!
      * \brief Compare a complex number with an expected value
      * \param lhs The complex number (the number to test)
      * \param rhs The expected complex number
-     * \return true if they are approximatily the same
+     * \return true if they are approximately the same
      */
     friend bool operator==(const std::complex<T>& lhs, const TestComplex& rhs) {
-        bool left  =
-                (std::isinf(lhs.real()) && std::isinf(rhs.value.real()))
-            ||  (std::isnan(lhs.real()) && std::isnan(rhs.value.real()))
-            ||  (std::abs(lhs.real() - rhs.value.real()) < rhs.eps * (T(1) + std::max(std::abs(lhs.real()), std::abs(rhs.value.real()))));
-
-        bool right =
-                (std::isinf(lhs.imag()) && std::isinf(rhs.value.imag()))
-            ||  (std::isnan(lhs.imag()) && std::isnan(rhs.value.imag()))
-            ||  (std::abs(lhs.imag() - rhs.value.imag()) < rhs.eps * (T(1) + std::max(std::abs(lhs.imag()), std::abs(rhs.value.imag()))));
+        bool left = check_two(lhs.real(), rhs.value.real(), rhs.eps);
+        bool right = check_two(lhs.imag(), rhs.value.imag(), rhs.eps);
 
         return left && right;
     }
@@ -65,7 +72,7 @@ struct TestComplex {
      * \brief Compare a complex number with an expected value
      * \param lhs The expected complex number
      * \param rhs The complex number (the number to test)
-     * \return true if they are approximatily the same
+     * \return true if they are approximately the same
      */
     friend bool operator==(const TestComplex& lhs, const std::complex<T>& rhs) {
         return operator==(rhs, lhs);
