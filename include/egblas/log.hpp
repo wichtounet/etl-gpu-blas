@@ -30,6 +30,7 @@ void egblas_slog(size_t n, float alpha, const float* x, size_t incx, float* y, s
  * \param incy The stride of y
  */
 void egblas_dlog(size_t n, double alpha, const double* x, size_t incx, double* y, size_t incy);
+
 /*!
  * \brief Compute y = alpha * log(x) (element wise), in complex single-precision
  * \param n The size of the two vectors
