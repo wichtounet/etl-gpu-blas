@@ -34,6 +34,8 @@
 #include "egblas/sinh.hpp"
 #include "egblas/tanh.hpp"
 #include "egblas/minus.hpp"
+#include "egblas/max.hpp"
+#include "egblas/min.hpp"
 
 // Reductions
 #include "egblas/sum.hpp"
