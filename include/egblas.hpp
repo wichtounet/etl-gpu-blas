@@ -36,6 +36,9 @@
 #include "egblas/minus.hpp"
 #include "egblas/max.hpp"
 #include "egblas/min.hpp"
+#include "egblas/conj.hpp"
+#include "egblas/imag.hpp"
+#include "egblas/real.hpp"
 
 // Reductions
 #include "egblas/sum.hpp"
