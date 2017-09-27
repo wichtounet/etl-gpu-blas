@@ -5,6 +5,14 @@
 //  http://opensource.org/licenses/MIT)
 //=======================================================================
 
+__forceinline__ __device__ cuComplex operator*(const cuComplex a, const cuComplex b){
+    return cuCmulf(a, b);
+}
+
+__forceinline__ __device__ cuDoubleComplex operator*(const cuDoubleComplex a, const cuDoubleComplex b){
+    return cuCmul(a, b);
+}
+
 __forceinline__ __device__ float abs(const cuComplex z){
     auto x = z.x;
     auto y = z.y;

@@ -9,17 +9,17 @@
 #include "complex.hpp"
 
 template <typename T>
-__device__ T softplus(T x) {
+__forceinline__ __device__ T softplus(T x) {
     return log(T(1) + exp(x));
 }
 
 template <>
-__device__ cuComplex softplus(cuComplex x) {
+__forceinline__ __device__ cuComplex softplus(cuComplex x) {
     return log(cuCaddf(make_cuComplex(1,0), exp(x)));
 }
 
 template <>
-__device__ cuDoubleComplex softplus(cuDoubleComplex x) {
+__forceinline__ __device__ cuDoubleComplex softplus(cuDoubleComplex x) {
     return log(cuCadd(make_cuDoubleComplex(1,0), exp(x)));
 }
 
@@ -30,26 +30,6 @@ __global__ void softplus_kernel(size_t n, T alpha, const T* x, size_t incx, T* y
 
     for (; index < n; index += stride) {
         y[incy * index] = alpha * softplus(x[incx * index]);
-    }
-}
-
-template <>
-__global__ void softplus_kernel(size_t n, cuComplex alpha, const cuComplex* x, size_t incx, cuComplex* y, size_t incy) {
-    auto index  = threadIdx.x + blockIdx.x * blockDim.x;
-    auto stride = blockDim.x * gridDim.x;
-
-    for (; index < n; index += stride) {
-        y[incx * index] = cuCmulf(alpha, softplus(x[incx * index]));
-    }
-}
-
-template <>
-__global__ void softplus_kernel(size_t n, cuDoubleComplex alpha, const cuDoubleComplex* x, size_t incx, cuDoubleComplex* y, size_t incy) {
-    auto index  = threadIdx.x + blockIdx.x * blockDim.x;
-    auto stride = blockDim.x * gridDim.x;
-
-    for (; index < n; index += stride) {
-        y[incx * index] = cuCmul(alpha, softplus(x[incx * index]));
     }
 }
 
