@@ -5,6 +5,21 @@
 //  http://opensource.org/licenses/MIT)
 //=======================================================================
 
+template<typename T>
+__forceinline__ __device__ T zero(){
+    return T(0);
+}
+
+template<>
+__forceinline__ __device__ cuComplex zero(){
+    return make_cuComplex(0, 0);
+}
+
+template<>
+__forceinline__ __device__ cuDoubleComplex zero(){
+    return make_cuDoubleComplex(0, 0);
+}
+
 __forceinline__ __device__ cuComplex operator*(const cuComplex a, const cuComplex b){
     return cuCmulf(a, b);
 }
