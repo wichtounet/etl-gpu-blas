@@ -41,6 +41,7 @@
 #include "egblas/real.hpp"
 #include "egblas/sign.hpp"
 #include "egblas/softplus.hpp"
+#include "egblas/abs.hpp"
 
 // Reductions
 #include "egblas/sum.hpp"
