@@ -40,6 +40,7 @@
 #include "egblas/imag.hpp"
 #include "egblas/real.hpp"
 #include "egblas/sign.hpp"
+#include "egblas/softplus.hpp"
 
 // Reductions
 #include "egblas/sum.hpp"
