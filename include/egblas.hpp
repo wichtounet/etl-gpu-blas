@@ -44,6 +44,7 @@
 #include "egblas/abs.hpp"
 #include "egblas/floor.hpp"
 #include "egblas/ceil.hpp"
+#include "egblas/clip.hpp"
 
 // Reductions
 #include "egblas/sum.hpp"
