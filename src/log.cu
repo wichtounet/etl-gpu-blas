@@ -7,6 +7,8 @@
 
 #include "egblas/log.hpp"
 
+#include "complex.hpp"
+
 template <typename T>
 __global__ void log_kernel(size_t n, T alpha, const T* x, size_t incx, T* y, size_t incy) {
     auto index  = threadIdx.x + blockIdx.x * blockDim.x;
@@ -17,36 +19,6 @@ __global__ void log_kernel(size_t n, T alpha, const T* x, size_t incx, T* y, siz
     }
 }
 
-template <>
-__global__ void log_kernel(size_t n, cuComplex alpha, const cuComplex* x, size_t incx, cuComplex* y, size_t incy) {
-    auto index  = threadIdx.x + blockIdx.x * blockDim.x;
-    auto stride = blockDim.x * gridDim.x;
-
-    for (; index < n; index += stride) {
-        cuComplex c = x[incx * index];
-
-        float c_abs = hypot(c.x, c.y);
-        float c_arg = atan2(c.y, c.x);
-
-        y[incx * index] = cuCmulf(alpha, make_cuComplex(log(c_abs), c_arg));
-    }
-}
-
-template <>
-__global__ void log_kernel(size_t n, cuDoubleComplex alpha, const cuDoubleComplex* x, size_t incx, cuDoubleComplex* y, size_t incy) {
-    auto index  = threadIdx.x + blockIdx.x * blockDim.x;
-    auto stride = blockDim.x * gridDim.x;
-
-    for (; index < n; index += stride) {
-        cuDoubleComplex c = x[incx * index];
-
-        double c_abs = hypot(c.x, c.y);
-        double c_arg = atan2(c.y, c.x);
-
-        y[incx * index] = cuCmul(alpha, make_cuDoubleComplex(log(c_abs), c_arg));
-    }
-}
-
 template <typename T>
 __global__ void log_kernel1(size_t n, const T* x, size_t incx, T* y, size_t incy) {
     auto index  = threadIdx.x + blockIdx.x * blockDim.x;
@@ -54,36 +26,6 @@ __global__ void log_kernel1(size_t n, const T* x, size_t incx, T* y, size_t incy
 
     for (; index < n; index += stride) {
         y[incy * index] = log(x[incx * index]);
-    }
-}
-
-template <>
-__global__ void log_kernel1(size_t n, const cuComplex* x, size_t incx, cuComplex* y, size_t incy) {
-    auto index  = threadIdx.x + blockIdx.x * blockDim.x;
-    auto stride = blockDim.x * gridDim.x;
-
-    for (; index < n; index += stride) {
-        cuComplex c = x[incx * index];
-
-        float c_abs = hypot(c.x, c.y);
-        float c_arg = atan2(c.y, c.x);
-
-        y[incx * index] = make_cuComplex(log(c_abs), c_arg);
-    }
-}
-
-template <>
-__global__ void log_kernel1(size_t n, const cuDoubleComplex* x, size_t incx, cuDoubleComplex* y, size_t incy) {
-    auto index  = threadIdx.x + blockIdx.x * blockDim.x;
-    auto stride = blockDim.x * gridDim.x;
-
-    for (; index < n; index += stride) {
-        cuDoubleComplex c = x[incx * index];
-
-        double c_abs = hypot(c.x, c.y);
-        double c_arg = atan2(c.y, c.x);
-
-        y[incx * index] = make_cuDoubleComplex(log(c_abs), c_arg);
     }
 }
 

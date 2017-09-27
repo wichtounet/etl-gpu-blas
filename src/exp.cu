@@ -7,6 +7,8 @@
 
 #include "egblas/exp.hpp"
 
+#include "complex.hpp"
+
 template <typename T>
 __global__ void exp_kernel(size_t n, T alpha, const T* x, size_t incx, T* y, size_t incy) {
     auto index  = threadIdx.x + blockIdx.x * blockDim.x;
@@ -17,30 +19,6 @@ __global__ void exp_kernel(size_t n, T alpha, const T* x, size_t incx, T* y, siz
     }
 }
 
-template <>
-__global__ void exp_kernel(size_t n, cuComplex alpha, const cuComplex* x, size_t incx, cuComplex* y, size_t incy) {
-    auto index  = threadIdx.x + blockIdx.x * blockDim.x;
-    auto stride = blockDim.x * gridDim.x;
-
-    for (; index < n; index += stride) {
-        cuComplex c = x[incx * index];
-        float e = exp(c.x);
-        y[incy * index] = cuCmulf(alpha, make_cuComplex(e * cos(c.y), e * sin(c.y)));
-    }
-}
-
-template <>
-__global__ void exp_kernel(size_t n, cuDoubleComplex alpha, const cuDoubleComplex* x, size_t incx, cuDoubleComplex* y, size_t incy) {
-    auto index  = threadIdx.x + blockIdx.x * blockDim.x;
-    auto stride = blockDim.x * gridDim.x;
-
-    for (; index < n; index += stride) {
-        cuDoubleComplex c = x[incx * index];
-        double e = exp(c.x);
-        y[incy * index] = cuCmul(alpha, make_cuDoubleComplex(e * cos(c.y), e * sin(c.y)));
-    }
-}
-
 template <typename T>
 __global__ void exp_kernel1(size_t n, const T* x, size_t incx, T* y, size_t incy) {
     auto index  = threadIdx.x + blockIdx.x * blockDim.x;
@@ -48,30 +26,6 @@ __global__ void exp_kernel1(size_t n, const T* x, size_t incx, T* y, size_t incy
 
     for (; index < n; index += stride) {
         y[incy * index] = exp(x[incx * index]);
-    }
-}
-
-template <>
-__global__ void exp_kernel1(size_t n, const cuComplex* x, size_t incx, cuComplex* y, size_t incy) {
-    auto index  = threadIdx.x + blockIdx.x * blockDim.x;
-    auto stride = blockDim.x * gridDim.x;
-
-    for (; index < n; index += stride) {
-        cuComplex c = x[incx * index];
-        float e = exp(c.x);
-        y[incy * index] = make_cuComplex(e * cos(c.y), e * sin(c.y));
-    }
-}
-
-template <>
-__global__ void exp_kernel1(size_t n, const cuDoubleComplex* x, size_t incx, cuDoubleComplex* y, size_t incy) {
-    auto index  = threadIdx.x + blockIdx.x * blockDim.x;
-    auto stride = blockDim.x * gridDim.x;
-
-    for (; index < n; index += stride) {
-        cuDoubleComplex c = x[incx * index];
-        double e = exp(c.x);
-        y[incy * index] = make_cuDoubleComplex(e * cos(c.y), e * sin(c.y));
     }
 }
 
