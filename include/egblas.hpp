@@ -39,6 +39,7 @@
 #include "egblas/conj.hpp"
 #include "egblas/imag.hpp"
 #include "egblas/real.hpp"
+#include "egblas/sign.hpp"
 
 // Reductions
 #include "egblas/sum.hpp"
