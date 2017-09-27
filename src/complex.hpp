@@ -74,6 +74,22 @@ __forceinline__ __device__ double arg(const cuDoubleComplex z){
     return atan2(y, x);
 }
 
+__forceinline__ __device__ cuComplex floor(const cuComplex z){
+    return make_cuComplex(floor(z.x), floor(z.y));
+}
+
+__forceinline__ __device__ cuDoubleComplex floor(const cuDoubleComplex z){
+    return make_cuDoubleComplex(floor(z.x), floor(z.y));
+}
+
+__forceinline__ __device__ cuComplex ceil(const cuComplex z){
+    return make_cuComplex(ceil(z.x), ceil(z.y));
+}
+
+__forceinline__ __device__ cuDoubleComplex ceil(const cuDoubleComplex z){
+    return make_cuDoubleComplex(ceil(z.x), ceil(z.y));
+}
+
 __forceinline__ __device__ cuComplex exp(const cuComplex z){
     auto e = exp(z.x);
     return make_cuComplex(e * cos(z.y), e * sin(z.y));
