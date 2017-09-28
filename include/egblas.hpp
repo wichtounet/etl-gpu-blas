@@ -12,6 +12,12 @@
 #include "egblas/axmy.hpp"
 #include "egblas/pow.hpp"
 #include "egblas/pow_yx.hpp"
+#include "egblas/equal.hpp"
+#include "egblas/not_equal.hpp"
+#include "egblas/less.hpp"
+#include "egblas/less_equal.hpp"
+#include "egblas/greater.hpp"
+#include "egblas/greater_equal.hpp"
 
 // Scalar manipulations
 #include "egblas/scalar_set.hpp"
