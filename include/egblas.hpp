@@ -18,6 +18,9 @@
 #include "egblas/less_equal.hpp"
 #include "egblas/greater.hpp"
 #include "egblas/greater_equal.hpp"
+#include "egblas/or.hpp"
+#include "egblas/and.hpp"
+#include "egblas/xor.hpp"
 
 // Scalar manipulations
 #include "egblas/scalar_set.hpp"
