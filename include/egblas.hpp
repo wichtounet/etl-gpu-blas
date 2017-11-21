@@ -62,3 +62,6 @@
 // Machine Learning Special functions
 #include "egblas/cce.hpp"
 #include "egblas/relu_der_out.hpp"
+
+// Memory
+#include "egblas/shuffle.hpp"
