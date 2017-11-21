@@ -25,6 +25,7 @@
 // Scalar manipulations
 #include "egblas/scalar_set.hpp"
 #include "egblas/scalar_add.hpp"
+#include "egblas/scalar_mul.hpp"
 #include "egblas/scalar_div.hpp"
 
 // Unary element-wise functions
