@@ -93,3 +93,83 @@ TEST_CASE("shuffle/2", "[shuffle]") {
 
     delete[] a_cpu;
 }
+
+TEST_CASE("par_shuffle/0", "[shuffle]") {
+    const size_t N = 137;
+
+    float* a_cpu = new float[N];
+    float* b_cpu = new float[N];
+
+    for (size_t i = 0; i < N; ++i) {
+        a_cpu[i] = float(i);
+        b_cpu[i] = float(i) + 1.0f;
+    }
+
+    float* a_gpu;
+    float* b_gpu;
+    cuda_check(cudaMalloc((void**)&a_gpu, N * sizeof(float)));
+    cuda_check(cudaMalloc((void**)&b_gpu, N * sizeof(float)));
+
+    cuda_check(cudaMemcpy(a_gpu, a_cpu, N * sizeof(float), cudaMemcpyHostToDevice));
+    cuda_check(cudaMemcpy(b_gpu, b_cpu, N * sizeof(float), cudaMemcpyHostToDevice));
+
+    egblas_par_shuffle(N, a_gpu, sizeof(float), b_gpu, sizeof(float));
+
+    cuda_check(cudaMemcpy(a_cpu, a_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
+    cuda_check(cudaMemcpy(b_cpu, b_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
+
+    for (size_t i = 0; i < N; ++i) {
+        REQUIRE(a_cpu[i] + 1.0f == b_cpu[i]);
+
+        for (size_t j = i + 1; j < N; ++j) {
+            REQUIRE(a_cpu[i] != a_cpu[j]);
+            REQUIRE(b_cpu[i] != b_cpu[j]);
+        }
+    }
+
+    cuda_check(cudaFree(a_gpu));
+    cuda_check(cudaFree(b_gpu));
+
+    delete[] a_cpu;
+    delete[] b_cpu;
+}
+
+TEST_CASE("par_shuffle/1", "[shuffle]") {
+    const size_t N = 137;
+
+    float* a_cpu = new float[N];
+    double* b_cpu = new double[N];
+
+    for (size_t i = 0; i < N; ++i) {
+        a_cpu[i] = float(i);
+        b_cpu[i] = double(i) + 1.0;
+    }
+
+    float* a_gpu;
+    double* b_gpu;
+    cuda_check(cudaMalloc((void**)&a_gpu, N * sizeof(float)));
+    cuda_check(cudaMalloc((void**)&b_gpu, N * sizeof(double)));
+
+    cuda_check(cudaMemcpy(a_gpu, a_cpu, N * sizeof(float), cudaMemcpyHostToDevice));
+    cuda_check(cudaMemcpy(b_gpu, b_cpu, N * sizeof(double), cudaMemcpyHostToDevice));
+
+    egblas_par_shuffle(N, a_gpu, sizeof(float), b_gpu, sizeof(double));
+
+    cuda_check(cudaMemcpy(a_cpu, a_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
+    cuda_check(cudaMemcpy(b_cpu, b_gpu, N * sizeof(double), cudaMemcpyDeviceToHost));
+
+    for (size_t i = 0; i < N; ++i) {
+        REQUIRE(double(a_cpu[i] + 1.0) == b_cpu[i]);
+
+        for (size_t j = i + 1; j < N; ++j) {
+            REQUIRE(a_cpu[i] != a_cpu[j]);
+            REQUIRE(b_cpu[i] != b_cpu[j]);
+        }
+    }
+
+    cuda_check(cudaFree(a_gpu));
+    cuda_check(cudaFree(b_gpu));
+
+    delete[] a_cpu;
+    delete[] b_cpu;
+}
