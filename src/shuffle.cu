@@ -31,7 +31,7 @@ void egblas_shuffle_seed(size_t n, void* x, size_t incx, size_t seed){
         // Swap x[i] and x[new_i]
         cuda_check(cudaMemcpy(tmp, x_flat + i * incx, incx, cudaMemcpyDeviceToDevice));
         cuda_check(cudaMemcpy(x_flat + i * incx, x_flat + new_i * incx, incx, cudaMemcpyDeviceToDevice));
-        cuda_check(cudaMemcpy(x_flat + i * incx, tmp, incx, cudaMemcpyDeviceToDevice));
+        cuda_check(cudaMemcpy(x_flat + new_i * incx, tmp, incx, cudaMemcpyDeviceToDevice));
     }
 
     // Release the tmp memory
@@ -66,12 +66,12 @@ void egblas_par_shuffle_seed(size_t n, void* x, size_t incx, void* y, size_t inc
         // Swap x[i] and x[new_i]
         cuda_check(cudaMemcpy(tx, x_flat + i * incx, incx, cudaMemcpyDeviceToDevice));
         cuda_check(cudaMemcpy(x_flat + i * incx, x_flat + new_i * incx, incx, cudaMemcpyDeviceToDevice));
-        cuda_check(cudaMemcpy(x_flat + i * incx, tx, incx, cudaMemcpyDeviceToDevice));
+        cuda_check(cudaMemcpy(x_flat + new_i * incx, tx, incx, cudaMemcpyDeviceToDevice));
 
         // Swap y[i] and y[new_i]
         cuda_check(cudaMemcpy(ty, y_flat + i * incy, incy, cudaMemcpyDeviceToDevice));
         cuda_check(cudaMemcpy(y_flat + i * incy, y_flat + new_i * incy, incy, cudaMemcpyDeviceToDevice));
-        cuda_check(cudaMemcpy(y_flat + i * incy, ty, incy, cudaMemcpyDeviceToDevice));
+        cuda_check(cudaMemcpy(y_flat + new_i * incy, ty, incy, cudaMemcpyDeviceToDevice));
     }
 
     // Release the tmp memory
