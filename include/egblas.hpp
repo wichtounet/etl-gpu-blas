@@ -7,9 +7,12 @@
 
 #pragma once
 
-// Binary functions
+// Utility functions
 #include "egblas/axdy.hpp"
+#include "egblas/axpy.hpp"
 #include "egblas/axmy.hpp"
+
+// Binary functions
 #include "egblas/pow.hpp"
 #include "egblas/pow_yx.hpp"
 #include "egblas/equal.hpp"
