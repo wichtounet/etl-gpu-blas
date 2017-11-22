@@ -63,5 +63,6 @@
 #include "egblas/cce.hpp"
 #include "egblas/relu_der_out.hpp"
 
-// Memory
+// Random
 #include "egblas/shuffle.hpp"
+#include "egblas/dropout.hpp"
