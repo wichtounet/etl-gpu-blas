@@ -8,9 +8,10 @@
 #pragma once
 
 // Utility functions
-#include "egblas/axdy.hpp"
 #include "egblas/axpy.hpp"
+#include "egblas/axpy_3.hpp"
 #include "egblas/axmy.hpp"
+#include "egblas/axdy.hpp"
 
 // Binary functions
 #include "egblas/pow.hpp"
