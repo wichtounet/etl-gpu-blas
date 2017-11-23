@@ -35,6 +35,7 @@ LD_FLAGS += $(shell pkg-config --libs cuda)
 # Compile folders
 $(eval $(call folder_compile_gpu,src))
 $(eval $(call folder_compile_gpu,test/src, -ICatch/include -Itest/include))
+$(eval $(call folder_compile_gpu,bench/src))
 
 # Collect files for the test executable
 CPP_TEST_FILES=$(wildcard test/src/*.cpp)
@@ -42,9 +43,16 @@ CPP_SRC_FILES=$(wildcard src/*.cu)
 
 TEST_FILES=$(CPP_TEST_FILES) ${CPP_SRC_FILES}
 
-# Create executables
+# Collect files for the bench executable
+BENCH_FILES=$(wildcard bench/src/*.cpp) ${CPP_SRC_FILES}
+
+# Create test executables
 $(eval $(call add_executable,egblas_test,$(TEST_FILES)))
 $(eval $(call add_executable_set,egblas_test,egblas_test))
+
+# Create bench executables
+$(eval $(call add_executable,egblas_bench,$(BENCH_FILES)))
+$(eval $(call add_executable_set,egblas_bench,egblas_bench))
 
 # Create the shared library
 $(eval $(call add_shared_library,libegblas,$(CPP_SRC_FILES)))
@@ -68,6 +76,15 @@ test: release/bin/egblas_test release_debug/bin/egblas_test debug/bin/egblas_tes
 	./debug/bin/egblas_test
 	./release_debug/bin/egblas_test
 	./release/bin/egblas_test
+
+debug_bench: debug_egblas_bench
+	./debug/bin/egblas_bench
+
+release_debug_bench: release_debug_egblas_bench
+	./release_debug/bin/egblas_bench
+
+release_bench: release_egblas_bench
+	./release/bin/egblas_bench
 
 debug_install: debug/lib/libegblas.so
 	cp -r include/* $(DESTDIR)/usr/include/
