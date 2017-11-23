@@ -61,6 +61,8 @@ void bench_saxpy(size_t N,size_t repeat = 100){
     auto* x_gpu = prepare_gpu(N, x_cpu);
     auto* y_gpu = prepare_gpu(N, y_cpu);
 
+    egblas_saxpy(N, 2.1f, x_gpu, 1, y_gpu, 1);
+
     auto t0 = timer::now();
 
     for(size_t i = 0; i < repeat; ++i){
@@ -87,6 +89,7 @@ void bench_saxpy(){
     bench_saxpy(100000);
     bench_saxpy(1000000);
     bench_saxpy(10000000);
+    bench_saxpy(100000000);
     std::cout << std::endl;
 }
 
@@ -96,6 +99,8 @@ void bench_saxpby(size_t N,size_t repeat = 100){
 
     auto* x_gpu = prepare_gpu(N, x_cpu);
     auto* y_gpu = prepare_gpu(N, y_cpu);
+
+    egblas_saxpby(N, 2.54f, x_gpu, 1, 3.49f, y_gpu, 1);
 
     auto t0 = timer::now();
 
@@ -123,6 +128,7 @@ void bench_saxpby(){
     bench_saxpby(100000);
     bench_saxpby(1000000);
     bench_saxpby(10000000);
+    bench_saxpby(100000000);
     std::cout << std::endl;
 }
 
