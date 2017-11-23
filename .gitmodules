@@ -4,3 +4,6 @@
 [submodule "Catch"]
 	path = Catch
 	url = https://github.com/philsquared/Catch.git
+[submodule "cpm"]
+	path = cpm
+	url = https://github.com/wichtounet/cpm.git
