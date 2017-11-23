@@ -48,7 +48,7 @@ void axpy_kernel_run(size_t n, T alpha, const T* x, size_t incx, T* y, size_t in
         cudaOccupancyMaxPotentialBlockSize(&minGridSize, &blockSize, axpy_kernel<T>, 0, 0);
     }
 
-    int gridSize = std::max(MAX_BLOCKS, ((n / incy) + blockSize - 1) / blockSize);
+    int gridSize = ((n / incy) + blockSize - 1) / blockSize;
     axpy_kernel<T><<<gridSize, blockSize>>>(n, alpha, x, incx, y, incy);
 
     cudaDeviceSynchronize();
