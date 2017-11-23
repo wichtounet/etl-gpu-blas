@@ -14,6 +14,7 @@
 #include "egblas/axmy_3.hpp"
 #include "egblas/axdy.hpp"
 #include "egblas/axdy_3.hpp"
+#include "egblas/axpby.hpp"
 
 // Binary functions
 #include "egblas/pow.hpp"
