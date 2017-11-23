@@ -7,10 +7,11 @@
 
 #pragma once
 
-// Utility functions
+// General Utility functions
 #include "egblas/axpy.hpp"
 #include "egblas/axpy_3.hpp"
 #include "egblas/axmy.hpp"
+#include "egblas/axmy_3.hpp"
 #include "egblas/axdy.hpp"
 
 // Binary functions
