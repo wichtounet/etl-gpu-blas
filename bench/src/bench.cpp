@@ -122,7 +122,7 @@ void bench_saxpby(){
     bench_saxpby(10000);
     bench_saxpby(100000);
     bench_saxpby(1000000);
-    bench_saxpy(10000000);
+    bench_saxpby(10000000);
     std::cout << std::endl;
 }
 
