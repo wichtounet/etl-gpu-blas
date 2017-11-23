@@ -255,8 +255,7 @@ TEST_CASE("axpby/c/0", "[float][axpby]") {
     cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(std::complex<float>), cudaMemcpyDeviceToHost));
 
     for (size_t i = 0; i < N; ++i) {
-        REQUIRE(y_cpu[i].real() == Approx(i + -2.0f * i));
-        REQUIRE(y_cpu[i].imag() == Approx(i +  0.1f * i));
+        REQUIRE(y_cpu[i] == TestComplex<float>(std::complex<float>(i, i) + std::complex<float>(-2.0f * i, 0.1f * i)));
     }
 
     cuda_check(cudaFree(x_gpu));
