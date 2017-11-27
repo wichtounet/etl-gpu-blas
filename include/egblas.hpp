@@ -66,6 +66,7 @@
 
 // Reductions
 #include "egblas/sum.hpp"
+#include "egblas/mean.hpp"
 
 // Machine Learning Special functions
 #include "egblas/cce.hpp"
