@@ -16,7 +16,7 @@
  * \param s The stride of the vector
  * \return the standard deviation of the elements of the vector
  */
-float egblas_sstddev_mean(float* x, size_t n, size_t s, double mean);
+float egblas_sstddev_mean(float* x, size_t n, size_t s, float mean);
 
 /*!
  * \brief Compute the double-precision standard deviation of the given vector
