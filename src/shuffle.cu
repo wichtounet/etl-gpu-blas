@@ -49,16 +49,16 @@ __global__ void shuffle_kernel(T* x, size_t i, size_t new_i, size_t inc) {
 // Swap one element from the each array
 template<typename T>
 __global__ void par_shuffle_kernel(T* x, T* y, size_t i, size_t new_i, size_t incx, size_t incy) {
-    auto index  = threadIdx.x + blockIdx.x * blockDim.x;
+    auto base_index  = threadIdx.x + blockIdx.x * blockDim.x;
     const auto stride = blockDim.x * gridDim.x;
 
-    for (; index < incx; index += stride) {
+    for (auto index = base_index; index < incx; index += stride) {
         T tmp                   = x[i * incx + index];
         x[i * incx + index]     = x[new_i * incx + index];
         x[new_i * incx + index] = tmp;
     }
 
-    for (; index < incy; index += stride) {
+    for (auto index = base_index; index < incy; index += stride) {
         T tmp                   = y[i * incy + index];
         y[i * incy + index]     = y[new_i * incy + index];
         y[new_i * incy + index] = tmp;
@@ -90,7 +90,7 @@ void par_shuffle_kernel_run(T* x, T* y, size_t i, size_t new_i, size_t incx, siz
     size_t n = incx;
 
     if(incy > n){
-        n = incx;
+        n = incy;
     }
 
     int gridSize = (n + blockSize - 1) / blockSize;
