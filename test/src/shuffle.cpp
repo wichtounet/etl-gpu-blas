@@ -278,3 +278,143 @@ TEST_CASE("par_shuffle/1", "[shuffle]") {
     delete[] a_cpu;
     delete[] b_cpu;
 }
+
+TEST_CASE("par_shuffle/2", "[shuffle]") {
+    const size_t N = 137;
+
+    float* a_cpu = new float[N];
+    float* b_cpu = new float[N];
+
+    for (size_t i = 0; i < N; ++i) {
+        a_cpu[i] = float(i);
+        b_cpu[i] = float(i);
+    }
+
+    float* a_gpu;
+    float* b_gpu;
+    cuda_check(cudaMalloc((void**)&a_gpu, N * sizeof(float)));
+    cuda_check(cudaMalloc((void**)&b_gpu, N * sizeof(float)));
+
+    cuda_check(cudaMemcpy(a_gpu, a_cpu, N * sizeof(float), cudaMemcpyHostToDevice));
+    cuda_check(cudaMemcpy(b_gpu, b_cpu, N * sizeof(float), cudaMemcpyHostToDevice));
+
+    egblas_par_shuffle(N, a_gpu, sizeof(float), b_gpu, sizeof(float));
+
+    cuda_check(cudaMemcpy(a_cpu, a_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
+    cuda_check(cudaMemcpy(b_cpu, b_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
+
+    for (size_t i = 0; i < N; ++i) {
+        REQUIRE(a_cpu[i] == b_cpu[i]);
+
+        REQUIRE(std::count(a_cpu, a_cpu + N, float(i)) == 1);
+        REQUIRE(std::count(b_cpu, b_cpu + N, float(i)) == 1);
+    }
+
+    cuda_check(cudaFree(a_gpu));
+    cuda_check(cudaFree(b_gpu));
+
+    delete[] a_cpu;
+    delete[] b_cpu;
+}
+
+TEST_CASE("par_shuffle/3", "[shuffle]") {
+    const size_t N = 137;
+    const size_t S = 17;
+
+    float* a_cpu = new float[N * S];
+    float* b_cpu = new float[N * S];
+
+    for (size_t i = 0; i < N * S; ++i) {
+        a_cpu[i] = float(i);
+        b_cpu[i] = 1.0f + float(i);
+    }
+
+    float* a_gpu;
+    float* b_gpu;
+    cuda_check(cudaMalloc((void**)&a_gpu, N * S * sizeof(float)));
+    cuda_check(cudaMalloc((void**)&b_gpu, N * S * sizeof(float)));
+
+    cuda_check(cudaMemcpy(a_gpu, a_cpu, N * S * sizeof(float), cudaMemcpyHostToDevice));
+    cuda_check(cudaMemcpy(b_gpu, b_cpu, N * S * sizeof(float), cudaMemcpyHostToDevice));
+
+    egblas_par_shuffle(N, a_gpu, S * sizeof(float), b_gpu, S * sizeof(float));
+
+    cuda_check(cudaMemcpy(a_cpu, a_gpu, N * S * sizeof(float), cudaMemcpyDeviceToHost));
+    cuda_check(cudaMemcpy(b_cpu, b_gpu, N * S * sizeof(float), cudaMemcpyDeviceToHost));
+
+    // Make sure the sub order is correct
+    for (size_t i = 0; i < N; ++i) {
+        for(size_t j = 1; j < S; ++j){
+            REQUIRE(a_cpu[(i * S) + j] == 1 + a_cpu[(i * S) + j - 1]);
+            REQUIRE(b_cpu[(i * S) + j] == 1 + b_cpu[(i * S) + j - 1]);
+        }
+    }
+
+    for (size_t i = 0; i < N; ++i) {
+        REQUIRE(a_cpu[i] + 1.0f == b_cpu[i]);
+
+        REQUIRE(std::count(a_cpu, a_cpu + N * S, float(i)) == 1);
+        REQUIRE(std::count(b_cpu, b_cpu + N * S, float(i+1)) == 1);
+    }
+
+    cuda_check(cudaFree(a_gpu));
+    cuda_check(cudaFree(b_gpu));
+
+    delete[] a_cpu;
+    delete[] b_cpu;
+}
+
+TEST_CASE("par_shuffle/4", "[shuffle]") {
+    const size_t N = 137;
+    const size_t S1 = 19;
+    const size_t S2 = 7;
+
+    float* a_cpu = new float[N * S1];
+    float* b_cpu = new float[N * S2];
+
+    for (size_t i = 0; i < N * S1; ++i) {
+        a_cpu[i] = float(i);
+    }
+
+    for (size_t i = 0; i < N * S2; ++i) {
+        b_cpu[i] = 1.0f + float(i);
+    }
+
+    float* a_gpu;
+    float* b_gpu;
+    cuda_check(cudaMalloc((void**)&a_gpu, N * S1 * sizeof(float)));
+    cuda_check(cudaMalloc((void**)&b_gpu, N * S2 * sizeof(float)));
+
+    cuda_check(cudaMemcpy(a_gpu, a_cpu, N * S1 * sizeof(float), cudaMemcpyHostToDevice));
+    cuda_check(cudaMemcpy(b_gpu, b_cpu, N * S2 * sizeof(float), cudaMemcpyHostToDevice));
+
+    egblas_par_shuffle(N, a_gpu, S1 * sizeof(float), b_gpu, S2 * sizeof(float));
+
+    cuda_check(cudaMemcpy(a_cpu, a_gpu, N * S1 * sizeof(float), cudaMemcpyDeviceToHost));
+    cuda_check(cudaMemcpy(b_cpu, b_gpu, N * S2 * sizeof(float), cudaMemcpyDeviceToHost));
+
+    // Make sure the sub order is correct
+    for (size_t i = 0; i < N; ++i) {
+        for(size_t j = 1; j < S1; ++j){
+            REQUIRE(a_cpu[(i * S1) + j] == 1 + a_cpu[(i * S1) + j - 1]);
+        }
+
+        for(size_t j = 1; j < S2; ++j){
+            REQUIRE(b_cpu[(i * S2) + j] == 1 + b_cpu[(i * S2) + j - 1]);
+        }
+    }
+
+    for (size_t i = 0; i < N * S1; ++i) {
+        REQUIRE(std::count(a_cpu, a_cpu + N * S1, float(i)) == 1);
+    }
+
+    for (size_t i = 0; i < N * S2; ++i) {
+        REQUIRE(std::count(b_cpu, b_cpu + N * S2, float(i+1)) == 1);
+    }
+
+    cuda_check(cudaFree(a_gpu));
+    cuda_check(cudaFree(b_gpu));
+
+    delete[] a_cpu;
+    delete[] b_cpu;
+}
