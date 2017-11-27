@@ -78,3 +78,15 @@ void egblas_dnormalize_flat(size_t n, double* x, size_t incx) {
     auto s = egblas_dstddev_mean(x, n, incx, 0.0);
     normalize_flat_kernel2_run(n, x, incx, s);
 }
+
+void egblas_snormalize_sub(size_t n, float* x, size_t sub_n, size_t incx) {
+    for(size_t i = 0; i < n; ++i){
+        egblas_snormalize_flat(sub_n, x + i * sub_n * incx, incx);
+    }
+}
+
+void egblas_dnormalize_sub(size_t n, double* x, size_t sub_n, size_t incx) {
+    for(size_t i = 0; i < n; ++i){
+        egblas_dnormalize_flat(sub_n, x + i * sub_n * incx, incx);
+    }
+}
