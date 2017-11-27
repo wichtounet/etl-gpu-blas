@@ -54,6 +54,41 @@ void release(float* x_cpu, float* x_gpu){
     cuda_check(cudaFree(x_gpu));
 }
 
+void bench_inv_dropout(size_t N,size_t repeat = 100){
+    auto* x_cpu = prepare_cpu(N, 2.0f);
+    auto* x_gpu = prepare_gpu(N, x_cpu);
+
+    egblas_sinv_dropout_seed(N, 0.5f, 1.0f, x_gpu, 1, 42);
+
+    auto t0 = timer::now();
+
+    for(size_t i = 0; i < repeat; ++i){
+        egblas_sinv_dropout_seed(N, 0.5f, 1.0f, x_gpu, 1, 42);
+    }
+
+    auto t1 = timer::now();
+    auto us = std::chrono::duration_cast<microseconds>(t1 - t0).count();
+    auto us_avg = us / double(repeat);
+
+    cuda_check(cudaMemcpy(x_cpu, x_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
+
+    release(x_cpu, x_gpu);
+
+    std::cout << "inv_dropout(" << N << "): Tot: " << us << "us Avg: " << us_avg << "us Throughput: "
+        << (1e6 / double(us_avg)) * N << "E/s" << std::endl;
+}
+
+void bench_inv_dropout(){
+    bench_inv_dropout(100);
+    bench_inv_dropout(1000);
+    bench_inv_dropout(10000);
+    bench_inv_dropout(100000);
+    bench_inv_dropout(1000000);
+    bench_inv_dropout(10000000);
+    bench_inv_dropout(100000000);
+    std::cout << std::endl;
+}
+
 void bench_saxpy(size_t N,size_t repeat = 100){
     auto* x_cpu = prepare_cpu(N, 2.0f);
     auto* y_cpu = prepare_cpu(N, 3.0f);
@@ -271,6 +306,7 @@ void bench_par_big_shuffle(){
 } // End of anonymous namespace
 
 int main(){
+    bench_inv_dropout();
     bench_shuffle();
     bench_par_shuffle();
     bench_big_shuffle();
