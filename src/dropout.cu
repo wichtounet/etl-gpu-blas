@@ -16,7 +16,7 @@
 // Kernel to setup the random states
 
 __global__ void setup_kernel(curandState* states, size_t seed) {
-    int id = threadIdx.x + blockIdx.x * 64;
+    int id = threadIdx.x + blockIdx.x * blockDim.x;
 
     curand_init(seed, id, 0, &states[id]);
 }
@@ -155,19 +155,36 @@ void egblas_sdropout_seed(size_t n, float p, float alpha,  float* x, size_t incx
         return;
     }
 
+    size_t gridSize  = 64;
+    size_t blockSize = 64;
+
+    if (n <= 100) {
+        gridSize  = 1;
+        blockSize = 64;
+    } else if(n <= 1000){
+        gridSize  = 8;
+        blockSize = 64;
+    } else if(n <= 10000){
+        gridSize  = 16;
+        blockSize = 64;
+    } else if(n <= 100000){
+        gridSize  = 32;
+        blockSize = 64;
+    }
+
     // Allocate room for the states
     curandState* states;
-    cuda_check(cudaMalloc((void**)&states, 64 * 64 * sizeof(curandState)));
+    cuda_check(cudaMalloc((void**)&states, gridSize * blockSize * sizeof(curandState)));
 
     // Initialize the seeds
-    setup_kernel<<<64, 64>>>(states, seed);
+    setup_kernel<<<gridSize, blockSize>>>(states, seed);
     cudaDeviceSynchronize();
 
     // Compute the dropout mask
     if (alpha == 1.0f) {
-        dropout_kernel1<float><<<64,64>>>(states, n, p, x, incx);
+        dropout_kernel1<float><<<gridSize, blockSize>>>(states, n, p, x, incx);
     } else {
-        dropout_kernel<float><<<64,64>>>(states, n, p, alpha, x, incx);
+        dropout_kernel<float><<<gridSize, blockSize>>>(states, n, p, alpha, x, incx);
     }
 
     // Free the states
@@ -185,19 +202,36 @@ void egblas_ddropout_seed(size_t n, double p, double alpha,  double* x, size_t i
         return;
     }
 
+    size_t gridSize  = 64;
+    size_t blockSize = 64;
+
+    if (n <= 100) {
+        gridSize  = 1;
+        blockSize = 64;
+    } else if(n <= 1000){
+        gridSize  = 8;
+        blockSize = 64;
+    } else if(n <= 10000){
+        gridSize  = 16;
+        blockSize = 64;
+    } else if(n <= 100000){
+        gridSize  = 32;
+        blockSize = 64;
+    }
+
     // Allocate room for the states
     curandState* states;
-    cuda_check(cudaMalloc((void**)&states, 64 * 64 * sizeof(curandState)));
+    cuda_check(cudaMalloc((void**)&states, gridSize * blockSize * sizeof(curandState)));
 
     // Initialize the seeds
-    setup_kernel<<<64, 64>>>(states, seed);
+    setup_kernel<<<gridSize, blockSize>>>(states, seed);
     cudaDeviceSynchronize();
 
     // Compute the dropout mask
     if (alpha == 1.0f) {
-        dropout_kernel1<double><<<64,64>>>(states, n, p, x, incx);
+        dropout_kernel1<double><<<gridSize, blockSize>>>(states, n, p, x, incx);
     } else {
-        dropout_kernel<double><<<64,64>>>(states, n, p, alpha, x, incx);
+        dropout_kernel<double><<<gridSize, blockSize>>>(states, n, p, alpha, x, incx);
     }
 
     // Free the states
@@ -217,19 +251,36 @@ void egblas_sinv_dropout_seed(size_t n, float p, float alpha,  float* x, size_t 
         return;
     }
 
+    size_t gridSize  = 64;
+    size_t blockSize = 64;
+
+    if (n <= 100) {
+        gridSize  = 1;
+        blockSize = 64;
+    } else if(n <= 1000){
+        gridSize  = 8;
+        blockSize = 64;
+    } else if(n <= 10000){
+        gridSize  = 16;
+        blockSize = 64;
+    } else if(n <= 100000){
+        gridSize  = 32;
+        blockSize = 64;
+    }
+
     // Allocate room for the states
     curandState* states;
-    cuda_check(cudaMalloc((void**)&states, 64 * 64 * sizeof(curandState)));
+    cuda_check(cudaMalloc((void**)&states, gridSize * blockSize * sizeof(curandState)));
 
     // Initialize the seeds
-    setup_kernel<<<64, 64>>>(states, seed);
+    setup_kernel<<<gridSize, blockSize>>>(states, seed);
     cudaDeviceSynchronize();
 
     // Compute the dropout mask
     if (alpha == 1.0f) {
-        inv_dropout_kernel1<float><<<64,64>>>(states, n, p, x, incx);
+        inv_dropout_kernel1<float><<<gridSize,blockSize>>>(states, n, p, x, incx);
     } else {
-        inv_dropout_kernel<float><<<64,64>>>(states, n, p, alpha, x, incx);
+        inv_dropout_kernel<float><<<gridSize,blockSize>>>(states, n, p, alpha, x, incx);
     }
 
     // Free the states
@@ -247,19 +298,36 @@ void egblas_dinv_dropout_seed(size_t n, double p, double alpha,  double* x, size
         return;
     }
 
+    size_t gridSize  = 64;
+    size_t blockSize = 64;
+
+    if (n <= 100) {
+        gridSize  = 1;
+        blockSize = 64;
+    } else if(n <= 1000){
+        gridSize  = 8;
+        blockSize = 64;
+    } else if(n <= 10000){
+        gridSize  = 16;
+        blockSize = 64;
+    } else if(n <= 100000){
+        gridSize  = 32;
+        blockSize = 64;
+    }
+
     // Allocate room for the states
     curandState* states;
-    cuda_check(cudaMalloc((void**)&states, 64 * 64 * sizeof(curandState)));
+    cuda_check(cudaMalloc((void**)&states, gridSize * blockSize * sizeof(curandState)));
 
     // Initialize the seeds
-    setup_kernel<<<64, 64>>>(states, seed);
+    setup_kernel<<<gridSize, blockSize>>>(states, seed);
     cudaDeviceSynchronize();
 
     // Compute the dropout mask
     if (alpha == 1.0f) {
-        inv_dropout_kernel1<double><<<64,64>>>(states, n, p, x, incx);
+        inv_dropout_kernel1<double><<<gridSize, blockSize>>>(states, n, p, x, incx);
     } else {
-        inv_dropout_kernel<double><<<64,64>>>(states, n, p, alpha, x, incx);
+        inv_dropout_kernel<double><<<gridSize, blockSize>>>(states, n, p, alpha, x, incx);
     }
 
     // Free the states
