@@ -25,10 +25,9 @@ TEST_CASE("shuffle/0", "[shuffle]") {
 
     cuda_check(cudaMemcpy(a_cpu, a_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
 
+    // Make sure we find each number in [0,N[
     for (size_t i = 0; i < N; ++i) {
-        for (size_t j = i + 1; j < N; ++j) {
-            REQUIRE(a_cpu[i] != a_cpu[j]);
-        }
+        REQUIRE(std::count(a_cpu, a_cpu + N, float(i)) == 1);
     }
 
     cuda_check(cudaFree(a_gpu));
@@ -54,10 +53,9 @@ TEST_CASE("shuffle/1", "[shuffle]") {
 
     cuda_check(cudaMemcpy(a_cpu, a_gpu, N * sizeof(double), cudaMemcpyDeviceToHost));
 
+    // Make sure we find each number in [0,N[
     for (size_t i = 0; i < N; ++i) {
-        for (size_t j = i + 1; j < N; ++j) {
-            REQUIRE(a_cpu[i] != a_cpu[j]);
-        }
+        REQUIRE(std::count(a_cpu, a_cpu + N, double(i)) == 1);
     }
 
     cuda_check(cudaFree(a_gpu));
@@ -83,10 +81,9 @@ TEST_CASE("shuffle/2", "[shuffle]") {
 
     cuda_check(cudaMemcpy(a_cpu, a_gpu, N * sizeof(double), cudaMemcpyDeviceToHost));
 
+    // Make sure we find each number in [0,N[
     for (size_t i = 0; i < N; ++i) {
-        for (size_t j = i + 1; j < N; ++j) {
-            REQUIRE(a_cpu[i] != a_cpu[j]);
-        }
+        REQUIRE(std::count(a_cpu, a_cpu + N, double(i)) == 1);
     }
 
     cuda_check(cudaFree(a_gpu));
@@ -113,10 +110,16 @@ TEST_CASE("shuffle/3", "[shuffle]") {
 
     cuda_check(cudaMemcpy(a_cpu, a_gpu, N * S * sizeof(double), cudaMemcpyDeviceToHost));
 
+    // Make sure the sub order is correct
     for (size_t i = 0; i < N; ++i) {
         for(size_t j = 1; j < S; ++j){
             REQUIRE(a_cpu[(i * S) + j] == 1 + a_cpu[(i * S) + j - 1]);
         }
+    }
+
+    // Make sure we find each number in [0,N[
+    for (size_t i = 0; i < N * S; ++i) {
+        REQUIRE(std::count(a_cpu, a_cpu + N * S, double(i)) == 1);
     }
 
     cuda_check(cudaFree(a_gpu));
@@ -143,10 +146,52 @@ TEST_CASE("shuffle/4", "[shuffle]") {
 
     cuda_check(cudaMemcpy(a_cpu, a_gpu, N * S * sizeof(double), cudaMemcpyDeviceToHost));
 
+    // Make sure the sub order is correct
     for (size_t i = 0; i < N; ++i) {
         for(size_t j = 1; j < S; ++j){
             REQUIRE(a_cpu[(i * S) + j] == 1 + a_cpu[(i * S) + j - 1]);
         }
+    }
+
+    // Make sure we find each number in [0,N[
+    for (size_t i = 0; i < N * S; ++i) {
+        REQUIRE(std::count(a_cpu, a_cpu + N * S, double(i)) == 1);
+    }
+
+    cuda_check(cudaFree(a_gpu));
+
+    delete[] a_cpu;
+}
+
+TEST_CASE("shuffle/5", "[shuffle]") {
+    const size_t N = 129;
+    const size_t S = 23;
+
+    float* a_cpu = new float[N * S];
+
+    for (size_t i = 0; i < N * S; ++i) {
+        a_cpu[i] = i;
+    }
+
+    float* a_gpu;
+    cuda_check(cudaMalloc((void**)&a_gpu, N * S * sizeof(float)));
+
+    cuda_check(cudaMemcpy(a_gpu, a_cpu, N * S * sizeof(float), cudaMemcpyHostToDevice));
+
+    egblas_shuffle_seed(N, a_gpu, S * sizeof(float), 123);
+
+    cuda_check(cudaMemcpy(a_cpu, a_gpu, N * S * sizeof(float), cudaMemcpyDeviceToHost));
+
+    // Make sure the sub order is correct
+    for (size_t i = 0; i < N; ++i) {
+        for(size_t j = 1; j < S; ++j){
+            REQUIRE(a_cpu[(i * S) + j] == 1 + a_cpu[(i * S) + j - 1]);
+        }
+    }
+
+    // Make sure we find each number in [0,N[
+    for (size_t i = 0; i < N * S; ++i) {
+        REQUIRE(std::count(a_cpu, a_cpu + N * S, double(i)) == 1);
     }
 
     cuda_check(cudaFree(a_gpu));
