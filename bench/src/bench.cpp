@@ -305,12 +305,26 @@ void bench_par_big_shuffle(){
 
 } // End of anonymous namespace
 
-int main(){
-    bench_inv_dropout();
-    bench_shuffle();
-    bench_par_shuffle();
-    bench_big_shuffle();
-    bench_par_big_shuffle();
-    bench_saxpy();
-    bench_saxpby();
+int main(int argc, char* argv[]){
+    std::string sub = "all";
+
+    if(argc > 1){
+        sub = std::string(argv[1]);
+    }
+
+    if (sub == "dropout" || sub == "all") {
+        bench_inv_dropout();
+    }
+
+    if (sub == "shuffle" || sub == "all") {
+        bench_shuffle();
+        bench_par_shuffle();
+        bench_big_shuffle();
+        bench_par_big_shuffle();
+    }
+
+    if (sub == "axpy" || sub == "all") {
+        bench_saxpy();
+        bench_saxpby();
+    }
 }
