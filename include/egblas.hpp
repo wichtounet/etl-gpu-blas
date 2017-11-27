@@ -79,3 +79,4 @@
 
 // Modifications of vector/matrix
 #include "egblas/binarize.hpp"
+#include "egblas/normalize.hpp"
