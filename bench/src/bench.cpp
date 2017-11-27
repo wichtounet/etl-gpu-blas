@@ -132,9 +132,149 @@ void bench_saxpby(){
     std::cout << std::endl;
 }
 
+void bench_shuffle(size_t N,size_t repeat = 100){
+    auto* x_cpu = prepare_cpu(N, 2.2f);
+    auto* x_gpu = prepare_gpu(N, x_cpu);
+
+    egblas_shuffle_seed(N, x_gpu, 4, 42);
+
+    auto t0 = timer::now();
+
+    for(size_t i = 0; i < repeat; ++i){
+        egblas_shuffle_seed(N, x_gpu, 4, 42);
+    }
+
+    auto t1 = timer::now();
+    auto us = std::chrono::duration_cast<microseconds>(t1 - t0).count();
+    auto us_avg = us / double(repeat);
+
+    cuda_check(cudaMemcpy(x_cpu, x_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
+
+    release(x_cpu, x_gpu);
+
+    std::cout << "shuffle(" << N << "): Tot: " << us << "us Avg: " << us_avg << "us Throughput: "
+        << (1e6 / double(us_avg)) * N << "E/s" << std::endl;
+}
+
+void bench_shuffle(){
+    bench_shuffle(100);
+    bench_shuffle(1000);
+    bench_shuffle(10000);
+    bench_shuffle(100000);
+    std::cout << std::endl;
+}
+
+void bench_par_shuffle(size_t N,size_t repeat = 100){
+    auto* x_cpu = prepare_cpu(N, 2.2f);
+    auto* y_cpu = prepare_cpu(N, 3.1f);
+
+    auto* x_gpu = prepare_gpu(N, x_cpu);
+    auto* y_gpu = prepare_gpu(N, y_cpu);
+
+    egblas_par_shuffle_seed(N, x_gpu, 4, y_gpu, 4, 42);
+
+    auto t0 = timer::now();
+
+    for(size_t i = 0; i < repeat; ++i){
+        egblas_par_shuffle_seed(N, x_gpu, 4, y_gpu, 4, 42);
+    }
+
+    auto t1 = timer::now();
+    auto us = std::chrono::duration_cast<microseconds>(t1 - t0).count();
+    auto us_avg = us / double(repeat);
+
+    cuda_check(cudaMemcpy(x_cpu, x_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
+    cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
+
+    release(x_cpu, x_gpu);
+    release(y_cpu, y_gpu);
+
+    std::cout << "par_shuffle(" << N << "): Tot: " << us << "us Avg: " << us_avg << "us Throughput: "
+        << (1e6 / double(us_avg)) * N << "E/s" << std::endl;
+}
+
+void bench_par_shuffle(){
+    bench_par_shuffle(100);
+    bench_par_shuffle(1000);
+    bench_par_shuffle(10000);
+    bench_par_shuffle(100000);
+    std::cout << std::endl;
+}
+
+void bench_big_shuffle(size_t N, size_t repeat = 100) {
+    auto* x_cpu = prepare_cpu(N * 1024, 2.2f);
+    auto* x_gpu = prepare_gpu(N * 1024, x_cpu);
+
+    egblas_shuffle_seed(N, x_gpu, 4 * 1024, 42);
+
+    auto t0 = timer::now();
+
+    for(size_t i = 0; i < repeat; ++i){
+        egblas_shuffle_seed(N, x_gpu, 4 * 1024, 42);
+    }
+
+    auto t1 = timer::now();
+    auto us = std::chrono::duration_cast<microseconds>(t1 - t0).count();
+    auto us_avg = us / double(repeat);
+
+    cuda_check(cudaMemcpy(x_cpu, x_gpu, N * 1024 * sizeof(float), cudaMemcpyDeviceToHost));
+
+    release(x_cpu, x_gpu);
+
+    std::cout << "big_shuffle(" << N << "): Tot: " << us << "us Avg: " << us_avg << "us Throughput: "
+        << (1e6 / double(us_avg)) * N << "E/s" << std::endl;
+}
+
+void bench_big_shuffle(){
+    bench_big_shuffle(100);
+    bench_big_shuffle(1000);
+    bench_big_shuffle(10000);
+    std::cout << std::endl;
+}
+
+void bench_par_big_shuffle(size_t N,size_t repeat = 100){
+    auto* x_cpu = prepare_cpu(N * 1024, 2.2f);
+    auto* y_cpu = prepare_cpu(N * 1024, 3.1f);
+
+    auto* x_gpu = prepare_gpu(N * 1024, x_cpu);
+    auto* y_gpu = prepare_gpu(N * 1024, y_cpu);
+
+    egblas_par_shuffle_seed(N, x_gpu, 4 * 1024, y_gpu, 4, 42);
+
+    auto t0 = timer::now();
+
+    for(size_t i = 0; i < repeat; ++i){
+        egblas_par_shuffle_seed(N, x_gpu, 4 * 1024, y_gpu, 4, 42);
+    }
+
+    auto t1 = timer::now();
+    auto us = std::chrono::duration_cast<microseconds>(t1 - t0).count();
+    auto us_avg = us / double(repeat);
+
+    cuda_check(cudaMemcpy(x_cpu, x_gpu, N * 1024 * sizeof(float), cudaMemcpyDeviceToHost));
+    cuda_check(cudaMemcpy(y_cpu, y_gpu, N * 1024 * sizeof(float), cudaMemcpyDeviceToHost));
+
+    release(x_cpu, x_gpu);
+    release(y_cpu, y_gpu);
+
+    std::cout << "par_big_shuffle(" << N << "): Tot: " << us << "us Avg: " << us_avg << "us Throughput: "
+        << (1e6 / double(us_avg)) * N << "E/s" << std::endl;
+}
+
+void bench_par_big_shuffle(){
+    bench_par_big_shuffle(100);
+    bench_par_big_shuffle(1000);
+    bench_par_big_shuffle(10000);
+    std::cout << std::endl;
+}
+
 } // End of anonymous namespace
 
 int main(){
+    bench_shuffle();
+    bench_par_shuffle();
+    bench_big_shuffle();
+    bench_par_big_shuffle();
     bench_saxpy();
     bench_saxpby();
 }
