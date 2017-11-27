@@ -76,3 +76,6 @@
 // Random
 #include "egblas/shuffle.hpp"
 #include "egblas/dropout.hpp"
+
+// Modifications of vector/matrix
+#include "egblas/binarize.hpp"
