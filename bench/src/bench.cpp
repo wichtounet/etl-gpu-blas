@@ -54,6 +54,16 @@ void release(float* x_cpu, float* x_gpu){
     cuda_check(cudaFree(x_gpu));
 }
 
+template<typename T>
+inline void report(const std::string& name, const T& t0, size_t repeat, size_t N){
+    auto t1 = timer::now();
+    auto us = std::chrono::duration_cast<microseconds>(t1 - t0).count();
+    auto us_avg = us / double(repeat);
+
+    std::cout << name << "(" << N << "): Tot: " << us << "us Avg: " << us_avg << "us Throughput: "
+        << (1e6 / double(us_avg)) * N << "E/s" << std::endl;
+}
+
 void bench_sum(size_t N,size_t repeat = 100){
     auto* x_cpu = prepare_cpu(N, 2.1f);
     auto* x_gpu = prepare_gpu(N, x_cpu);
@@ -66,16 +76,11 @@ void bench_sum(size_t N,size_t repeat = 100){
         egblas_ssum(x_gpu, N, 1);
     }
 
-    auto t1 = timer::now();
-    auto us = std::chrono::duration_cast<microseconds>(t1 - t0).count();
-    auto us_avg = us / double(repeat);
+    report("sum", t0, repeat, N);
 
     cuda_check(cudaMemcpy(x_cpu, x_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
 
     release(x_cpu, x_gpu);
-
-    std::cout << "sum(" << N << "): Tot: " << us << "us Avg: " << us_avg << "us Throughput: "
-        << (1e6 / double(us_avg)) * N << "E/s" << std::endl;
 }
 
 void bench_sum(){
@@ -89,7 +94,6 @@ void bench_sum(){
     std::cout << std::endl;
 }
 
-
 void bench_inv_dropout(size_t N,size_t repeat = 100){
     auto* x_cpu = prepare_cpu(N, 2.0f);
     auto* x_gpu = prepare_gpu(N, x_cpu);
@@ -102,16 +106,11 @@ void bench_inv_dropout(size_t N,size_t repeat = 100){
         egblas_sinv_dropout_seed(N, 0.5f, 1.0f, x_gpu, 1, 42);
     }
 
-    auto t1 = timer::now();
-    auto us = std::chrono::duration_cast<microseconds>(t1 - t0).count();
-    auto us_avg = us / double(repeat);
+    report("inv_dropout", t0, repeat, N);
 
     cuda_check(cudaMemcpy(x_cpu, x_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
 
     release(x_cpu, x_gpu);
-
-    std::cout << "inv_dropout(" << N << "): Tot: " << us << "us Avg: " << us_avg << "us Throughput: "
-        << (1e6 / double(us_avg)) * N << "E/s" << std::endl;
 }
 
 void bench_inv_dropout(){
@@ -140,17 +139,12 @@ void bench_saxpy(size_t N,size_t repeat = 100){
         egblas_saxpy(N, 2.1f, x_gpu, 1, y_gpu, 1);
     }
 
-    auto t1 = timer::now();
-    auto us = std::chrono::duration_cast<microseconds>(t1 - t0).count();
-    auto us_avg = us / double(repeat);
+    report("saxpy", t0, repeat, N);
 
     cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
 
     release(x_cpu, x_gpu);
     release(y_cpu, y_gpu);
-
-    std::cout << "saxpy(" << N << "): Tot: " << us << "us Avg: " << us_avg << "us Throughput: "
-        << (1e6 / double(us_avg)) * N << "E/s" << std::endl;
 }
 
 void bench_saxpy(){
@@ -179,17 +173,12 @@ void bench_saxpby(size_t N,size_t repeat = 100){
         egblas_saxpby(N, 2.54f, x_gpu, 1, 3.49f, y_gpu, 1);
     }
 
-    auto t1 = timer::now();
-    auto us = std::chrono::duration_cast<microseconds>(t1 - t0).count();
-    auto us_avg = us / double(repeat);
+    report("saxpby", t0, repeat, N);
 
     cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
 
     release(x_cpu, x_gpu);
     release(y_cpu, y_gpu);
-
-    std::cout << "saxpby(" << N << "): Tot: " << us << "us Avg: " << us_avg << "us Throughput: "
-        << (1e6 / double(us_avg)) * N << "E/s" << std::endl;
 }
 
 void bench_saxpby(){
@@ -215,16 +204,11 @@ void bench_shuffle(size_t N,size_t repeat = 100){
         egblas_shuffle_seed(N, x_gpu, 4, 42);
     }
 
-    auto t1 = timer::now();
-    auto us = std::chrono::duration_cast<microseconds>(t1 - t0).count();
-    auto us_avg = us / double(repeat);
+    report("shuffle", t0, repeat, N);
 
     cuda_check(cudaMemcpy(x_cpu, x_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
 
     release(x_cpu, x_gpu);
-
-    std::cout << "shuffle(" << N << "): Tot: " << us << "us Avg: " << us_avg << "us Throughput: "
-        << (1e6 / double(us_avg)) * N << "E/s" << std::endl;
 }
 
 void bench_shuffle(){
@@ -250,18 +234,13 @@ void bench_par_shuffle(size_t N,size_t repeat = 100){
         egblas_par_shuffle_seed(N, x_gpu, 4, y_gpu, 4, 42);
     }
 
-    auto t1 = timer::now();
-    auto us = std::chrono::duration_cast<microseconds>(t1 - t0).count();
-    auto us_avg = us / double(repeat);
+    report("par_shuffle", t0, repeat, N);
 
     cuda_check(cudaMemcpy(x_cpu, x_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
     cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
 
     release(x_cpu, x_gpu);
     release(y_cpu, y_gpu);
-
-    std::cout << "par_shuffle(" << N << "): Tot: " << us << "us Avg: " << us_avg << "us Throughput: "
-        << (1e6 / double(us_avg)) * N << "E/s" << std::endl;
 }
 
 void bench_par_shuffle(){
@@ -284,16 +263,11 @@ void bench_big_shuffle(size_t N, size_t repeat = 100) {
         egblas_shuffle_seed(N, x_gpu, 4 * 1024, 42);
     }
 
-    auto t1 = timer::now();
-    auto us = std::chrono::duration_cast<microseconds>(t1 - t0).count();
-    auto us_avg = us / double(repeat);
+    report("big_shuffle", t0, repeat, N);
 
     cuda_check(cudaMemcpy(x_cpu, x_gpu, N * 1024 * sizeof(float), cudaMemcpyDeviceToHost));
 
     release(x_cpu, x_gpu);
-
-    std::cout << "big_shuffle(" << N << "): Tot: " << us << "us Avg: " << us_avg << "us Throughput: "
-        << (1e6 / double(us_avg)) * N << "E/s" << std::endl;
 }
 
 void bench_big_shuffle(){
@@ -318,18 +292,13 @@ void bench_par_big_shuffle(size_t N,size_t repeat = 100){
         egblas_par_shuffle_seed(N, x_gpu, 4 * 1024, y_gpu, 4, 42);
     }
 
-    auto t1 = timer::now();
-    auto us = std::chrono::duration_cast<microseconds>(t1 - t0).count();
-    auto us_avg = us / double(repeat);
+    report("par_big_shuffle", t0, repeat, N);
 
     cuda_check(cudaMemcpy(x_cpu, x_gpu, N * 1024 * sizeof(float), cudaMemcpyDeviceToHost));
     cuda_check(cudaMemcpy(y_cpu, y_gpu, N * 1024 * sizeof(float), cudaMemcpyDeviceToHost));
 
     release(x_cpu, x_gpu);
     release(y_cpu, y_gpu);
-
-    std::cout << "par_big_shuffle(" << N << "): Tot: " << us << "us Avg: " << us_avg << "us Throughput: "
-        << (1e6 / double(us_avg)) * N << "E/s" << std::endl;
 }
 
 void bench_par_big_shuffle(){
