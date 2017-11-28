@@ -54,6 +54,42 @@ void release(float* x_cpu, float* x_gpu){
     cuda_check(cudaFree(x_gpu));
 }
 
+void bench_sum(size_t N,size_t repeat = 100){
+    auto* x_cpu = prepare_cpu(N, 2.1f);
+    auto* x_gpu = prepare_gpu(N, x_cpu);
+
+    egblas_ssum(x_gpu, N, 1);
+
+    auto t0 = timer::now();
+
+    for(size_t i = 0; i < repeat; ++i){
+        egblas_ssum(x_gpu, N, 1);
+    }
+
+    auto t1 = timer::now();
+    auto us = std::chrono::duration_cast<microseconds>(t1 - t0).count();
+    auto us_avg = us / double(repeat);
+
+    cuda_check(cudaMemcpy(x_cpu, x_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
+
+    release(x_cpu, x_gpu);
+
+    std::cout << "sum(" << N << "): Tot: " << us << "us Avg: " << us_avg << "us Throughput: "
+        << (1e6 / double(us_avg)) * N << "E/s" << std::endl;
+}
+
+void bench_sum(){
+    bench_sum(100);
+    bench_sum(1000);
+    bench_sum(10000);
+    bench_sum(100000);
+    bench_sum(1000000);
+    bench_sum(10000000);
+    bench_sum(100000000);
+    std::cout << std::endl;
+}
+
+
 void bench_inv_dropout(size_t N,size_t repeat = 100){
     auto* x_cpu = prepare_cpu(N, 2.0f);
     auto* x_gpu = prepare_gpu(N, x_cpu);
@@ -310,6 +346,10 @@ int main(int argc, char* argv[]){
 
     if(argc > 1){
         sub = std::string(argv[1]);
+    }
+
+    if (sub == "sum" || sub == "all") {
+        bench_sum();
     }
 
     if (sub == "dropout" || sub == "all") {
