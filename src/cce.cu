@@ -237,7 +237,54 @@ template <bool Loss, typename T>
 T cce_kernel_run(size_t n, size_t m, const T* output, size_t incx, const T* labels, size_t incy) {
     T result = 0;
 
-    const size_t cpu_threshold = 1024;
+    const size_t cpu_threshold = Loss ? 128 : 1024;
+
+    if (Loss && n < cpu_threshold && incx == 1 && incy == 1) {
+        T* host_output = new T[n];
+        T* host_labels = new T[n];
+
+        cuda_check(cudaMemcpy(host_output, output, n * sizeof(T), cudaMemcpyDeviceToHost));
+        cuda_check(cudaMemcpy(host_labels, labels, n * sizeof(T), cudaMemcpyDeviceToHost));
+
+        for (size_t i = 0; i < n; i++) {
+            result += std::log(host_output[i]) * host_labels[i];
+        }
+
+        delete[] host_output;
+        delete[] host_labels;
+
+        return result;
+    }
+
+    if (!Loss && n < cpu_threshold && incx == 0 && incy == 0) {
+        T* host_output = new T[n * m];
+        T* host_labels = new T[n * m];
+
+        cuda_check(cudaMemcpy(host_output, output, n * m * sizeof(T), cudaMemcpyDeviceToHost));
+        cuda_check(cudaMemcpy(host_labels, labels, n * m * sizeof(T), cudaMemcpyDeviceToHost));
+
+        for (size_t i = 0; i < n; i++) {
+            int max_l = 0;
+            int max_o = 0;
+
+            for (size_t j = 1; j < m; ++j) {
+                if (host_labels[i * m + j] > host_labels[i * m + max_l]) {
+                    max_l = j;
+                }
+
+                if (host_output[i * m + j] > host_output[i * m + max_o]) {
+                    max_o = j;
+                }
+            }
+
+            result += std::min(T(abs(max_l - max_o)), T(1.0));
+        }
+
+        delete[] host_output;
+        delete[] host_labels;
+
+        return result;
+    }
 
     const size_t maxThreads    = 256;
     const size_t maxBlocks     = 64;
