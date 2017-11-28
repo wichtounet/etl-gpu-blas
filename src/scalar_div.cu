@@ -48,7 +48,9 @@ void scalar_div_kernel_run(T beta, T* x, size_t n, size_t s) {
 
     scalar_div_kernel<T><<<gridSize, blockSize>>>(beta, x, n, s);
 
+#ifdef EGBLAS_SYNCHRONIZE
     cudaDeviceSynchronize();
+#endif
 }
 
 void egblas_scalar_sdiv(float beta, float* x, size_t n, size_t s) {

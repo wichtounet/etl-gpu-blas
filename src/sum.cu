@@ -155,10 +155,6 @@ T sum_kernel_run(size_t n, const T* input, size_t incx) {
         s = (s + numThreads * 2 - 1) / (numThreads * 2);
     }
 
-    cudaDeviceSynchronize();
-
-    bool need_read_back = true;
-
     if(s > 1){
         T* host_data = new T[s];
 
@@ -168,12 +164,8 @@ T sum_kernel_run(size_t n, const T* input, size_t incx) {
             result += host_data[i];
         }
 
-        need_read_back = false;
-
         delete[] host_data;
-    }
-
-    if(need_read_back){
+    } else {
         cuda_check(cudaMemcpy(&result, y_gpu_2, 1 * sizeof(T), cudaMemcpyDeviceToHost));
     }
 

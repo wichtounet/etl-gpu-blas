@@ -51,7 +51,9 @@ void axpby_kernel_run(size_t n, T alpha, const T* x, size_t incx, T beta, T* y, 
     int gridSize = ((n / incy) + blockSize - 1) / blockSize;
     axpby_kernel<T><<<gridSize, blockSize>>>(n, alpha, x, incx, beta, y, incy);
 
+#ifdef EGBLAS_SYNCHRONIZE
     cudaDeviceSynchronize();
+#endif
 }
 
 template <typename T>
@@ -66,7 +68,9 @@ void axpby_kernel1_run(size_t n, const T* x, size_t incx, T* y, size_t incy) {
     int gridSize = ((n / incy) + blockSize - 1) / blockSize;
     axpby_kernel1<T><<<gridSize, blockSize>>>(n, x, incx, y, incy);
 
+#ifdef EGBLAS_SYNCHRONIZE
     cudaDeviceSynchronize();
+#endif
 }
 
 template <typename T>
@@ -81,7 +85,9 @@ void axpby_kernel0_run(size_t n, T* y, size_t incy) {
     int gridSize = ((n / incy) + blockSize - 1) / blockSize;
     axpby_kernel0<T><<<gridSize, blockSize>>>(n, y, incy);
 
+#ifdef EGBLAS_SYNCHRONIZE
     cudaDeviceSynchronize();
+#endif
 }
 
 void egblas_saxpby(size_t n, float alpha, const float* x, size_t incx, float beta, float* y, size_t incy) {

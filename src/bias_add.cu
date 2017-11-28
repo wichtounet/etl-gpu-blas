@@ -28,7 +28,9 @@ void bias_add_2d_kernel_run(size_t m, size_t n, const T* x, size_t incx, const T
 
     bias_add_2d_kernel<T><<<gridSize, blockSize>>>(m, n, x, incx, b, incb, y, incy);
 
+#ifdef EGBLAS_SYNCHRONIZE
     cudaDeviceSynchronize();
+#endif
 }
 
 void egblas_sbias_add_2d(size_t m, size_t n, const float* x, size_t incx, const float* b, size_t incb, float* y, size_t incy){

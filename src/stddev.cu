@@ -168,8 +168,6 @@ T stddev_kernel_run(size_t n, const T* input, size_t incx, T mean) {
         s = (s + numThreads * 2 - 1) / (numThreads * 2);
     }
 
-    cudaDeviceSynchronize();
-
     // Finish the reduction on CPU
 
     if(s > 1){

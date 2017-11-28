@@ -40,7 +40,9 @@ void axdy_kernel_run(size_t n, T alpha, const T* x, size_t incx, T* y, size_t in
 
     axdy_kernel<T><<<gridSize, blockSize>>>(n, alpha, x, incx, y, incy);
 
+#ifdef EGBLAS_SYNCHRONIZE
     cudaDeviceSynchronize();
+#endif
 }
 
 template <typename T>
@@ -54,7 +56,9 @@ void axdy_kernel1_run(size_t n, const T* x, size_t incx, T* y, size_t incy) {
 
     axdy_kernel1<T><<<gridSize, blockSize>>>(n, x, incx, y, incy);
 
+#ifdef EGBLAS_SYNCHRONIZE
     cudaDeviceSynchronize();
+#endif
 }
 
 void egblas_saxdy(size_t n, float alpha, const float* x, size_t incx, float* y, size_t incy) {

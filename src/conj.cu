@@ -98,7 +98,9 @@ void conj_kernel_run(size_t n, T alpha, const T* x, size_t incx, T* y, size_t in
 
     conj_kernel<T><<<gridSize, blockSize>>>(n, alpha, x, incx, y, incy);
 
+#ifdef EGBLAS_SYNCHRONIZE
     cudaDeviceSynchronize();
+#endif
 }
 
 template <typename T>
@@ -112,7 +114,9 @@ void conj_kernel1_run(size_t n, const T* x, size_t incx, T* y, size_t incy) {
 
     conj_kernel1<T><<<gridSize, blockSize>>>(n, x, incx, y, incy);
 
+#ifdef EGBLAS_SYNCHRONIZE
     cudaDeviceSynchronize();
+#endif
 }
 
 template <typename T>
@@ -126,7 +130,9 @@ void conj_kernel0_run(size_t n, T* y, size_t incy) {
 
     conj_kernel0<T><<<gridSize, blockSize>>>(n, y, incy);
 
+#ifdef EGBLAS_SYNCHRONIZE
     cudaDeviceSynchronize();
+#endif
 }
 
 void egblas_cconj(size_t n, cuComplex alpha, const cuComplex* x, size_t incx, cuComplex* y, size_t incy) {

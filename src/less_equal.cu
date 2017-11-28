@@ -38,7 +38,9 @@ void less_equal_kernel_run(size_t n, const T* a, size_t inca, const T* b, size_t
 
     less_equal_kernel<T><<<gridSize, blockSize>>>(n, a, inca, b, incb, y, incy);
 
+#ifdef EGBLAS_SYNCHRONIZE
     cudaDeviceSynchronize();
+#endif
 }
 
 void egblas_sless_equal(size_t n, const float* a, size_t inca, const float* b, size_t incb, bool* y, size_t incy) {

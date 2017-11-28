@@ -132,7 +132,9 @@ void tanh_kernel_run(size_t n, T alpha, const T* x, size_t incx, T* y, size_t in
 
     tanh_kernel<T><<<gridSize, blockSize>>>(n, alpha, x, incx, y, incy);
 
+#ifdef EGBLAS_SYNCHRONIZE
     cudaDeviceSynchronize();
+#endif
 }
 
 template <typename T>
@@ -146,7 +148,9 @@ void tanh_kernel1_run(size_t n, const T* x, size_t incx, T* y, size_t incy) {
 
     tanh_kernel1<T><<<gridSize, blockSize>>>(n, x, incx, y, incy);
 
+#ifdef EGBLAS_SYNCHRONIZE
     cudaDeviceSynchronize();
+#endif
 }
 
 template <typename T>
@@ -160,7 +164,9 @@ void tanh_kernel0_run(size_t n, T* y, size_t incy) {
 
     tanh_kernel0<T><<<gridSize, blockSize>>>(n, y, incy);
 
+#ifdef EGBLAS_SYNCHRONIZE
     cudaDeviceSynchronize();
+#endif
 }
 
 void egblas_stanh(size_t n, float alpha, const float* x, size_t incx, float* y, size_t incy) {

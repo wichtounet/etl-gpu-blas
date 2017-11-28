@@ -49,7 +49,9 @@ void abs_kernel_run(size_t n, T1 alpha, const T2* x, size_t incx, T1* y, size_t 
 
     abs_kernel<T1, T2><<<gridSize, blockSize>>>(n, alpha, x, incx, y, incy);
 
+#ifdef EGBLAS_SYNCHRONIZE
     cudaDeviceSynchronize();
+#endif
 }
 
 template <typename T1, typename T2>
@@ -63,7 +65,9 @@ void abs_kernel1_run(size_t n, const T2* x, size_t incx, T1* y, size_t incy) {
 
     abs_kernel1<T1, T2><<<gridSize, blockSize>>>(n, x, incx, y, incy);
 
+#ifdef EGBLAS_SYNCHRONIZE
     cudaDeviceSynchronize();
+#endif
 }
 
 template <typename T>
@@ -77,7 +81,9 @@ void abs_kernel0_run(size_t n, T* y, size_t incy) {
 
     abs_kernel0<T><<<gridSize, blockSize>>>(n, y, incy);
 
+#ifdef EGBLAS_SYNCHRONIZE
     cudaDeviceSynchronize();
+#endif
 }
 
 void egblas_sabs(size_t n, float alpha, const float* x, size_t incx, float* y, size_t incy) {

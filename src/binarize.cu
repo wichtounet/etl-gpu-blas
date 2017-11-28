@@ -33,7 +33,9 @@ void binarize_kernel_run(size_t n, T* x, size_t incx, T threshold) {
     int gridSize = ((n / incx) + blockSize - 1) / blockSize;
     binarize_kernel<T><<<gridSize, blockSize>>>(n, x, incx, threshold);
 
+#ifdef EGBLAS_SYNCHRONIZE
     cudaDeviceSynchronize();
+#endif
 }
 
 void egblas_sbinarize(size_t n, float* x, size_t incx, float threshold){

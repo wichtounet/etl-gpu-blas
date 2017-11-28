@@ -26,7 +26,9 @@ void or_kernel_run(size_t n, const bool* a, size_t inca, const bool* b, size_t i
 
     or_kernel<<<gridSize, blockSize>>>(n, a, inca, b, incb, y, incy);
 
+#ifdef EGBLAS_SYNCHRONIZE
     cudaDeviceSynchronize();
+#endif
 }
 
 void egblas_bor(size_t n, const bool* a, size_t inca, const bool* b, size_t incb, bool* y, size_t incy) {

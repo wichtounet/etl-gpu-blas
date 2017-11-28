@@ -48,7 +48,9 @@ void scalar_add_kernel_run(T* x, size_t n, size_t s, T beta) {
 
     scalar_add_kernel<T><<<gridSize, blockSize>>>(x, n, s, beta);
 
+#ifdef EGBLAS_SYNCHRONIZE
     cudaDeviceSynchronize();
+#endif
 }
 
 void egblas_scalar_sadd(float* x, size_t n, size_t s, float beta) {

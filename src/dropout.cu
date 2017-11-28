@@ -144,7 +144,9 @@ void dropout_kernel0_run(size_t n, T* y, size_t incy) {
 
     dropout_kernel0<T><<<gridSize, blockSize>>>(n, y, incy);
 
+#ifdef EGBLAS_SYNCHRONIZE
     cudaDeviceSynchronize();
+#endif
 }
 
 // Regular dropout
@@ -178,7 +180,6 @@ void egblas_sdropout_seed(size_t n, float p, float alpha,  float* x, size_t incx
 
     // Initialize the seeds
     setup_kernel<<<gridSize, blockSize>>>(states, seed);
-    cudaDeviceSynchronize();
 
     // Compute the dropout mask
     if (alpha == 1.0f) {
@@ -225,7 +226,6 @@ void egblas_ddropout_seed(size_t n, double p, double alpha,  double* x, size_t i
 
     // Initialize the seeds
     setup_kernel<<<gridSize, blockSize>>>(states, seed);
-    cudaDeviceSynchronize();
 
     // Compute the dropout mask
     if (alpha == 1.0f) {
@@ -274,7 +274,6 @@ void egblas_sinv_dropout_seed(size_t n, float p, float alpha,  float* x, size_t 
 
     // Initialize the seeds
     setup_kernel<<<gridSize, blockSize>>>(states, seed);
-    cudaDeviceSynchronize();
 
     // Compute the dropout mask
     if (alpha == 1.0f) {
@@ -321,7 +320,6 @@ void egblas_dinv_dropout_seed(size_t n, double p, double alpha,  double* x, size
 
     // Initialize the seeds
     setup_kernel<<<gridSize, blockSize>>>(states, seed);
-    cudaDeviceSynchronize();
 
     // Compute the dropout mask
     if (alpha == 1.0f) {

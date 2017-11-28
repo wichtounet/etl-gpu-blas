@@ -113,7 +113,9 @@ void normalize_flat_kernel1_run(size_t n, T* x, size_t incx, T mean) {
     int gridSize = ((n / incx) + blockSize - 1) / blockSize;
     normalize_flat_kernel1<T><<<gridSize, blockSize>>>(n, x, incx, mean);
 
+#ifdef EGBLAS_SYNCHRONIZE
     cudaDeviceSynchronize();
+#endif
 }
 
 template <typename T>
@@ -128,7 +130,9 @@ void normalize_flat_kernel2_run(size_t n, T* x, size_t incx, T s) {
     int gridSize = ((n / incx) + blockSize - 1) / blockSize;
     normalize_flat_kernel2<T><<<gridSize, blockSize>>>(n, x, incx, s);
 
+#ifdef EGBLAS_SYNCHRONIZE
     cudaDeviceSynchronize();
+#endif
 }
 
 template <typename T>
@@ -143,7 +147,9 @@ void normalize_sub_kernel_run(size_t n, size_t sub_n, T* x, size_t incx) {
     int gridSize = ((n / incx) + blockSize - 1) / blockSize;
     normalize_sub_kernel<T><<<gridSize, blockSize>>>(n, sub_n, x, incx);
 
+#ifdef EGBLAS_SYNCHRONIZE
     cudaDeviceSynchronize();
+#endif
 }
 
 template <typename T>
@@ -158,7 +164,9 @@ void normalize_sub_kernel1_run(size_t n, size_t sub_n, T* x) {
     int gridSize = (n + blockSize - 1) / blockSize;
     normalize_sub_kernel1<T><<<gridSize, blockSize>>>(n, sub_n, x);
 
+#ifdef EGBLAS_SYNCHRONIZE
     cudaDeviceSynchronize();
+#endif
 }
 
 void egblas_snormalize_flat(size_t n, float* x, size_t incx) {

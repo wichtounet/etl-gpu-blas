@@ -115,7 +115,9 @@ void egblas_shuffle_seed(size_t n, void* x, size_t incx, size_t seed){
             shuffle_one_4_kernel<<<1, 1, 1>>>(x_flat, i, new_i);
         }
 
-        cudaDeviceSynchronize();
+#ifdef EGBLAS_SYNCHRONIZE
+    cudaDeviceSynchronize();
+#endif
 
         return;
     }
@@ -146,7 +148,9 @@ void egblas_shuffle_seed(size_t n, void* x, size_t incx, size_t seed){
         }
     }
 
+#ifdef EGBLAS_SYNCHRONIZE
     cudaDeviceSynchronize();
+#endif
 }
 
 void egblas_shuffle(size_t n, void* x, size_t incx){
@@ -173,7 +177,9 @@ void egblas_par_shuffle_seed(size_t n, void* x, size_t incx, void* y, size_t inc
             par_shuffle_one_4_kernel<<<1,1,1>>>(x_flat, y_flat, i, new_i);
         }
 
-        cudaDeviceSynchronize();
+#ifdef EGBLAS_SYNCHRONIZE
+    cudaDeviceSynchronize();
+#endif
 
         return;
     }
@@ -207,7 +213,9 @@ void egblas_par_shuffle_seed(size_t n, void* x, size_t incx, void* y, size_t inc
         }
     }
 
+#ifdef EGBLAS_SYNCHRONIZE
     cudaDeviceSynchronize();
+#endif
 }
 
 void egblas_par_shuffle(size_t n, void* x, size_t incx, void* y, size_t incy){

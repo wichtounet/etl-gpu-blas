@@ -117,7 +117,9 @@ void max_kernel_run(size_t n, T alpha, const T* x, size_t incx, T* y, size_t inc
 
     max_kernel<T><<<gridSize, blockSize>>>(n, alpha, x, incx, y, incy);
 
+#ifdef EGBLAS_SYNCHRONIZE
     cudaDeviceSynchronize();
+#endif
 }
 
 template <typename T>
@@ -131,7 +133,9 @@ void max_kernel1_run(size_t n, const T* x, size_t incx, T* y, size_t incy) {
 
     max_kernel1<T><<<gridSize, blockSize>>>(n, x, incx, y, incy);
 
+#ifdef EGBLAS_SYNCHRONIZE
     cudaDeviceSynchronize();
+#endif
 }
 
 template <typename T>
@@ -145,7 +149,9 @@ void max_kernel0_run(size_t n, T* y, size_t incy) {
 
     max_kernel0<T><<<gridSize, blockSize>>>(n, y, incy);
 
+#ifdef EGBLAS_SYNCHRONIZE
     cudaDeviceSynchronize();
+#endif
 }
 
 template <typename T>
@@ -159,7 +165,9 @@ void max_kernel_run(size_t n, T alpha, const T* a, size_t inca, const T* b, size
 
     max3_kernel<T><<<gridSize, blockSize>>>(n, alpha, a, inca, b, incb, y, incy);
 
+#ifdef EGBLAS_SYNCHRONIZE
     cudaDeviceSynchronize();
+#endif
 }
 
 template <typename T>
@@ -173,7 +181,9 @@ void max_kernel1_run(size_t n, const T* a, size_t inca, const T* b, size_t incb,
 
     max3_kernel1<T><<<gridSize, blockSize>>>(n, a, inca, b, incb, y, incy);
 
+#ifdef EGBLAS_SYNCHRONIZE
     cudaDeviceSynchronize();
+#endif
 }
 
 void egblas_smax(size_t n, float alpha, const float* x, size_t incx, float* y, size_t incy) {
