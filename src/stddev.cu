@@ -170,9 +170,11 @@ T stddev_kernel_run(size_t n, const T* input, size_t incx, T mean) {
 
     cudaDeviceSynchronize();
 
-    bool need_read_back = true;
+    // Finish the reduction on CPU
 
     if(s > 1){
+        // Reduce several elements
+
         T* host_data = new T[s];
 
         cuda_check(cudaMemcpy(host_data, y_gpu_2, s * sizeof(T), cudaMemcpyDeviceToHost));
@@ -181,12 +183,9 @@ T stddev_kernel_run(size_t n, const T* input, size_t incx, T mean) {
             result += host_data[i];
         }
 
-        need_read_back = false;
-
         delete[] host_data;
-    }
-
-    if(need_read_back){
+    } else {
+        // Copy the final result directly to the result
         cuda_check(cudaMemcpy(&result, y_gpu_2, 1 * sizeof(T), cudaMemcpyDeviceToHost));
     }
 
