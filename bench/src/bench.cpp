@@ -94,6 +94,36 @@ void bench_sum(){
     std::cout << std::endl;
 }
 
+void bench_stddev(size_t N,size_t repeat = 100){
+    auto* x_cpu = prepare_cpu(N, 2.1f);
+    auto* x_gpu = prepare_gpu(N, x_cpu);
+
+    egblas_sstddev(x_gpu, N, 1);
+
+    auto t0 = timer::now();
+
+    for(size_t i = 0; i < repeat; ++i){
+        egblas_sstddev(x_gpu, N, 1);
+    }
+
+    report("stddev", t0, repeat, N);
+
+    cuda_check(cudaMemcpy(x_cpu, x_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
+
+    release(x_cpu, x_gpu);
+}
+
+void bench_stddev(){
+    bench_stddev(100);
+    bench_stddev(1000);
+    bench_stddev(10000);
+    bench_stddev(100000);
+    bench_stddev(1000000);
+    bench_stddev(10000000);
+    bench_stddev(100000000);
+    std::cout << std::endl;
+}
+
 void bench_inv_dropout(size_t N,size_t repeat = 100){
     auto* x_cpu = prepare_cpu(N, 2.0f);
     auto* x_gpu = prepare_gpu(N, x_cpu);
@@ -319,6 +349,10 @@ int main(int argc, char* argv[]){
 
     if (sub == "sum" || sub == "all") {
         bench_sum();
+    }
+
+    if (sub == "stddev" || sub == "all") {
+        bench_stddev();
     }
 
     if (sub == "dropout" || sub == "all") {
