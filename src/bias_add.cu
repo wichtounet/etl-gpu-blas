@@ -13,7 +13,7 @@ __global__ void bias_add_2d_kernel(size_t m, size_t n, const T* x, size_t incx, 
     const auto stride = blockDim.x * gridDim.x;
 
     for (; index < m * n; index += stride) {
-        y[incy * index] = x[incx * index] + b[(index / m) * incb];
+        y[incy * index] = x[incx * index] + b[(index % n) * incb];
     }
 }
 
