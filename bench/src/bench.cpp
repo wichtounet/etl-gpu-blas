@@ -66,6 +66,8 @@ void release(float* x_cpu, float* x_gpu){
 
 template<typename T>
 inline void report(const std::string& name, const T& t0, size_t repeat, size_t N){
+    cudaDeviceSynchronize();
+
     auto t1 = timer::now();
     auto us = std::chrono::duration_cast<microseconds>(t1 - t0).count();
     auto us_avg = us / double(repeat);
@@ -341,8 +343,6 @@ void bench_cublas_saxpy(size_t N,size_t repeat = 100){
     for(size_t i = 0; i < repeat; ++i){
         cublas_check(cublasSaxpy(handle, N, &alpha, x_gpu, 1, y_gpu, 1));
     }
-
-    cudaDeviceSynchronize();
 
     report("cublas_saxpy", t0, repeat, N);
 
