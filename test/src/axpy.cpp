@@ -75,7 +75,7 @@ TEST_CASE("axpy/s/1", "[float][axpy]") {
     cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
 
     for (size_t i = 0; i < N; ++i) {
-        REQUIRE(y_cpu[i] == Approx(0.2f * i + 2.3 * i));
+        REQUIRE(y_cpu[i] == Approx(0.2f * i + 2.3f * i));
     }
 
     cuda_check(cudaFree(x_gpu));
