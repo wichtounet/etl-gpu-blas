@@ -11,6 +11,7 @@
 #include "cuda.h"
 #include "cuda_runtime.h"
 #include "cuda_runtime_api.h"
+#include "cublas_v2.h"
 
 #include "egblas.hpp"
 
@@ -312,6 +313,47 @@ void bench_saxpy(){
     std::cout << std::endl;
 }
 
+void bench_cublas_saxpy(size_t N,size_t repeat = 100){
+    auto* x_cpu = prepare_cpu(N, 2.0f);
+    auto* y_cpu = prepare_cpu(N, 3.0f);
+
+    auto* x_gpu = prepare_gpu(N, x_cpu);
+    auto* y_gpu = prepare_gpu(N, y_cpu);
+
+    cublasHandle_t handle;
+    cublasCreate(&handle);
+
+    float alpha = 2.1f;
+
+    cublasSaxpy(handle, N, &alpha, x_gpu, 1, y_gpu, 1);
+
+    auto t0 = timer::now();
+
+    for(size_t i = 0; i < repeat; ++i){
+        cublasSaxpy(handle, N, &alpha, x_gpu, 1, y_gpu, 1);
+    }
+
+    report("cublas_saxpy", t0, repeat, N);
+
+    cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
+
+    release(x_cpu, x_gpu);
+    release(y_cpu, y_gpu);
+
+    cublasDestroy(handle);
+}
+
+void bench_cublas_saxpy(){
+    bench_cublas_saxpy(100);
+    bench_cublas_saxpy(1000);
+    bench_cublas_saxpy(10000);
+    bench_cublas_saxpy(100000);
+    bench_cublas_saxpy(1000000);
+    bench_cublas_saxpy(10000000);
+    bench_cublas_saxpy(100000000);
+    std::cout << std::endl;
+}
+
 void bench_saxpby(size_t N,size_t repeat = 100){
     auto* x_cpu = prepare_cpu(N, 2.2f);
     auto* y_cpu = prepare_cpu(N, 3.1f);
@@ -502,6 +544,7 @@ int main(int argc, char* argv[]){
 
     if (sub == "axpy" || sub == "all") {
         bench_saxpy();
+        bench_cublas_saxpy();
         bench_saxpby();
     }
 }
