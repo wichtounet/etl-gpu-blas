@@ -4,8 +4,8 @@
 // (See accompanying file LICENSE or copy at
 //  http://opensource.org/licenses/MIT)
 //=======================================================================
-
 #include "egblas/axpy.hpp"
+#include <iostream>
 
 #include "complex.hpp"
 
@@ -15,7 +15,17 @@ __global__ void axpy_kernel(size_t n, T alpha, const T* x, size_t incx, T* y, si
     const auto stride = blockDim.x * gridDim.x;
 
     for (; index < n; index += stride) {
-        y[incy * index] = alpha * x[incx * index] + y[incy * index];
+        y[incy * index] += alpha * x[incx * index];
+    }
+}
+
+template <typename T>
+__global__ void axpy_kernel_flat(size_t n, T alpha, const T* x, T* y) {
+    auto index  = threadIdx.x + blockIdx.x * blockDim.x;
+    const auto stride = blockDim.x * gridDim.x;
+
+    for (; index < n; index += stride) {
+        y[index] += alpha * x[index];
     }
 }
 
@@ -50,6 +60,21 @@ void axpy_kernel_run(size_t n, T alpha, const T* x, size_t incx, T* y, size_t in
 
     int gridSize = ((n / incy) + blockSize - 1) / blockSize;
     axpy_kernel<T><<<gridSize, blockSize>>>(n, alpha, x, incx, y, incy);
+
+    cudaDeviceSynchronize();
+}
+
+template <typename T>
+void axpy_kernel_run_flat(size_t n, T alpha, const T* x, T* y) {
+    static int blockSize   = 0;
+    static int minGridSize = 0;
+
+    if (!blockSize) {
+        cudaOccupancyMaxPotentialBlockSize(&minGridSize, &blockSize, axpy_kernel_flat<T>, 0, 0);
+    }
+
+    const int gridSize = (n + blockSize - 1) / blockSize;
+    axpy_kernel_flat<T><<<gridSize, blockSize>>>(n, alpha, x, y);
 
     cudaDeviceSynchronize();
 }
@@ -90,7 +115,11 @@ void egblas_saxpy(size_t n, float alpha, const float* x, size_t incx, float* y, 
     } else if (alpha == 0.0f) {
         axpy_kernel0_run(n, y, incy);
     } else {
-        axpy_kernel_run(n, alpha, x, incx, y, incy);
+        if (incx == 1 && incy == 1) {
+            axpy_kernel_run_flat(n, alpha, x, y);
+        } else {
+            axpy_kernel_run(n, alpha, x, incx, y, incy);
+        }
     }
 }
 
@@ -100,7 +129,11 @@ void egblas_daxpy(size_t n, double alpha, const double* x, size_t incx, double* 
     } else if (alpha == 0.0) {
         axpy_kernel0_run(n, y, incy);
     } else {
-        axpy_kernel_run(n, alpha, x, incx, y, incy);
+        if (incx == 1 && incy == 1) {
+            axpy_kernel_run_flat(n, alpha, x, y);
+        } else {
+            axpy_kernel_run(n, alpha, x, incx, y, incy);
+        }
     }
 }
 
@@ -110,7 +143,11 @@ void egblas_caxpy(size_t n, cuComplex alpha, const cuComplex* x, size_t incx, cu
     } else if (alpha.x == 0.0f && alpha.y == 0.0f) {
         axpy_kernel0_run(n, y, incy);
     } else {
-        axpy_kernel_run(n, alpha, x, incx, y, incy);
+        if (incx == 1 && incy == 1) {
+            axpy_kernel_run_flat(n, alpha, x, y);
+        } else {
+            axpy_kernel_run(n, alpha, x, incx, y, incy);
+        }
     }
 }
 
@@ -120,6 +157,10 @@ void egblas_zaxpy(size_t n, cuDoubleComplex alpha, const cuDoubleComplex* x, siz
     } else if (alpha.x == 0.0 && alpha.y == 0.0) {
         axpy_kernel0_run(n, y, incy);
     } else {
-        axpy_kernel_run(n, alpha, x, incx, y, incy);
+        if (incx == 1 && incy == 1) {
+            axpy_kernel_run_flat(n, alpha, x, y);
+        } else {
+            axpy_kernel_run(n, alpha, x, incx, y, incy);
+        }
     }
 }
