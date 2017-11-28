@@ -149,6 +149,29 @@ void dropout_kernel0_run(size_t n, T* y, size_t incy) {
 #endif
 }
 
+// Preparation
+
+void* egblas_dropout_prepare(){
+    std::random_device rd;
+    return egblas_dropout_prepare_seed(rd());
+}
+
+void* egblas_dropout_prepare_seed(size_t seed){
+    // Allocate room for the states
+    curandState* states;
+    cuda_check(cudaMalloc((void**)&states, 64 * 64 * sizeof(curandState)));
+
+    // Initialize the seeds
+    setup_kernel<<<64, 64>>>(states, seed);
+
+    return states;
+}
+
+void egblas_dropout_release(void* states){
+    // Free the states
+    cuda_check(cudaFree(states));
+}
+
 // Regular dropout
 
 void egblas_sdropout_seed(size_t n, float p, float alpha,  float* x, size_t incx, size_t seed) {
@@ -335,4 +358,72 @@ void egblas_dinv_dropout_seed(size_t n, double p, double alpha,  double* x, size
 void egblas_dinv_dropout(size_t n, double p, double alpha,  double* x, size_t incx) {
     std::random_device rd;
     egblas_dinv_dropout_seed(n, p, alpha, x, incx, rd());
+}
+
+void egblas_sinv_dropout_states(size_t n, float p, float alpha,  float* x, size_t incx, void* states) {
+    if (alpha == 0.0f) {
+        dropout_kernel0_run(n, x, incx);
+        return;
+    }
+
+    size_t gridSize  = 64;
+    size_t blockSize = 64;
+
+    // Compute the dropout mask
+    if (alpha == 1.0f) {
+        inv_dropout_kernel1<float><<<gridSize,blockSize>>>(reinterpret_cast<curandState*>(states), n, p, x, incx);
+    } else {
+        inv_dropout_kernel<float><<<gridSize,blockSize>>>(reinterpret_cast<curandState*>(states), n, p, alpha, x, incx);
+    }
+}
+
+void egblas_dinv_dropout_states(size_t n, double p, double alpha,  double* x, size_t incx, void* states) {
+    if (alpha == 0.0) {
+        dropout_kernel0_run(n, x, incx);
+        return;
+    }
+
+    size_t gridSize  = 64;
+    size_t blockSize = 64;
+
+    // Compute the dropout mask
+    if (alpha == 1.0) {
+        inv_dropout_kernel1<double><<<gridSize,blockSize>>>(reinterpret_cast<curandState*>(states), n, p, x, incx);
+    } else {
+        inv_dropout_kernel<double><<<gridSize,blockSize>>>(reinterpret_cast<curandState*>(states), n, p, alpha, x, incx);
+    }
+}
+
+void egblas_sdropout_states(size_t n, float p, float alpha,  float* x, size_t incx, void* states) {
+    if (alpha == 0.0f) {
+        dropout_kernel0_run(n, x, incx);
+        return;
+    }
+
+    size_t gridSize  = 64;
+    size_t blockSize = 64;
+
+    // Compute the dropout mask
+    if (alpha == 1.0f) {
+        dropout_kernel1<float><<<gridSize,blockSize>>>(reinterpret_cast<curandState*>(states), n, p, x, incx);
+    } else {
+        dropout_kernel<float><<<gridSize,blockSize>>>(reinterpret_cast<curandState*>(states), n, p, alpha, x, incx);
+    }
+}
+
+void egblas_ddropout_states(size_t n, double p, double alpha,  double* x, size_t incx, void* states) {
+    if (alpha == 0.0) {
+        dropout_kernel0_run(n, x, incx);
+        return;
+    }
+
+    size_t gridSize  = 64;
+    size_t blockSize = 64;
+
+    // Compute the dropout mask
+    if (alpha == 1.0) {
+        dropout_kernel1<double><<<gridSize,blockSize>>>(reinterpret_cast<curandState*>(states), n, p, x, incx);
+    } else {
+        dropout_kernel<double><<<gridSize,blockSize>>>(reinterpret_cast<curandState*>(states), n, p, alpha, x, incx);
+    }
 }

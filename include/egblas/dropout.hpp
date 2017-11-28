@@ -50,6 +50,31 @@ void egblas_sdropout_seed(size_t n, float p, float alpha, float* x, size_t incx,
 void egblas_ddropout_seed(size_t n, double p, double alpha, double* x, size_t incx, size_t seed);
 
 /*!
+ * \brief Compute a single precision dropout mask for the given probability
+ *
+ * \param n The size of the vector
+ * \param alpha The multiplicator
+ * \param x The vector x (GPU memory)
+ * \param incx The stride of x
+ * \param seed The seed to start the random generation at
+ */
+void egblas_sdropout_states(size_t n, float p, float alpha, float* x, size_t incx, void* states);
+
+/*!
+ * \brief Compute a double precision, dropout mask for the given probability
+ * \param n The size of the vector
+ * \param alpha The multiplicator
+ * \param x The vector x (GPU memory)
+ * \param incx The stride of x
+ * \param seed The seed to start the random generation at
+ */
+void egblas_ddropout_states(size_t n, double p, double alpha, double* x, size_t incx, void* states);
+
+void* egblas_dropout_prepare();
+void* egblas_dropout_prepare_seed(size_t seed);
+void egblas_dropout_release(void* state);
+
+/*!
  * \brief Compute a single precision inverted dropout mask for the given probability
  *
  * \param n The size of the vector
@@ -88,6 +113,27 @@ void egblas_sinv_dropout_seed(size_t n, float p, float alpha, float* x, size_t i
  * \param seed The seed to start the random generation at
  */
 void egblas_dinv_dropout_seed(size_t n, double p, double alpha, double* x, size_t incx, size_t seed);
+
+/*!
+ * \brief Compute a single precision inverted dropout mask for the given probability
+ *
+ * \param n The size of the vector
+ * \param alpha The multiplicator
+ * \param x The vector x (GPU memory)
+ * \param incx The stride of x
+ * \param seed The seed to start the random generation at
+ */
+void egblas_sinv_dropout_states(size_t n, float p, float alpha, float* x, size_t incx, void* states);
+
+/*!
+ * \brief Compute a double precision inverted dropout mask for the given probability
+ * \param n The size of the vector
+ * \param alpha The multiplicator
+ * \param x The vector x (GPU memory)
+ * \param incx The stride of x
+ * \param seed The seed to start the random generation at
+ */
+void egblas_dinv_dropout_states(size_t n, double p, double alpha, double* x, size_t incx, void* states);
 
 #define EGBLAS_HAS_SDROPOUT true
 #define EGBLAS_HAS_DDROPOUT true
