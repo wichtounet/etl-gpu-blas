@@ -117,6 +117,20 @@ T stddev_kernel_run(size_t n, const T* input, size_t incx, T mean) {
 
     const size_t cpu_threshold = 1024;
 
+    if (n <= cpu_threshold && incx == 1) {
+        T* host_data = new T[n];
+
+        cuda_check(cudaMemcpy(host_data, input, n * sizeof(T), cudaMemcpyDeviceToHost));
+
+        for (size_t i = 0; i < n; i++) {
+            result += (host_data[i] - mean) * (host_data[i] - mean);
+        }
+
+        delete[] host_data;
+
+        return sqrt(result / T(n));
+    }
+
     const size_t maxThreads    = 256;
     const size_t maxBlocks     = 64;
 
