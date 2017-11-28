@@ -25,6 +25,15 @@
         }                                                                                               \
     }
 
+#define cublas_check(call)                                                          \
+    {                                                                               \
+        auto status = call;                                                         \
+        if (status != CUBLAS_STATUS_SUCCESS) {                                      \
+            std::cerr << "CUDA error: " << status << " from " << #call << std::endl \
+                      << "from " << __FILE__ << ":" << __LINE__ << std::endl;       \
+        }                                                                           \
+    }
+
 namespace {
 
 using timer = std::chrono::high_resolution_clock;
@@ -325,13 +334,15 @@ void bench_cublas_saxpy(size_t N,size_t repeat = 100){
 
     float alpha = 2.1f;
 
-    cublasSaxpy(handle, N, &alpha, x_gpu, 1, y_gpu, 1);
+    cublas_check(cublasSaxpy(handle, N, &alpha, x_gpu, 1, y_gpu, 1));
 
     auto t0 = timer::now();
 
     for(size_t i = 0; i < repeat; ++i){
-        cublasSaxpy(handle, N, &alpha, x_gpu, 1, y_gpu, 1);
+        cublas_check(cublasSaxpy(handle, N, &alpha, x_gpu, 1, y_gpu, 1));
     }
+
+    cudaDeviceSynchronize();
 
     report("cublas_saxpy", t0, repeat, N);
 
