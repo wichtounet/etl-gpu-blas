@@ -124,6 +124,70 @@ void bench_stddev(){
     std::cout << std::endl;
 }
 
+void bench_cce_loss(size_t N,size_t repeat = 100){
+    auto* x_cpu = prepare_cpu(N, 2.1f);
+    auto* y_cpu = prepare_cpu(N, 2.2f);
+
+    auto* x_gpu = prepare_gpu(N, x_cpu);
+    auto* y_gpu = prepare_gpu(N, y_cpu);
+
+    egblas_cce_sloss(N, 1.0f/ float(N), x_gpu, 1, y_gpu, 1);
+
+    auto t0 = timer::now();
+
+    for(size_t i = 0; i < repeat; ++i){
+        egblas_cce_sloss(N, 1.0f/ float(N), x_gpu, 1, y_gpu, 1);
+    }
+
+    report("cce_loss", t0, repeat, N);
+
+    release(x_cpu, x_gpu);
+    release(y_cpu, y_gpu);
+}
+
+void bench_cce_loss(){
+    bench_cce_loss(100);
+    bench_cce_loss(1000);
+    bench_cce_loss(10000);
+    bench_cce_loss(100000);
+    bench_cce_loss(1000000);
+    bench_cce_loss(10000000);
+    bench_cce_loss(100000000);
+    std::cout << std::endl;
+}
+
+void bench_cce_error(size_t N,size_t repeat = 100){
+    auto* x_cpu = prepare_cpu(N * 10, 2.1f);
+    auto* y_cpu = prepare_cpu(N * 10, 2.2f);
+
+    auto* x_gpu = prepare_gpu(N * 10, x_cpu);
+    auto* y_gpu = prepare_gpu(N * 10, y_cpu);
+
+    egblas_cce_serror(N, 10, 1.0f/ float(N), x_gpu, y_gpu);
+
+    auto t0 = timer::now();
+
+    for(size_t i = 0; i < repeat; ++i){
+        egblas_cce_serror(N, 10, 1.0f/ float(N), x_gpu, y_gpu);
+    }
+
+    report("cce_error", t0, repeat, N * 10);
+
+    release(x_cpu, x_gpu);
+    release(y_cpu, y_gpu);
+}
+
+void bench_cce_error(){
+    bench_cce_error(10);
+    bench_cce_error(100);
+    bench_cce_error(1000);
+    bench_cce_error(10000);
+    bench_cce_error(100000);
+    bench_cce_error(1000000);
+    bench_cce_error(10000000);
+    std::cout << std::endl;
+}
+
 void bench_inv_dropout(size_t N,size_t repeat = 100){
     auto* x_cpu = prepare_cpu(N, 2.0f);
     auto* x_gpu = prepare_gpu(N, x_cpu);
@@ -353,6 +417,11 @@ int main(int argc, char* argv[]){
 
     if (sub == "stddev" || sub == "all") {
         bench_stddev();
+    }
+
+    if (sub == "cce" || sub == "all") {
+        bench_cce_loss();
+        bench_cce_error();
     }
 
     if (sub == "dropout" || sub == "all") {
