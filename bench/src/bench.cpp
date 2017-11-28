@@ -188,6 +188,66 @@ void bench_cce_error(){
     std::cout << std::endl;
 }
 
+void bench_normalize_flat(size_t N, size_t repeat = 100) {
+    auto* x_cpu = prepare_cpu(N, 2.0f);
+    auto* x_gpu = prepare_gpu(N, x_cpu);
+
+    egblas_snormalize_flat(N, x_gpu, 1);
+
+    auto t0 = timer::now();
+
+    for(size_t i = 0; i < repeat; ++i){
+        egblas_snormalize_flat(N, x_gpu, 1);
+    }
+
+    report("normalize_flat", t0, repeat, N);
+
+    cuda_check(cudaMemcpy(x_cpu, x_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
+
+    release(x_cpu, x_gpu);
+}
+
+void bench_normalize_flat(){
+    bench_normalize_flat(100);
+    bench_normalize_flat(1000);
+    bench_normalize_flat(10000);
+    bench_normalize_flat(100000);
+    bench_normalize_flat(1000000);
+    bench_normalize_flat(10000000);
+    bench_normalize_flat(100000000);
+    std::cout << std::endl;
+}
+
+void bench_normalize_sub(size_t N, size_t N2, size_t repeat = 100) {
+    auto* x_cpu = prepare_cpu(N * N2, 2.0f);
+    auto* x_gpu = prepare_gpu(N * N2, x_cpu);
+
+    egblas_snormalize_sub(N, x_gpu, N2, 1);
+
+    auto t0 = timer::now();
+
+    for(size_t i = 0; i < repeat; ++i){
+        egblas_snormalize_sub(N, x_gpu, N2, 1);
+    }
+
+    report("normalize_sub", t0, repeat, N);
+
+    cuda_check(cudaMemcpy(x_cpu, x_gpu, N * N2 * sizeof(float), cudaMemcpyDeviceToHost));
+
+    release(x_cpu, x_gpu);
+}
+
+void bench_normalize_sub(){
+    bench_normalize_sub(10, 784);
+    bench_normalize_sub(100, 784);
+    bench_normalize_sub(1000, 784);
+    bench_normalize_sub(10000, 784);
+    bench_normalize_sub(100000, 784);
+    bench_normalize_sub(1000000, 784);
+    bench_normalize_sub(10000000, 784);
+    std::cout << std::endl;
+}
+
 void bench_inv_dropout(size_t N,size_t repeat = 100){
     auto* x_cpu = prepare_cpu(N, 2.0f);
     auto* x_gpu = prepare_gpu(N, x_cpu);
@@ -422,6 +482,11 @@ int main(int argc, char* argv[]){
     if (sub == "cce" || sub == "all") {
         bench_cce_loss();
         bench_cce_error();
+    }
+
+    if (sub == "normalize" || sub == "all") {
+        bench_normalize_flat();
+        bench_normalize_sub();
     }
 
     if (sub == "dropout" || sub == "all") {
