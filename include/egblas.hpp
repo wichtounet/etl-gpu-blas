@@ -72,6 +72,7 @@
 // Machine Learning Special functions
 #include "egblas/cce.hpp"
 #include "egblas/relu_der_out.hpp"
+#include "egblas/bias_add.hpp"
 
 // Random
 #include "egblas/shuffle.hpp"
