@@ -28,6 +28,14 @@ __forceinline__ __device__ cuDoubleComplex operator+(const cuDoubleComplex a, co
     return cuCadd(a, b);
 }
 
+__forceinline__ __device__ cuComplex operator+=(cuComplex& a, const cuComplex b){
+    return a = cuCaddf(a, b);
+}
+
+__forceinline__ __device__ cuDoubleComplex operator+=(cuDoubleComplex& a, const cuDoubleComplex b){
+    return a = cuCadd(a, b);
+}
+
 __forceinline__ __device__ cuComplex operator*(const cuComplex a, const cuComplex b){
     return cuCmulf(a, b);
 }
