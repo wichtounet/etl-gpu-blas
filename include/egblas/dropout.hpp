@@ -70,8 +70,23 @@ void egblas_sdropout_states(size_t n, float p, float alpha, float* x, size_t inc
  */
 void egblas_ddropout_states(size_t n, double p, double alpha, double* x, size_t incx, void* states);
 
+/*!
+ * \brief Prepare random states for dropout
+ * \return random states for dropout
+ */
 void* egblas_dropout_prepare();
+
+/*!
+ * \brief Prepare random states for dropout with the given seed
+ * \param seed The seed
+ * \return random states for dropout
+ */
 void* egblas_dropout_prepare_seed(size_t seed);
+
+/*!
+ * \brief Release random states for dropout
+ * \param states The random states
+ */
 void egblas_dropout_release(void* state);
 
 /*!
