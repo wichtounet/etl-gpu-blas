@@ -8,16 +8,18 @@
 #pragma once
 
 // General Utility functions
-#include "egblas/axdbpy.hpp"   //  y = (alpha * x) / (beta + y)
-#include "egblas/axdbpy_3.hpp" // yy = (alpha * x) / (beta + y)
-#include "egblas/axdy.hpp"     //  y = y / (alpha * x)
-#include "egblas/axdy_3.hpp"   // yy = y / (alpha * x)
-#include "egblas/axmy.hpp"     //  y = alpha * x * y
-#include "egblas/axmy_3.hpp"   // yy = alpha * x * y
-#include "egblas/axpby.hpp"    //  y = alpha * x + beta * y
-#include "egblas/axpby_3.hpp"  // yy = alpha * x + beta * y
-#include "egblas/axpy.hpp"     //  y = alpha * x + y
-#include "egblas/axpy_3.hpp"   // yy = alpha * x + y
+#include "egblas/apxdbpy.hpp"   //  y = (alpha + x) / (beta + y)
+
+#include "egblas/axdbpy.hpp"    //  y = (alpha * x) / (beta + y)
+#include "egblas/axdbpy_3.hpp"  // yy = (alpha * x) / (beta + y)
+#include "egblas/axdy.hpp"      //  y = y / (alpha * x)
+#include "egblas/axdy_3.hpp"    // yy = y / (alpha * x)
+#include "egblas/axmy.hpp"      //  y = alpha * x * y
+#include "egblas/axmy_3.hpp"    // yy = alpha * x * y
+#include "egblas/axpby.hpp"     //  y = alpha * x + beta * y
+#include "egblas/axpby_3.hpp"   // yy = alpha * x + beta * y
+#include "egblas/axpy.hpp"      //  y = alpha * x + y
+#include "egblas/axpy_3.hpp"    // yy = alpha * x + y
 
 // Binary functions
 #include "egblas/and.hpp"
