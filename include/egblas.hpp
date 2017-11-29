@@ -21,6 +21,8 @@
 #include "egblas/axpy.hpp"      //  y = alpha * x + y
 #include "egblas/axpy_3.hpp"    // yy = alpha * x + y
 
+#include "egblas/apxdby.hpp"   //  y = (alpha + x) / (beta * y)
+
 // Binary functions
 #include "egblas/and.hpp"
 #include "egblas/equal.hpp"
