@@ -5,7 +5,7 @@
 //  http://opensource.org/licenses/MIT)
 //=======================================================================
 
-#include "egblas/axdbpy_3.hpp"
+#include "egblas/apxdbpy_3.hpp"
 
 #include "complex.hpp"
 
