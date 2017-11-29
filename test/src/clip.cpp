@@ -395,3 +395,63 @@ TEST_CASE("clip/z/1", "[double][clip]") {
     delete[] y_cpu;
     delete[] y_cpu0;
 }
+
+TEST_CASE("clip_value/s/0", "[float][clip]") {
+    const size_t N = 137;
+
+    float* y_cpu = new float[N];
+    float* y_cpu0 = new float[N];
+
+    for (size_t i = 0; i < N; ++i) {
+        y_cpu[i] = 0.5 * (i + 1);
+        y_cpu0[i] = y_cpu[i];
+    }
+
+    float* y_gpu;
+    cuda_check(cudaMalloc((void**)&y_gpu, N * sizeof(float)));
+
+    cuda_check(cudaMemcpy(y_gpu, y_cpu, N * sizeof(float), cudaMemcpyHostToDevice));
+
+    egblas_sclip_value(N, 1.0f, 9.0f, 16.0f, y_gpu, 1);
+
+    cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
+
+    for (size_t i = 0; i < N; ++i) {
+        REQUIRE(y_cpu[i] == Approx(1.0f * clip(y_cpu0[i], 9.0f, 16.0f)));
+    }
+
+    cuda_check(cudaFree(y_gpu));
+
+    delete[] y_cpu;
+    delete[] y_cpu0;
+}
+
+TEST_CASE("clip_value/d/0", "[float][clip]") {
+    const size_t N = 137;
+
+    double* y_cpu = new double[N];
+    double* y_cpu0 = new double[N];
+
+    for (size_t i = 0; i < N; ++i) {
+        y_cpu[i] = 0.5 * (i + 1);
+        y_cpu0[i] = y_cpu[i];
+    }
+
+    double* y_gpu;
+    cuda_check(cudaMalloc((void**)&y_gpu, N * sizeof(double)));
+
+    cuda_check(cudaMemcpy(y_gpu, y_cpu, N * sizeof(double), cudaMemcpyHostToDevice));
+
+    egblas_dclip_value(N, 0.5, 4.5, 22.4, y_gpu, 1);
+
+    cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(double), cudaMemcpyDeviceToHost));
+
+    for (size_t i = 0; i < N; ++i) {
+        REQUIRE(y_cpu[i] == Approx(0.5 * clip(y_cpu0[i], 4.5, 22.4)));
+    }
+
+    cuda_check(cudaFree(y_gpu));
+
+    delete[] y_cpu;
+    delete[] y_cpu0;
+}
