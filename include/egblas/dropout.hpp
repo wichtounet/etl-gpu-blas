@@ -135,6 +135,10 @@ void egblas_sinv_dropout_states(size_t n, float p, float alpha, float* x, size_t
  */
 void egblas_dinv_dropout_states(size_t n, double p, double alpha, double* x, size_t incx, void* states);
 
+#define EGBLAS_HAS_DROPOUT_PREPARE true
+#define EGBLAS_HAS_DROPOUT_PREPARE_SEED true
+#define EGBLAS_HAS_DROPOUT_RELEASE true
+
 #define EGBLAS_HAS_SDROPOUT true
 #define EGBLAS_HAS_DDROPOUT true
 
