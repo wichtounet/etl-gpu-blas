@@ -10,6 +10,8 @@
 // General Utility functions
 #include "egblas/apxdbpy.hpp"   //  y = (alpha + x) / (beta + y)
 #include "egblas/apxdbpy_3.hpp" // yy = (alpha + x) / (beta + y)
+#include "egblas/apxdby.hpp"    //  y = (alpha + x) / (beta * y)
+#include "egblas/apxdby_3.hpp"  // yy = (alpha + x) / (beta * y)
 #include "egblas/axdbpy.hpp"    //  y = (alpha * x) / (beta + y)
 #include "egblas/axdbpy_3.hpp"  // yy = (alpha * x) / (beta + y)
 #include "egblas/axdy.hpp"      //  y = y / (alpha * x)
@@ -20,8 +22,6 @@
 #include "egblas/axpby_3.hpp"   // yy = alpha * x + beta * y
 #include "egblas/axpy.hpp"      //  y = alpha * x + y
 #include "egblas/axpy_3.hpp"    // yy = alpha * x + y
-
-#include "egblas/apxdby.hpp"   //  y = (alpha + x) / (beta * y)
 
 // Binary functions
 #include "egblas/and.hpp"
