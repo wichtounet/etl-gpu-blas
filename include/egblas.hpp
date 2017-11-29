@@ -9,6 +9,7 @@
 
 // General Utility functions
 #include "egblas/axdbpy.hpp"   //  y = (alpha * x) / (beta + y)
+#include "egblas/axdbpy_3.hpp" // yy = (alpha * x) / (beta + y)
 #include "egblas/axdy.hpp"     //  y = y / (alpha * x)
 #include "egblas/axdy_3.hpp"   // yy = y / (alpha * x)
 #include "egblas/axmy.hpp"     //  y = alpha * x * y
