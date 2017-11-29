@@ -145,8 +145,14 @@ void egblas_dinv_dropout_states(size_t n, double p, double alpha, double* x, siz
 #define EGBLAS_HAS_SDROPOUT_SEED true
 #define EGBLAS_HAS_DDROPOUT_SEED true
 
+#define EGBLAS_HAS_SDROPOUT_STATES true
+#define EGBLAS_HAS_DDROPOUT_STATES true
+
 #define EGBLAS_HAS_SINV_DROPOUT true
 #define EGBLAS_HAS_DINV_DROPOUT true
 
 #define EGBLAS_HAS_SINV_DROPOUT_SEED true
 #define EGBLAS_HAS_DINV_DROPOUT_SEED true
+
+#define EGBLAS_HAS_SINV_DROPOUT_STATES true
+#define EGBLAS_HAS_DINV_DROPOUT_STATES true
