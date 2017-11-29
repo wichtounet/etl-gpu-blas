@@ -57,7 +57,7 @@ void egblas_capxdbpy(size_t n, cuComplex alpha, const cuComplex* x, size_t incx,
  */
 void egblas_zapxdbpy(size_t n, cuDoubleComplex alpha, const cuDoubleComplex* x, size_t incx, cuDoubleComplex beta, cuDoubleComplex* y, size_t incy);
 
-#define EGBLAS_HAS_SAPXDBYP true
-#define EGBLAS_HAS_DAPXDBYP true
-#define EGBLAS_HAS_CAPXDBYP true
+#define EGBLAS_HAS_SAPXDBPY true
+#define EGBLAS_HAS_DAPXDBPY true
+#define EGBLAS_HAS_CAPXDBPY true
 #define EGBLAS_HAS_ZAPXDBPY true
