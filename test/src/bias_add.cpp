@@ -99,7 +99,7 @@ TEST_CASE("bias_add_4d/s/0", "[float][abs]") {
     double* y_cpu = new double[M * N * O * P];
     double* b_cpu = new double[N];
 
-    for (size_t i = 0; i < M * N; ++i) {
+    for (size_t i = 0; i < M * N * O * P; ++i) {
         x_cpu[i] = 1.09 * i;
     }
 
@@ -142,7 +142,7 @@ TEST_CASE("bias_add_4d/d/0", "[float][abs]") {
     double* y_cpu = new double[M * N * O * P];
     double* b_cpu = new double[N];
 
-    for (size_t i = 0; i < M * N; ++i) {
+    for (size_t i = 0; i < M * N * O * P; ++i) {
         x_cpu[i] = i;
     }
 
