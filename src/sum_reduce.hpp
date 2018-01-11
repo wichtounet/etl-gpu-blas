@@ -43,7 +43,11 @@ __device__ void sum_reduce_impl(T* output, volatile T* shared_data, T mySum){
 
         // Reduce final warp using shuffle
         for (int offset = warpSize / 2; offset > 0; offset /= 2) {
+#if CUDA_VERSION >= 9000
+            mySum += __shfl_down_sync(__activemask(), mySum, offset);
+#else
             mySum += __shfl_down(mySum, offset);
+#endif
         }
     }
 #else
