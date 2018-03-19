@@ -172,3 +172,31 @@ void egblas_zaxpy(size_t n, cuDoubleComplex alpha, const cuDoubleComplex* x, siz
         }
     }
 }
+
+void egblas_iaxpy(size_t n, int32_t alpha, const int32_t* x, size_t incx, int32_t* y, size_t incy) {
+    if (alpha == 1) {
+        axpy_kernel1_run(n, x, incx, y, incy);
+    } else if (alpha == 0) {
+        axpy_kernel0_run(n, y, incy);
+    } else {
+        if (incx == 1 && incy == 1) {
+            axpy_kernel_run_flat(n, alpha, x, y);
+        } else {
+            axpy_kernel_run(n, alpha, x, incx, y, incy);
+        }
+    }
+}
+
+void egblas_laxpy(size_t n, int64_t alpha, const int64_t* x, size_t incx, int64_t* y, size_t incy) {
+    if (alpha == 1) {
+        axpy_kernel1_run(n, x, incx, y, incy);
+    } else if (alpha == 0) {
+        axpy_kernel0_run(n, y, incy);
+    } else {
+        if (incx == 1 && incy == 1) {
+            axpy_kernel_run_flat(n, alpha, x, y);
+        } else {
+            axpy_kernel_run(n, alpha, x, incx, y, incy);
+        }
+    }
+}
