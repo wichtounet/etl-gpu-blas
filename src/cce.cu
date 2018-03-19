@@ -23,7 +23,7 @@ __device__ T cce_loss(T output, T label){
 
 template <class T, size_t blockSize, bool Reduce>
 __global__ void cce_loss_kernel(size_t n, const T* output, size_t incx, const T* labels, size_t incy, T* r_output) {
-    extern __shared__ __align__(sizeof(T)) volatile unsigned char shared_data_raw[];
+    extern __shared__ volatile unsigned char shared_data_raw[];
 
     volatile T* shared_data = reinterpret_cast<volatile T*>(shared_data_raw);
 
@@ -93,7 +93,7 @@ __device__ T cce_error(T* output, T* labels, size_t m, size_t i){
 
 template <class T, size_t blockSize, bool Reduce>
 __global__ void cce_error_kernel(size_t n, size_t m, const T* output, const T* labels, T* r_output) {
-    extern __shared__ __align__(sizeof(T)) volatile unsigned char shared_data_raw[];
+    extern __shared__ volatile unsigned char shared_data_raw[];
 
     volatile T* shared_data = reinterpret_cast<volatile T*>(shared_data_raw);
 

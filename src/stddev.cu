@@ -18,7 +18,7 @@
 
 template <class T, size_t blockSize, bool Reduce>
 __global__ void stddev_kernel(size_t n, const T* input, size_t incx, T* output, T mean) {
-    extern __shared__ __align__(sizeof(T)) volatile unsigned char shared_data_raw[];
+    extern __shared__ volatile unsigned char shared_data_raw[];
 
     volatile T* shared_data = reinterpret_cast<volatile T*>(shared_data_raw);
 
