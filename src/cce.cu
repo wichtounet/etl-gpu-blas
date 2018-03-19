@@ -88,7 +88,7 @@ __device__ T cce_error(T* output, T* labels, size_t m, size_t i){
 
     // Compute the final value
 
-    return fmin(abs(max_l - max_o), T(1.0));
+    return fmin(abs(T(max_l) - T(max_o)), T(1.0));
 }
 
 template <class T, size_t blockSize, bool Reduce>
