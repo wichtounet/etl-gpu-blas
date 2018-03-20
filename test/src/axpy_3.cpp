@@ -250,3 +250,147 @@ TEST_CASE("axpy_3/z/1", "[double][axpy_3]") {
         REQUIRE(yy.cpu()[i].imag() == Approx(-1.0 * i +  2.1f * i));
     }
 }
+
+TEST_CASE("axpy_3/i/0", "[int32_t][axpy_3]") {
+    const size_t N = 137;
+
+    dual_array<int32_t> x(N);
+    dual_array<int32_t> y(N);
+    dual_array<int32_t> yy(N);
+
+    for (size_t i = 0; i < N; ++i) {
+        x.cpu()[i] = i;
+        y.cpu()[i] = 21 * i;
+    }
+
+    x.cpu_to_gpu();
+    y.cpu_to_gpu();
+
+    egblas_iaxpy_3(N, 1, x.gpu(), 1, y.gpu(), 1, yy.gpu(), 1);
+
+    yy.gpu_to_cpu();
+
+    for (size_t i = 0; i < N; ++i) {
+        REQUIRE(yy.cpu()[i] == Approx(1 * i + 21 * i));
+    }
+}
+
+TEST_CASE("axpy_3/i/1", "[int32_t][axpy_3]") {
+    const size_t N = 333;
+
+    dual_array<int32_t> x(N);
+    dual_array<int32_t> y(N);
+    dual_array<int32_t> yy(N);
+
+    for (size_t i = 0; i < N; ++i) {
+        x.cpu()[i] = i;
+        y.cpu()[i] = 23 * i;
+    }
+
+    x.cpu_to_gpu();
+    y.cpu_to_gpu();
+
+    egblas_iaxpy_3(N, 2, x.gpu(), 1, y.gpu(), 1, yy.gpu(), 1);
+
+    yy.gpu_to_cpu();
+
+    for (size_t i = 0; i < N; ++i) {
+        REQUIRE(yy.cpu()[i] == Approx(2 * i + 23 * i));
+    }
+}
+
+TEST_CASE("axpy_3/i/2", "[int32_t][axpy_3]") {
+    const size_t N = 120;
+
+    dual_array<int32_t> x(N);
+    dual_array<int32_t> y(N);
+    dual_array<int32_t> yy(N);
+
+    for (size_t i = 0; i < N; ++i) {
+        x.cpu()[i] = i;
+        y.cpu()[i] = 23 * i;
+    }
+
+    x.cpu_to_gpu();
+    y.cpu_to_gpu();
+
+    egblas_iaxpy_3(N, 2, x.gpu(), 3, y.gpu(), 3, yy.gpu(), 1);
+
+    yy.gpu_to_cpu();
+
+    for (size_t i = 0; i < N / 3; ++i) {
+        REQUIRE(yy.cpu()[i] == Approx(2 * (3 * i) + 23 * (3 * i)));
+    }
+}
+
+TEST_CASE("axpy_3/l/0", "[int64_t][axpy_3]") {
+    const size_t N = 137;
+
+    dual_array<int64_t> x(N);
+    dual_array<int64_t> y(N);
+    dual_array<int64_t> yy(N);
+
+    for (size_t i = 0; i < N; ++i) {
+        x.cpu()[i] = i;
+        y.cpu()[i] = 21 * i;
+    }
+
+    x.cpu_to_gpu();
+    y.cpu_to_gpu();
+
+    egblas_laxpy_3(N, 1, x.gpu(), 1, y.gpu(), 1, yy.gpu(), 1);
+
+    yy.gpu_to_cpu();
+
+    for (size_t i = 0; i < N; ++i) {
+        REQUIRE(yy.cpu()[i] == Approx(1 * i + 21 * i));
+    }
+}
+
+TEST_CASE("axpy_3/l/1", "[int64_t][axpy_3]") {
+    const size_t N = 333;
+
+    dual_array<int64_t> x(N);
+    dual_array<int64_t> y(N);
+    dual_array<int64_t> yy(N);
+
+    for (size_t i = 0; i < N; ++i) {
+        x.cpu()[i] = i;
+        y.cpu()[i] = 23 * i;
+    }
+
+    x.cpu_to_gpu();
+    y.cpu_to_gpu();
+
+    egblas_laxpy_3(N, 2, x.gpu(), 1, y.gpu(), 1, yy.gpu(), 1);
+
+    yy.gpu_to_cpu();
+
+    for (size_t i = 0; i < N; ++i) {
+        REQUIRE(yy.cpu()[i] == Approx(2 * i + 23 * i));
+    }
+}
+
+TEST_CASE("axpy_3/l/2", "[int64_t][axpy_3]") {
+    const size_t N = 333;
+
+    dual_array<int64_t> x(N);
+    dual_array<int64_t> y(N);
+    dual_array<int64_t> yy(N);
+
+    for (size_t i = 0; i < N; ++i) {
+        x.cpu()[i] = i;
+        y.cpu()[i] = 23 * i;
+    }
+
+    x.cpu_to_gpu();
+    y.cpu_to_gpu();
+
+    egblas_laxpy_3(N, 2, x.gpu(), 3, y.gpu(), 3, yy.gpu(), 1);
+
+    yy.gpu_to_cpu();
+
+    for (size_t i = 0; i < N / 3; ++i) {
+        REQUIRE(yy.cpu()[i] == Approx(2 * (3 * i) + 23 * (3 * i)));
+    }
+}

@@ -61,7 +61,35 @@ void egblas_caxpy_3(size_t n, cuComplex alpha, const cuComplex* x, size_t incx, 
  */
 void egblas_zaxpy_3(size_t n, cuDoubleComplex alpha, const cuDoubleComplex* x, size_t incx, const cuDoubleComplex* y, size_t incy, cuDoubleComplex* yy, size_t incyy);
 
+/*!
+ * \brief Compute yy = alpha * x + y (element wise), in 32bits integers precision
+ * \param n The size of the two vectors
+ * \param alpha The multiplicator
+ * \param x The vector x (GPU memory)
+ * \param incx The stride of x
+ * \param y The vector y (GPU memory)
+ * \param incy The stride of y
+ * \param yy The vector yy (GPU memory)
+ * \param incyy The stride of yy
+ */
+void egblas_iaxpy_3(size_t n, int32_t alpha, const int32_t* x, size_t incx, const int32_t* y, size_t incy, int32_t* yy, size_t incyy);
+
+/*!
+ * \brief Compute yy = alpha * x + y (element wise), in 64bits integers precision
+ * \param n The size of the two vectors
+ * \param alpha The multiplicator
+ * \param x The vector x (GPU memory)
+ * \param incx The stride of x
+ * \param y The vector y (GPU memory)
+ * \param incy The stride of y
+ * \param yy The vector yy (GPU memory)
+ * \param incyy The stride of yy
+ */
+void egblas_laxpy_3(size_t n, int64_t alpha, const int64_t* x, size_t incx, const int64_t* y, size_t incy, int64_t* yy, size_t incyy);
+
 #define EGBLAS_HAS_SAXPY_3 true
 #define EGBLAS_HAS_DAXPY_3 true
 #define EGBLAS_HAS_CAXPY_3 true
 #define EGBLAS_HAS_ZAXPY_3 true
+#define EGBLAS_HAS_IAXPY_3 true
+#define EGBLAS_HAS_LAXPY_3 true
