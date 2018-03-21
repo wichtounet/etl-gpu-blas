@@ -126,3 +126,23 @@ void egblas_zaxmy_3(size_t n, cuDoubleComplex alpha, const cuDoubleComplex* x, s
         axmy_3_kernel_run(n, alpha, x, incx, y, incy, yy, incyy);
     }
 }
+
+void egblas_iaxmy_3(size_t n, int32_t alpha, const int32_t* x, size_t incx, const int32_t* y, size_t incy, int32_t* yy, size_t incyy) {
+    if (alpha == 1) {
+        axmy_3_kernel1_run(n, x, incx, y, incy, yy, incyy);
+    } else if (alpha == 0) {
+        axmy_3_kernel0_run(n, yy, incyy);
+    } else {
+        axmy_3_kernel_run(n, alpha, x, incx, y, incy, yy, incyy);
+    }
+}
+
+void egblas_laxmy_3(size_t n, int64_t alpha, const int64_t* x, size_t incx, const int64_t* y, size_t incy, int64_t* yy, size_t incyy) {
+    if (alpha == 1) {
+        axmy_3_kernel1_run(n, x, incx, y, incy, yy, incyy);
+    } else if (alpha == 0) {
+        axmy_3_kernel0_run(n, yy, incyy);
+    } else {
+        axmy_3_kernel_run(n, alpha, x, incx, y, incy, yy, incyy);
+    }
+}
