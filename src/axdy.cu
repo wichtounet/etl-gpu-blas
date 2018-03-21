@@ -92,3 +92,19 @@ void egblas_zaxdy(size_t n, cuDoubleComplex alpha, const cuDoubleComplex* x, siz
         axdy_kernel_run(n, alpha, x, incx, y, incy);
     }
 }
+
+void egblas_iaxdy(size_t n, int32_t alpha, const int32_t* x, size_t incx, int32_t* y, size_t incy) {
+    if (alpha == 1) {
+        axdy_kernel1_run(n, x, incx, y, incy);
+    } else {
+        axdy_kernel_run(n, alpha, x, incx, y, incy);
+    }
+}
+
+void egblas_laxdy(size_t n, int64_t alpha, const int64_t* x, size_t incx, int64_t* y, size_t incy) {
+    if (alpha == 1) {
+        axdy_kernel1_run(n, x, incx, y, incy);
+    } else {
+        axdy_kernel_run(n, alpha, x, incx, y, incy);
+    }
+}
