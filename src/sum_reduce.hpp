@@ -5,6 +5,10 @@
 //  http://opensource.org/licenses/MIT)
 //=======================================================================
 
+#ifndef CUDART_VERSION
+#error "Unsupported CUDA version"
+#endif
+
 template <class T, size_t blockSize>
 __device__ void sum_reduce_impl(T* output, volatile T* shared_data, T mySum){
     size_t tid      = threadIdx.x;
@@ -43,7 +47,7 @@ __device__ void sum_reduce_impl(T* output, volatile T* shared_data, T mySum){
 
         // Reduce final warp using shuffle
         for (int offset = warpSize / 2; offset > 0; offset /= 2) {
-#if CUDA_VERSION >= 9000
+#if CUDART_VERSION >= 9000
             mySum += __shfl_down_sync(__activemask(), mySum, offset);
 #else
             mySum += __shfl_down(mySum, offset);
