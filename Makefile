@@ -89,17 +89,17 @@ release_bench: release_egblas_bench
 debug_install: debug/lib/libegblas.so
 	cp -r include/* $(DESTDIR)/usr/include/
 	install -m 0644 debug/lib/libegblas.so $(DESTDIR)/usr/lib/
-	install -m 0644 -D egblas.pc $(DESTDIR)/usr/lib/pkgconfig/
+	install -m 0644 -D egblas.pc $(DESTDIR)/usr/share/pkgconfig/
 
 release_debug_install: release_debug/lib/libegblas.so
 	cp -r include/* $(DESTDIR)/usr/include/
 	install -m 0644 release_debug/lib/libegblas.so $(DESTDIR)/usr/lib/
-	install -m 0644 -D egblas.pc $(DESTDIR)/usr/lib/pkgconfig/
+	install -m 0644 -D egblas.pc $(DESTDIR)/usr/share/pkgconfig/
 
 release_install: release/lib/libegblas.so
 	cp -r include/* $(DESTDIR)/usr/include/
 	install -m 0644 release/lib/libegblas.so $(DESTDIR)/usr/lib/
-	install -m 0644 -D egblas.pc $(DESTDIR)/usr/lib/pkgconfig/
+	install -m 0644 -D egblas.pc $(DESTDIR)/usr/share/pkgconfig/
 
 install: release_debug_install
 
