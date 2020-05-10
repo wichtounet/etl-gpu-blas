@@ -31,7 +31,7 @@ __global__ void cce_loss_kernel(size_t n, const T* output, size_t incx, const T*
     size_t i        = blockIdx.x * (2 * blockDim.x) + threadIdx.x;
     size_t gridSize = blockSize * 2 * gridDim.x;
 
-    // Perform first level of durection,
+    // Perform first level of reduction,
     // reading from global memory and writing to shared memory
 
     T mySum = 0;
@@ -101,7 +101,7 @@ __global__ void cce_error_kernel(size_t n, size_t m, const T* output, const T* l
     size_t i        = blockIdx.x * (2 * blockDim.x) + threadIdx.x;
     size_t gridSize = blockSize * 2 * gridDim.x;
 
-    // Perform first level of durection,
+    // Perform first level of reduction,
     // reading from global memory and writing to shared memory
 
     T mySum = 0;
