@@ -38,7 +38,7 @@ TEST_CASE("bce/loss/s/0", "[float][bce]") {
 
     float loss = egblas_bce_sloss(N, 1.1f, x_gpu, 1, y_gpu, 1);
 
-    REQUIRE(loss == Approx(46962.207));
+    REQUIRE(loss == Approx(-46962.207));
 
     cuda_check(cudaFree(x_gpu));
     cuda_check(cudaFree(y_gpu));
