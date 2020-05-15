@@ -66,7 +66,7 @@ __global__ void cce_loss_kernel(size_t n, const T* output, size_t incx, const T*
 
     __syncthreads();
 
-    sum_reduce_impl<T, blockSize>(r_output, shared_data, mySum);
+    sum_reduce_impl<T, blockSize>(r_output, shared_data);
 }
 
 template<typename T>
@@ -136,7 +136,7 @@ __global__ void cce_error_kernel(size_t n, size_t m, const T* output, const T* l
 
     __syncthreads();
 
-    sum_reduce_impl<T, blockSize>(r_output, shared_data, mySum);
+    sum_reduce_impl<T, blockSize>(r_output, shared_data);
 }
 
 template <typename T, bool Reduce>
@@ -286,7 +286,7 @@ T cce_kernel_run(size_t n, size_t m, const T* output, size_t incx, const T* labe
         return result;
     }
 
-    const size_t maxThreads    = 256;
+    const size_t maxThreads    = 512;
     const size_t maxBlocks     = 64;
 
     // Compute the launch configuration of the kernel
@@ -295,20 +295,17 @@ T cce_kernel_run(size_t n, size_t m, const T* output, size_t incx, const T* labe
 
     // Allocate memory on the device
 
-    T* y_gpu_1;
-    T* y_gpu_2;
-    cuda_check(cudaMalloc((void**)&y_gpu_1, numBlocks * sizeof(T)));
-    cuda_check(cudaMalloc((void**)&y_gpu_2, numBlocks * sizeof(T)));
+    T* tmp_gpu;
+    cuda_check(cudaMalloc((void**)&tmp_gpu, numBlocks * sizeof(T)));
 
-    cudaMemset(y_gpu_1, 0, numBlocks * sizeof(T));
-    cudaMemset(y_gpu_2, 0, numBlocks * sizeof(T));
+    cudaMemset(tmp_gpu, 0, numBlocks * sizeof(T));
 
     // Run the first reduction on GPU
 
     if (Loss) {
-        invoke_cce_loss_kernel<T, false>(n, output, incx, labels, incy, y_gpu_2, numThreads, numBlocks);
+        invoke_cce_loss_kernel<T, false>(n, output, incx, labels, incy, tmp_gpu, numThreads, numBlocks);
     } else {
-        invoke_cce_error_kernel<T, false>(n, m, output, labels, y_gpu_2, numThreads, numBlocks);
+        invoke_cce_error_kernel<T, false>(n, m, output, labels, tmp_gpu, numThreads, numBlocks);
     }
 
     size_t s = numBlocks;
@@ -320,12 +317,12 @@ T cce_kernel_run(size_t n, size_t m, const T* output, size_t incx, const T* labe
         numThreads = n < maxThreads * 2 ? nextPow2((n + 1) / 2) : maxThreads;
         numBlocks  = std::min((n + numThreads * 2 - 1) / (numThreads * 2), maxBlocks);
 
-        cuda_check(cudaMemcpy(y_gpu_1, y_gpu_2, s * sizeof(T), cudaMemcpyDeviceToDevice));
+        cuda_check(cudaMemcpy(tmp_gpu, tmp_gpu, s * sizeof(T), cudaMemcpyDeviceToDevice));
 
         if (Loss) {
-            invoke_cce_loss_kernel<T, true>(s, y_gpu_1, 1, y_gpu_1, 1, y_gpu_2, numThreads, numBlocks);
+            invoke_cce_loss_kernel<T, true>(s, tmp_gpu, 1, tmp_gpu, 1, tmp_gpu, numThreads, numBlocks);
         } else {
-            invoke_cce_error_kernel<T, true>(s, m, y_gpu_1, y_gpu_1, y_gpu_2, numThreads, numBlocks);
+            invoke_cce_error_kernel<T, true>(s, m, tmp_gpu, tmp_gpu, tmp_gpu, numThreads, numBlocks);
         }
 
         s = (s + numThreads * 2 - 1) / (numThreads * 2);
@@ -334,7 +331,7 @@ T cce_kernel_run(size_t n, size_t m, const T* output, size_t incx, const T* labe
     if(s > 1){
         T* host_data = new T[s];
 
-        cuda_check(cudaMemcpy(host_data, y_gpu_2, s * sizeof(T), cudaMemcpyDeviceToHost));
+        cuda_check(cudaMemcpy(host_data, tmp_gpu, s * sizeof(T), cudaMemcpyDeviceToHost));
 
         for (size_t i = 0; i < s; i++) {
             result += host_data[i];
@@ -342,11 +339,10 @@ T cce_kernel_run(size_t n, size_t m, const T* output, size_t incx, const T* labe
 
         delete[] host_data;
     } else {
-        cuda_check(cudaMemcpy(&result, y_gpu_2, 1 * sizeof(T), cudaMemcpyDeviceToHost));
+        cuda_check(cudaMemcpy(&result, tmp_gpu, 1 * sizeof(T), cudaMemcpyDeviceToHost));
     }
 
-    cuda_check(cudaFree(y_gpu_1));
-    cuda_check(cudaFree(y_gpu_2));
+    cuda_check(cudaFree(tmp_gpu));
 
     return result;
 }

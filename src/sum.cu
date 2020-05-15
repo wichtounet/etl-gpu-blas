@@ -22,10 +22,10 @@ __global__ void sum_kernel(size_t n, const T* input, size_t incx, T* output) {
     volatile T* shared_data = reinterpret_cast<volatile T*>(shared_data_raw);
 
     size_t tid      = threadIdx.x;
-    size_t i        = blockIdx.x * (2 * blockDim.x) + threadIdx.x;
+    size_t i        = blockIdx.x * (2 * blockDim.x) + tid;
     size_t gridSize = blockSize * 2 * gridDim.x;
 
-    // Perform first level of durection,
+    // Perform first level of reduction,
     // reading from global memory and writing to shared memory
 
     T mySum = 0;
@@ -44,7 +44,39 @@ __global__ void sum_kernel(size_t n, const T* input, size_t incx, T* output) {
 
     __syncthreads();
 
-    sum_reduce_impl<T, blockSize>(output, shared_data, mySum);
+    sum_reduce_impl<T, blockSize>(output, shared_data);
+}
+
+template <class T, size_t blockSize>
+__global__ void sum_kernel1(size_t n, const T* input, T* output) {
+    extern __shared__ volatile unsigned char shared_data_raw[];
+
+    volatile T* shared_data = reinterpret_cast<volatile T*>(shared_data_raw);
+
+    size_t tid      = threadIdx.x;
+    size_t i        = blockIdx.x * (2 * blockDim.x) + tid;
+    size_t gridSize = blockSize * 2 * gridDim.x;
+
+    // Perform first level of reduction,
+    // reading from global memory and writing to shared memory
+
+    T mySum = 0;
+
+    while (i < n) {
+        mySum += input[i];
+
+        if (i + blockSize < n) {
+            mySum += input[i + blockSize];
+        }
+
+        i += gridSize;
+    }
+
+    shared_data[tid] = mySum;
+
+    __syncthreads();
+
+    sum_reduce_impl<T, blockSize>(output, shared_data);
 }
 
 template <typename T>
@@ -53,43 +85,83 @@ void invoke_sum_kernel(size_t n, const T* input, size_t incx, T* output, size_t 
 
     switch (numThreads) {
         case 512:
-            sum_kernel<T, 512><<<numBlocks, numThreads, sharedSize>>>(n, input, incx, output);
+            if (incx == 1) {
+                sum_kernel1<T, 512><<<numBlocks, numThreads, sharedSize>>>(n, input, output);
+            } else {
+                sum_kernel<T, 512><<<numBlocks, numThreads, sharedSize>>>(n, input, incx, output);
+            }
             break;
 
         case 256:
-            sum_kernel<T, 256><<<numBlocks, numThreads, sharedSize>>>(n, input, incx, output);
+            if (incx == 1) {
+                sum_kernel1<T, 256><<<numBlocks, numThreads, sharedSize>>>(n, input, output);
+            } else {
+                sum_kernel<T, 256><<<numBlocks, numThreads, sharedSize>>>(n, input, incx, output);
+            }
             break;
 
         case 128:
-            sum_kernel<T, 128><<<numBlocks, numThreads, sharedSize>>>(n, input, incx, output);
+            if (incx == 1) {
+                sum_kernel1<T, 128><<<numBlocks, numThreads, sharedSize>>>(n, input, output);
+            } else {
+                sum_kernel<T, 128><<<numBlocks, numThreads, sharedSize>>>(n, input, incx, output);
+            }
             break;
 
         case 64:
-            sum_kernel<T,  64><<<numBlocks, numThreads, sharedSize>>>(n, input, incx, output);
+            if (incx == 1) {
+                sum_kernel1<T, 64><<<numBlocks, numThreads, sharedSize>>>(n, input, output);
+            } else {
+                sum_kernel<T, 64><<<numBlocks, numThreads, sharedSize>>>(n, input, incx, output);
+            }
             break;
 
         case 32:
-            sum_kernel<T,  32><<<numBlocks, numThreads, sharedSize>>>(n, input, incx, output);
+            if (incx == 1) {
+                sum_kernel1<T, 32><<<numBlocks, numThreads, sharedSize>>>(n, input, output);
+            } else {
+                sum_kernel<T, 32><<<numBlocks, numThreads, sharedSize>>>(n, input, incx, output);
+            }
             break;
 
         case 16:
-            sum_kernel<T,  16><<<numBlocks, numThreads, sharedSize>>>(n, input, incx, output);
+            if (incx == 1) {
+                sum_kernel1<T, 16><<<numBlocks, numThreads, sharedSize>>>(n, input, output);
+            } else {
+                sum_kernel<T, 16><<<numBlocks, numThreads, sharedSize>>>(n, input, incx, output);
+            }
             break;
 
         case 8:
-            sum_kernel<T,   8><<<numBlocks, numThreads, sharedSize>>>(n, input, incx, output);
+            if (incx == 1) {
+                sum_kernel1<T, 8><<<numBlocks, numThreads, sharedSize>>>(n, input, output);
+            } else {
+                sum_kernel<T, 8><<<numBlocks, numThreads, sharedSize>>>(n, input, incx, output);
+            }
             break;
 
         case 4:
-            sum_kernel<T,   4><<<numBlocks, numThreads, sharedSize>>>(n, input, incx, output);
+            if (incx == 1) {
+                sum_kernel1<T, 4><<<numBlocks, numThreads, sharedSize>>>(n, input, output);
+            } else {
+                sum_kernel<T, 4><<<numBlocks, numThreads, sharedSize>>>(n, input, incx, output);
+            }
             break;
 
         case 2:
-            sum_kernel<T,   2><<<numBlocks, numThreads, sharedSize>>>(n, input, incx, output);
+            if (incx == 1) {
+                sum_kernel1<T, 2><<<numBlocks, numThreads, sharedSize>>>(n, input, output);
+            } else {
+                sum_kernel<T, 2><<<numBlocks, numThreads, sharedSize>>>(n, input, incx, output);
+            }
             break;
 
         case 1:
-            sum_kernel<T,   1><<<numBlocks, numThreads, sharedSize>>>(n, input, incx, output);
+            if (incx == 1) {
+                sum_kernel1<T, 1><<<numBlocks, numThreads, sharedSize>>>(n, input, output);
+            } else {
+                sum_kernel<T, 1><<<numBlocks, numThreads, sharedSize>>>(n, input, incx, output);
+            }
             break;
     }
 }
@@ -118,7 +190,7 @@ T sum_kernel_run(size_t n, const T* input, size_t incx) {
         return result;
     }
 
-    const size_t maxThreads    = 256;
+    const size_t maxThreads    = 512;
     const size_t maxBlocks     = 64;
 
     // Compute the launch configuration of the kernel
@@ -127,17 +199,14 @@ T sum_kernel_run(size_t n, const T* input, size_t incx) {
 
     // Allocate memory on the device
 
-    T* y_gpu_1;
-    T* y_gpu_2;
-    cuda_check(cudaMalloc((void**)&y_gpu_1, numBlocks * sizeof(T)));
-    cuda_check(cudaMalloc((void**)&y_gpu_2, numBlocks * sizeof(T)));
+    T* tmp_gpu;
+    cuda_check(cudaMalloc((void**)&tmp_gpu, numBlocks * sizeof(T)));
 
-    cudaMemset(y_gpu_1, 0, numBlocks * sizeof(T));
-    cudaMemset(y_gpu_2, 0, numBlocks * sizeof(T));
+    cudaMemset(tmp_gpu, 0, numBlocks * sizeof(T));
 
     // Run the first reduction on GPU
 
-    invoke_sum_kernel<T>(n, input, incx, y_gpu_2, numThreads, numBlocks);
+    invoke_sum_kernel<T>(n, input, incx, tmp_gpu, numThreads, numBlocks);
 
     size_t s = numBlocks;
 
@@ -148,9 +217,7 @@ T sum_kernel_run(size_t n, const T* input, size_t incx) {
         numThreads = n < maxThreads * 2 ? nextPow2((n + 1) / 2) : maxThreads;
         numBlocks  = std::min((n + numThreads * 2 - 1) / (numThreads * 2), maxBlocks);
 
-        cuda_check(cudaMemcpy(y_gpu_1, y_gpu_2, s * sizeof(T), cudaMemcpyDeviceToDevice));
-
-        invoke_sum_kernel<T>(s, y_gpu_1, 1, y_gpu_2, numThreads, numBlocks);
+        invoke_sum_kernel<T>(s, tmp_gpu, 1, tmp_gpu, numThreads, numBlocks);
 
         s = (s + numThreads * 2 - 1) / (numThreads * 2);
     }
@@ -158,7 +225,7 @@ T sum_kernel_run(size_t n, const T* input, size_t incx) {
     if(s > 1){
         T* host_data = new T[s];
 
-        cuda_check(cudaMemcpy(host_data, y_gpu_2, s * sizeof(T), cudaMemcpyDeviceToHost));
+        cuda_check(cudaMemcpy(host_data, tmp_gpu, s * sizeof(T), cudaMemcpyDeviceToHost));
 
         for (size_t i = 0; i < s; i++) {
             result += host_data[i];
@@ -166,11 +233,10 @@ T sum_kernel_run(size_t n, const T* input, size_t incx) {
 
         delete[] host_data;
     } else {
-        cuda_check(cudaMemcpy(&result, y_gpu_2, 1 * sizeof(T), cudaMemcpyDeviceToHost));
+        cuda_check(cudaMemcpy(&result, tmp_gpu, 1 * sizeof(T), cudaMemcpyDeviceToHost));
     }
 
-    cuda_check(cudaFree(y_gpu_1));
-    cuda_check(cudaFree(y_gpu_2));
+    cuda_check(cudaFree(tmp_gpu));
 
     return result;
 }
