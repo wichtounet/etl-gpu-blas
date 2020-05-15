@@ -65,15 +65,24 @@ void release(float* x_cpu, float* x_gpu){
 }
 
 template<typename T>
-inline void report(const std::string& name, const T& t0, size_t repeat, size_t N){
+inline void report(const std::string& name, const T& t0, size_t repeat, size_t N, bool us_unit = true){
     cudaDeviceSynchronize();
 
     auto t1 = timer::now();
+
     auto us = std::chrono::duration_cast<microseconds>(t1 - t0).count();
     auto us_avg = us / double(repeat);
 
-    std::cout << name << "(" << N << "): Tot: " << us << "us Avg: " << us_avg << "us Throughput: "
-        << (1e6 / double(us_avg)) * N << "E/s" << std::endl;
+    if (us_unit) {
+        std::cout << name << "(" << N << "): Tot: " << us << "us Avg: " << us_avg << "us Throughput: "
+            << (1e6 / double(us_avg)) * N << "E/s" << std::endl;
+    } else { // ms_unit
+        auto ms = (us / 1000.0);
+        auto ms_avg = ms / double(repeat);
+
+        std::cout << name << "(" << N << "): Tot: " << ms << "ms Avg: " << ms_avg << "ms Throughput: "
+            << (1e6 / double(us_avg)) * N << "E/s" << std::endl;
+    }
 }
 
 void bench_sum(size_t N,size_t repeat = 100){
@@ -88,7 +97,7 @@ void bench_sum(size_t N,size_t repeat = 100){
         egblas_ssum(x_gpu, N, 1);
     }
 
-    report("sum", t0, repeat, N);
+    report("sum", t0, repeat, N, false);
 
     cuda_check(cudaMemcpy(x_cpu, x_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
 
@@ -151,7 +160,7 @@ void bench_cce_loss(size_t N,size_t repeat = 100){
         egblas_cce_sloss(N, 1.0f/ float(N), x_gpu, 1, y_gpu, 1);
     }
 
-    report("cce_loss", t0, repeat, N);
+    report("cce_loss", t0, repeat, N, false);
 
     release(x_cpu, x_gpu);
     release(y_cpu, y_gpu);
@@ -183,7 +192,7 @@ void bench_cce_error(size_t N,size_t repeat = 100){
         egblas_cce_serror(N, 10, 1.0f/ float(N), x_gpu, y_gpu);
     }
 
-    report("cce_error", t0, repeat, N * 10);
+    report("cce_error", t0, repeat, N * 10, false);
 
     release(x_cpu, x_gpu);
     release(y_cpu, y_gpu);
@@ -197,6 +206,70 @@ void bench_cce_error(){
     bench_cce_error(100000);
     bench_cce_error(1000000);
     bench_cce_error(10000000);
+    std::cout << std::endl;
+}
+
+void bench_bce_loss(size_t N,size_t repeat = 100){
+    auto* x_cpu = prepare_cpu(N, 2.1f);
+    auto* y_cpu = prepare_cpu(N, 2.2f);
+
+    auto* x_gpu = prepare_gpu(N, x_cpu);
+    auto* y_gpu = prepare_gpu(N, y_cpu);
+
+    egblas_bce_sloss(N, 1.0f/ float(N), x_gpu, 1, y_gpu, 1);
+
+    auto t0 = timer::now();
+
+    for(size_t i = 0; i < repeat; ++i){
+        egblas_bce_sloss(N, 1.0f/ float(N), x_gpu, 1, y_gpu, 1);
+    }
+
+    report("bce_loss", t0, repeat, N, false);
+
+    release(x_cpu, x_gpu);
+    release(y_cpu, y_gpu);
+}
+
+void bench_bce_loss(){
+    bench_bce_loss(100);
+    bench_bce_loss(1000);
+    bench_bce_loss(10000);
+    bench_bce_loss(100000);
+    bench_bce_loss(1000000);
+    bench_bce_loss(10000000);
+    bench_bce_loss(100000000);
+    std::cout << std::endl;
+}
+
+void bench_bce_error(size_t N,size_t repeat = 100){
+    auto* x_cpu = prepare_cpu(N, 2.1f);
+    auto* y_cpu = prepare_cpu(N, 2.2f);
+
+    auto* x_gpu = prepare_gpu(N, x_cpu);
+    auto* y_gpu = prepare_gpu(N, y_cpu);
+
+    egblas_bce_serror(N, 1.0f/ float(N), x_gpu, 1, y_gpu, 1);
+
+    auto t0 = timer::now();
+
+    for(size_t i = 0; i < repeat; ++i){
+        egblas_bce_serror(N, 1.0f/ float(N), x_gpu, 1, y_gpu, 1);
+    }
+
+    report("bce_error", t0, repeat, N, false);
+
+    release(x_cpu, x_gpu);
+    release(y_cpu, y_gpu);
+}
+
+void bench_bce_error(){
+    bench_bce_error(100);
+    bench_bce_error(1000);
+    bench_bce_error(10000);
+    bench_bce_error(100000);
+    bench_bce_error(1000000);
+    bench_bce_error(10000000);
+    bench_bce_error(100000000);
     std::cout << std::endl;
 }
 
@@ -535,6 +608,11 @@ int main(int argc, char* argv[]){
     if (sub == "cce" || sub == "all") {
         bench_cce_loss();
         bench_cce_error();
+    }
+
+    if (sub == "bce" || sub == "all") {
+        bench_bce_loss();
+        bench_bce_error();
     }
 
     if (sub == "normalize" || sub == "all") {
