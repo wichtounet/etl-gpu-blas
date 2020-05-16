@@ -9,6 +9,8 @@
 #error "Unsupported CUDA version"
 #endif
 
+// Note: The warp reduction can also be done with Shuffle operations on Kepler
+// However, I have not found this to be faster, so I keep the simpler code
 template <class T, size_t blockSize>
 __device__ void warpReduce(volatile T *shared_data, size_t tid){
     if (blockSize >= 64) shared_data[tid] += shared_data[tid + 32];
