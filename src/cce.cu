@@ -317,8 +317,6 @@ T cce_kernel_run(size_t n, size_t m, const T* output, size_t incx, const T* labe
         numThreads = n < maxThreads * 2 ? nextPow2((n + 1) / 2) : maxThreads;
         numBlocks  = std::min((n + numThreads * 2 - 1) / (numThreads * 2), maxBlocks);
 
-        cuda_check(cudaMemcpy(tmp_gpu, tmp_gpu, s * sizeof(T), cudaMemcpyDeviceToDevice));
-
         if (Loss) {
             invoke_cce_loss_kernel<T, true>(s, tmp_gpu, 1, tmp_gpu, 1, tmp_gpu, numThreads, numBlocks);
         } else {
