@@ -209,6 +209,72 @@ void bench_cce_error(){
     std::cout << std::endl;
 }
 
+void bench_cce(size_t N,size_t repeat = 100){
+    auto* x_cpu = prepare_cpu(N * 10, 2.1f);
+    auto* y_cpu = prepare_cpu(N * 10, 2.2f);
+
+    auto* x_gpu = prepare_gpu(N * 10, x_cpu);
+    auto* y_gpu = prepare_gpu(N * 10, y_cpu);
+
+    egblas_cce_sloss(10 * N, 1.0f/ float(N), x_gpu, 1, y_gpu, 1);
+    egblas_cce_serror(N, 10, 1.0f/ float(N), x_gpu, y_gpu);
+
+    auto t0 = timer::now();
+
+    for(size_t i = 0; i < repeat; ++i){
+        egblas_cce_sloss(10 * N, 1.0f/ float(N), x_gpu, 1, y_gpu, 1);
+        egblas_cce_serror(N, 10, 1.0f/ float(N), x_gpu, y_gpu);
+    }
+
+    report("cce_both", t0, repeat, N * 10, false);
+
+    release(x_cpu, x_gpu);
+    release(y_cpu, y_gpu);
+}
+
+void bench_cce(){
+    bench_cce(10);
+    bench_cce(100);
+    bench_cce(1000);
+    bench_cce(10000);
+    bench_cce(100000);
+    bench_cce(1000000);
+    bench_cce(10000000);
+    std::cout << std::endl;
+}
+
+void bench_scce(size_t N,size_t repeat = 100){
+    auto* x_cpu = prepare_cpu(N * 10, 2.1f);
+    auto* y_cpu = prepare_cpu(N * 10, 2.2f);
+
+    auto* x_gpu = prepare_gpu(N * 10, x_cpu);
+    auto* y_gpu = prepare_gpu(N * 10, y_cpu);
+
+    egblas_scce(N, 10, 1.0f/ float(N), 1.0f/ float(N), x_gpu, y_gpu);
+
+    auto t0 = timer::now();
+
+    for(size_t i = 0; i < repeat; ++i){
+        egblas_scce(N, 10, 1.0f / float(N), 1.0f / float(N), x_gpu, y_gpu);
+    }
+
+    report("scce", t0, repeat, N * 10, false);
+
+    release(x_cpu, x_gpu);
+    release(y_cpu, y_gpu);
+}
+
+void bench_scce(){
+    bench_scce(10);
+    bench_scce(100);
+    bench_scce(1000);
+    bench_scce(10000);
+    bench_scce(100000);
+    bench_scce(1000000);
+    bench_scce(10000000);
+    std::cout << std::endl;
+}
+
 void bench_bce_loss(size_t N,size_t repeat = 100){
     auto* x_cpu = prepare_cpu(N, 2.1f);
     auto* y_cpu = prepare_cpu(N, 2.2f);
@@ -674,6 +740,8 @@ int main(int argc, char* argv[]){
     if (sub == "cce" || sub == "all") {
         bench_cce_loss();
         bench_cce_error();
+        bench_cce();
+        bench_scce();
     }
 
     if (sub == "bce" || sub == "all") {
