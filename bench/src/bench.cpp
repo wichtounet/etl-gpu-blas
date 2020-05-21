@@ -115,6 +115,72 @@ void bench_sum(){
     std::cout << std::endl;
 }
 
+void bench_asum(size_t N,size_t repeat = 100){
+    auto* x_cpu = prepare_cpu(N, 2.1f);
+    auto* x_gpu = prepare_gpu(N, x_cpu);
+
+    egblas_sasum(x_gpu, N, 1);
+
+    auto t0 = timer::now();
+
+    for(size_t i = 0; i < repeat; ++i){
+        egblas_sasum(x_gpu, N, 1);
+    }
+
+    report("asum", t0, repeat, N, false);
+
+    cuda_check(cudaMemcpy(x_cpu, x_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
+
+    release(x_cpu, x_gpu);
+}
+
+void bench_asum(){
+    bench_asum(100);
+    bench_asum(1000);
+    bench_asum(10000);
+    bench_asum(100000);
+    bench_asum(1000000);
+    bench_asum(10000000);
+    bench_asum(100000000);
+    std::cout << std::endl;
+}
+
+void bench_cublas_asum(size_t N,size_t repeat = 100){
+    auto* x_cpu = prepare_cpu(N, 2.1f);
+    auto* x_gpu = prepare_gpu(N, x_cpu);
+
+    cublasHandle_t handle;
+    cublasCreate(&handle);
+
+    float prod = 0.1f;
+    cublas_check(cublasSasum(handle, N, x_gpu, 1, &prod));
+
+    auto t0 = timer::now();
+
+    for(size_t i = 0; i < repeat; ++i){
+        cublas_check(cublasSasum(handle, N, x_gpu, 1, &prod));
+    }
+
+    report("cublas_asum", t0, repeat, N, false);
+
+    cuda_check(cudaMemcpy(x_cpu, x_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
+
+    release(x_cpu, x_gpu);
+
+    cublasDestroy(handle);
+}
+
+void bench_cublas_asum(){
+    bench_cublas_asum(100);
+    bench_cublas_asum(1000);
+    bench_cublas_asum(10000);
+    bench_cublas_asum(100000);
+    bench_cublas_asum(1000000);
+    bench_cublas_asum(10000000);
+    bench_cublas_asum(100000000);
+    std::cout << std::endl;
+}
+
 void bench_stddev(size_t N,size_t repeat = 100){
     auto* x_cpu = prepare_cpu(N, 2.1f);
     auto* x_gpu = prepare_gpu(N, x_cpu);
@@ -731,6 +797,8 @@ int main(int argc, char* argv[]){
 
     if (sub == "sum" || sub == "all") {
         bench_sum();
+        bench_asum();
+        bench_cublas_asum();
     }
 
     if (sub == "stddev" || sub == "all") {
