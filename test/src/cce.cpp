@@ -50,23 +50,23 @@ TEST_CASE("cce/loss/s/0", "[float][cce]") {
 TEST_CASE("cce/loss/d/0", "[double][cce]") {
     const size_t N = 145;
 
-    float* x_cpu = new float[N];
-    float* y_cpu = new float[N];
+    double* x_cpu = new double[N];
+    double* y_cpu = new double[N];
 
     for (size_t i = 0; i < N; ++i) {
         x_cpu[i] = 0.01 * (i + 1);
         y_cpu[i] = (i + 1);
     }
 
-    float* x_gpu;
-    float* y_gpu;
-    cuda_check(cudaMalloc((void**)&x_gpu, N * sizeof(float)));
-    cuda_check(cudaMalloc((void**)&y_gpu, N * sizeof(float)));
+    double* x_gpu;
+    double* y_gpu;
+    cuda_check(cudaMalloc((void**)&x_gpu, N * sizeof(double)));
+    cuda_check(cudaMalloc((void**)&y_gpu, N * sizeof(double)));
 
-    cuda_check(cudaMemcpy(x_gpu, x_cpu, N * sizeof(float), cudaMemcpyHostToDevice));
-    cuda_check(cudaMemcpy(y_gpu, y_cpu, N * sizeof(float), cudaMemcpyHostToDevice));
+    cuda_check(cudaMemcpy(x_gpu, x_cpu, N * sizeof(double), cudaMemcpyHostToDevice));
+    cuda_check(cudaMemcpy(y_gpu, y_cpu, N * sizeof(double), cudaMemcpyHostToDevice));
 
-    double loss = egblas_cce_sloss(N, 1.2, x_gpu, 1, y_gpu, 1);
+    double loss = egblas_cce_dloss(N, 1.2, x_gpu, 1, y_gpu, 1);
 
     REQUIRE(loss == Approx(-1587.1035));
 
@@ -80,23 +80,23 @@ TEST_CASE("cce/loss/d/0", "[double][cce]") {
 TEST_CASE("cce/loss/d/1", "[double][cce]") {
     const size_t N = 13 * 1024;
 
-    float* x_cpu = new float[N];
-    float* y_cpu = new float[N];
+    double* x_cpu = new double[N];
+    double* y_cpu = new double[N];
 
     for (size_t i = 0; i < N; ++i) {
         x_cpu[i] = 0.01 * (i + 1);
         y_cpu[i] = (i + 1);
     }
 
-    float* x_gpu;
-    float* y_gpu;
-    cuda_check(cudaMalloc((void**)&x_gpu, N * sizeof(float)));
-    cuda_check(cudaMalloc((void**)&y_gpu, N * sizeof(float)));
+    double* x_gpu;
+    double* y_gpu;
+    cuda_check(cudaMalloc((void**)&x_gpu, N * sizeof(double)));
+    cuda_check(cudaMalloc((void**)&y_gpu, N * sizeof(double)));
 
-    cuda_check(cudaMemcpy(x_gpu, x_cpu, N * sizeof(float), cudaMemcpyHostToDevice));
-    cuda_check(cudaMemcpy(y_gpu, y_cpu, N * sizeof(float), cudaMemcpyHostToDevice));
+    cuda_check(cudaMemcpy(x_gpu, x_cpu, N * sizeof(double), cudaMemcpyHostToDevice));
+    cuda_check(cudaMemcpy(y_gpu, y_cpu, N * sizeof(double), cudaMemcpyHostToDevice));
 
-    double loss = egblas_cce_sloss(N, 1.2, x_gpu, 1, y_gpu, 1);
+    double loss = egblas_cce_dloss(N, 1.2, x_gpu, 1, y_gpu, 1);
 
     REQUIRE(loss == Approx(466941536.0));
 
