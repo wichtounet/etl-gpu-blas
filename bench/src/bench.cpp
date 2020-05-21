@@ -273,6 +273,72 @@ void bench_bce_error(){
     std::cout << std::endl;
 }
 
+void bench_bce(size_t N,size_t repeat = 100){
+    auto* x_cpu = prepare_cpu(N, 2.1f);
+    auto* y_cpu = prepare_cpu(N, 2.2f);
+
+    auto* x_gpu = prepare_gpu(N, x_cpu);
+    auto* y_gpu = prepare_gpu(N, y_cpu);
+
+    egblas_bce_serror(N, 1.0f/ float(N), x_gpu, 1, y_gpu, 1);
+    egblas_bce_sloss(N, 1.0f/ float(N), x_gpu, 1, y_gpu, 1);
+
+    auto t0 = timer::now();
+
+    for(size_t i = 0; i < repeat; ++i){
+        egblas_bce_serror(N, 1.0f/ float(N), x_gpu, 1, y_gpu, 1);
+        egblas_bce_sloss(N, 1.0f/ float(N), x_gpu, 1, y_gpu, 1);
+    }
+
+    report("bce_both", t0, repeat, N, false);
+
+    release(x_cpu, x_gpu);
+    release(y_cpu, y_gpu);
+}
+
+void bench_bce(){
+    bench_bce(100);
+    bench_bce(1000);
+    bench_bce(10000);
+    bench_bce(100000);
+    bench_bce(1000000);
+    bench_bce(10000000);
+    bench_bce(100000000);
+    std::cout << std::endl;
+}
+
+void bench_sbce(size_t N,size_t repeat = 100){
+    auto* x_cpu = prepare_cpu(N, 2.1f);
+    auto* y_cpu = prepare_cpu(N, 2.2f);
+
+    auto* x_gpu = prepare_gpu(N, x_cpu);
+    auto* y_gpu = prepare_gpu(N, y_cpu);
+
+    egblas_sbce(N, 1.0f/ float(N), 1.0f/ float(N), x_gpu, 1, y_gpu, 1);
+
+    auto t0 = timer::now();
+
+    for(size_t i = 0; i < repeat; ++i){
+        egblas_sbce(N, 1.0f/ float(N), 1.0f/ float(N), x_gpu, 1, y_gpu, 1);
+    }
+
+    report("sbce", t0, repeat, N, false);
+
+    release(x_cpu, x_gpu);
+    release(y_cpu, y_gpu);
+}
+
+void bench_sbce(){
+    bench_sbce(100);
+    bench_sbce(1000);
+    bench_sbce(10000);
+    bench_sbce(100000);
+    bench_sbce(1000000);
+    bench_sbce(10000000);
+    bench_sbce(100000000);
+    std::cout << std::endl;
+}
+
 void bench_normalize_flat(size_t N, size_t repeat = 100) {
     auto* x_cpu = prepare_cpu(N, 2.0f);
     auto* x_gpu = prepare_gpu(N, x_cpu);
@@ -613,6 +679,8 @@ int main(int argc, char* argv[]){
     if (sub == "bce" || sub == "all") {
         bench_bce_loss();
         bench_bce_error();
+        bench_bce();
+        bench_sbce();
     }
 
     if (sub == "normalize" || sub == "all") {
