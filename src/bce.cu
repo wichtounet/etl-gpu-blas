@@ -442,8 +442,6 @@ T bce_kernel_run(size_t n, const T* output, size_t incx, const T* labels, size_t
     T* tmp_gpu;
     cuda_check(cudaMalloc((void**)&tmp_gpu, numBlocks * sizeof(T)));
 
-    cudaMemset(tmp_gpu, 0, numBlocks * sizeof(T));
-
     // Run the first reduction on GPU
 
     if (Loss) {

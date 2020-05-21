@@ -202,8 +202,6 @@ T sum_kernel_run(size_t n, const T* input, size_t incx) {
     T* tmp_gpu;
     cuda_check(cudaMalloc((void**)&tmp_gpu, numBlocks * sizeof(T)));
 
-    cudaMemset(tmp_gpu, 0, numBlocks * sizeof(T));
-
     // Run the first reduction on GPU
 
     invoke_sum_kernel<T>(n, input, incx, tmp_gpu, numThreads, numBlocks);
