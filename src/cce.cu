@@ -69,6 +69,54 @@ __global__ void cce_loss_kernel(size_t n, const T* output, size_t incx, const T*
     sum_reduce_impl<T, blockSize>(r_output, shared_data);
 }
 
+template <class T, size_t blockSize, bool Reduce>
+__global__ void cce_loss_kernel1(size_t n, const T* output, const T* labels, T* r_output) {
+    extern __shared__ volatile unsigned char shared_data_raw[];
+
+    volatile T* shared_data = reinterpret_cast<volatile T*>(shared_data_raw);
+
+    size_t tid      = threadIdx.x;
+    size_t i        = blockIdx.x * (2 * blockDim.x) + threadIdx.x;
+    size_t gridSize = blockSize * 2 * gridDim.x;
+
+    // Perform first level of reduction,
+    // reading from global memory and writing to shared memory
+
+    T mySum = 0;
+
+    if (Reduce) {
+        // In case of reductions, this a simple sum (labels are ignored)
+
+        while (i < n) {
+            mySum += output[i];
+
+            if (i + blockSize < n) {
+                mySum += output[i + blockSize];
+            }
+
+            i += gridSize;
+        }
+    } else {
+        // In the basic case, perform reduction and loss
+
+        while (i < n) {
+            mySum += cce_loss(output[i], labels[i]);
+
+            if (i + blockSize < n) {
+                mySum += cce_loss(output[i + blockSize], labels[i + blockSize]);
+            }
+
+            i += gridSize;
+        }
+    }
+
+    shared_data[tid] = mySum;
+
+    __syncthreads();
+
+    sum_reduce_impl<T, blockSize>(r_output, shared_data);
+}
+
 template<typename T>
 __device__ T cce_error(T* output, T* labels, size_t m, size_t i){
     int max_l = 0;
@@ -145,43 +193,83 @@ void invoke_cce_loss_kernel(size_t n, const T* output, size_t incx, const T* lab
 
     switch (numThreads) {
         case 512:
-            cce_loss_kernel<T, 512, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
+            if (incx == 1 && incy == 1) {
+                cce_loss_kernel1<T, 512, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, labels, r_output);
+            } else {
+                cce_loss_kernel<T, 512, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
+            }
             break;
 
         case 256:
-            cce_loss_kernel<T, 256, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
+            if (incx == 1 && incy == 1) {
+                cce_loss_kernel1<T, 256, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, labels, r_output);
+            } else {
+                cce_loss_kernel<T, 256, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
+            }
             break;
 
         case 128:
-            cce_loss_kernel<T, 128, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
+            if (incx == 1 && incy == 1) {
+                cce_loss_kernel1<T, 128, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, labels, r_output);
+            } else {
+                cce_loss_kernel<T, 128, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
+            }
             break;
 
         case 64:
-            cce_loss_kernel<T,  64, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
+            if (incx == 1 && incy == 1) {
+                cce_loss_kernel1<T,  64, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, labels, r_output);
+            } else {
+                cce_loss_kernel<T,  64, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
+            }
             break;
 
         case 32:
-            cce_loss_kernel<T,  32, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
+            if (incx == 1 && incy == 1) {
+                cce_loss_kernel1<T,  32, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, labels, r_output);
+            } else {
+                cce_loss_kernel<T,  32, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
+            }
             break;
 
         case 16:
-            cce_loss_kernel<T,  16, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
+            if (incx == 1 && incy == 1) {
+                cce_loss_kernel1<T,  16, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, labels, r_output);
+            } else {
+                cce_loss_kernel<T,  16, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
+            }
             break;
 
         case 8:
-            cce_loss_kernel<T,   8, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
+            if (incx == 1 && incy == 1) {
+                cce_loss_kernel1<T,   8, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, labels, r_output);
+            } else {
+                cce_loss_kernel<T,   8, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
+            }
             break;
 
         case 4:
-            cce_loss_kernel<T,   4, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
+            if (incx == 1 && incy == 1) {
+                cce_loss_kernel1<T,   4, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, labels, r_output);
+            } else {
+                cce_loss_kernel<T,   4, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
+            }
             break;
 
         case 2:
-            cce_loss_kernel<T,   2, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
+            if (incx == 1 && incy == 1) {
+                cce_loss_kernel1<T,   2, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, labels, r_output);
+            } else {
+                cce_loss_kernel<T,   2, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
+            }
             break;
 
         case 1:
-            cce_loss_kernel<T,   1, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
+            if (incx == 1 && incy == 1) {
+                cce_loss_kernel1<T,   1, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, labels, r_output);
+            } else {
+                cce_loss_kernel<T,   1, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
+            }
             break;
     }
 }
