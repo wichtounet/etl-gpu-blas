@@ -456,8 +456,8 @@ T bce_kernel_run(size_t n, const T* output, size_t incx, const T* labels, size_t
 
     while(s > cpu_threshold){
         // Compute again the configuration of the reduction kernel
-        numThreads = n < maxThreads * 2 ? nextPow2((n + 1) / 2) : maxThreads;
-        numBlocks  = std::min((n + numThreads * 2 - 1) / (numThreads * 2), maxBlocks);
+        numThreads = s < maxThreads * 2 ? nextPow2((s + 1) / 2) : maxThreads;
+        numBlocks  = std::min((s + numThreads * 2 - 1) / (numThreads * 2), maxBlocks);
 
         if (Loss) {
             invoke_bce_loss_kernel<T, true>(s, tmp_gpu, 1, tmp_gpu, 1, tmp_gpu, numThreads, numBlocks);
@@ -554,8 +554,8 @@ std::pair<T, T> bce_kernel_both_run(size_t n, const T* output, size_t incx, cons
 
     while(s > cpu_threshold){
         // Compute again the configuration of the reduction kernel
-        numThreads = n < maxThreads * 2 ? nextPow2((n + 1) / 2) : maxThreads;
-        numBlocks  = std::min((n + numThreads * 2 - 1) / (numThreads * 2), maxBlocks);
+        numThreads = s < maxThreads * 2 ? nextPow2((s + 1) / 2) : maxThreads;
+        numBlocks  = std::min((s + numThreads * 2 - 1) / (numThreads * 2), maxBlocks);
 
         invoke_bce_loss_kernel<T, true>(s, tmp_loss, 1, tmp_loss, 1, tmp_loss, numThreads, numBlocks);
         invoke_bce_error_kernel<T, true>(s, tmp_error, 1, tmp_error, 1, tmp_error, numThreads, numBlocks);

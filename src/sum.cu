@@ -212,8 +212,8 @@ T sum_kernel_run(size_t n, const T* input, size_t incx) {
 
     while(s > cpu_threshold){
         // Compute again the configuration of the reduction kernel
-        numThreads = n < maxThreads * 2 ? nextPow2((n + 1) / 2) : maxThreads;
-        numBlocks  = std::min((n + numThreads * 2 - 1) / (numThreads * 2), maxBlocks);
+        numThreads = s < maxThreads * 2 ? nextPow2((s + 1) / 2) : maxThreads;
+        numBlocks  = std::min((s + numThreads * 2 - 1) / (numThreads * 2), maxBlocks);
 
         invoke_sum_kernel<T>(s, tmp_gpu, 1, tmp_gpu, numThreads, numBlocks);
 
