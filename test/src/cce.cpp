@@ -40,6 +40,9 @@ TEST_CASE("cce/loss/s/0", "[float][cce]") {
 
     REQUIRE(loss == Approx(22055.71875f));
 
+    auto both = egblas_scce(N, 1, 1.1f, 1.2f, x_gpu, y_gpu);
+    REQUIRE(both.first == Approx(loss));
+
     cuda_check(cudaFree(x_gpu));
     cuda_check(cudaFree(y_gpu));
 
@@ -69,6 +72,9 @@ TEST_CASE("cce/loss/d/0", "[double][cce]") {
     double loss = egblas_cce_dloss(N, 1.2, x_gpu, 1, y_gpu, 1);
 
     REQUIRE(loss == Approx(-1587.1035));
+
+    auto both = egblas_dcce(N, 1, 1.2, 1.3, x_gpu, y_gpu);
+    REQUIRE(both.first == Approx(loss));
 
     cuda_check(cudaFree(x_gpu));
     cuda_check(cudaFree(y_gpu));
@@ -100,6 +106,9 @@ TEST_CASE("cce/loss/d/1", "[double][cce]") {
 
     REQUIRE(loss == Approx(466941536.0));
 
+    auto both = egblas_dcce(N, 1, 1.2, 1.3, x_gpu, y_gpu);
+    REQUIRE(both.first == Approx(loss));
+
     cuda_check(cudaFree(x_gpu));
     cuda_check(cudaFree(y_gpu));
 
@@ -127,9 +136,12 @@ TEST_CASE("cce/error/s/0", "[float][cce]") {
     cuda_check(cudaMemcpy(x_gpu, x_cpu, N * M * sizeof(float), cudaMemcpyHostToDevice));
     cuda_check(cudaMemcpy(y_gpu, y_cpu, N * M * sizeof(float), cudaMemcpyHostToDevice));
 
-    float loss = egblas_cce_serror(N, M, 1.0 / 137.0f, x_gpu, y_gpu);
+    float error = egblas_cce_serror(N, M, 1.0 / 137.0f, x_gpu, y_gpu);
 
-    REQUIRE(loss == Approx(0.76642));
+    REQUIRE(error == Approx(0.76642));
+
+    auto both = egblas_scce(N, M, 1.2f, 1.0 / 137.0f, x_gpu, y_gpu);
+    REQUIRE(both.second == Approx(error));
 
     cuda_check(cudaFree(x_gpu));
     cuda_check(cudaFree(y_gpu));
@@ -158,9 +170,12 @@ TEST_CASE("cce/error/d/0", "[double][cce]") {
     cuda_check(cudaMemcpy(x_gpu, x_cpu, N * M * sizeof(double), cudaMemcpyHostToDevice));
     cuda_check(cudaMemcpy(y_gpu, y_cpu, N * M * sizeof(double), cudaMemcpyHostToDevice));
 
-    double loss = egblas_cce_derror(N, M, 1.0 / 128.0f, x_gpu, y_gpu);
+    double error = egblas_cce_derror(N, M, 1.0 / 128.0f, x_gpu, y_gpu);
 
-    REQUIRE(loss == Approx(0.71875));
+    REQUIRE(error == Approx(0.71875));
+
+    auto both = egblas_dcce(N, M, 1.2f, 1.0 / 128.0f, x_gpu, y_gpu);
+    REQUIRE(both.second == Approx(error));
 
     cuda_check(cudaFree(x_gpu));
     cuda_check(cudaFree(y_gpu));
@@ -189,9 +204,12 @@ TEST_CASE("cce/error/d/1", "[double][cce]") {
     cuda_check(cudaMemcpy(x_gpu, x_cpu, N * M * sizeof(double), cudaMemcpyHostToDevice));
     cuda_check(cudaMemcpy(y_gpu, y_cpu, N * M * sizeof(double), cudaMemcpyHostToDevice));
 
-    double loss = egblas_cce_derror(N, M, 1.0 / 128.0f, x_gpu, y_gpu);
+    double error = egblas_cce_derror(N, M, 1.0 / 128.0f, x_gpu, y_gpu);
 
-    REQUIRE(loss == Approx(17.453125));
+    REQUIRE(error == Approx(17.453125));
+
+    auto both = egblas_dcce(N, M, 1.3f, 1.0 / 128.0f, x_gpu, y_gpu);
+    REQUIRE(both.second == Approx(error));
 
     cuda_check(cudaFree(x_gpu));
     cuda_check(cudaFree(y_gpu));

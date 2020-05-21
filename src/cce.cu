@@ -358,3 +358,114 @@ float egblas_cce_serror(size_t n, size_t m, float alpha, const float* output, co
 double egblas_cce_derror(size_t n, size_t m, double alpha, const double* output, const double* labels) {
     return alpha * cce_kernel_run<false>(n, m, output, 0, labels, 0);
 }
+
+template <typename T>
+std::pair<T, T> cce_kernel_both_run(size_t n, size_t m, const T* output, const T* labels) {
+    T loss = 0;
+    T error = 0;
+
+    const size_t cpu_threshold = 128;
+
+    if (n < cpu_threshold) {
+        T* host_output = new T[n * m];
+        T* host_labels = new T[n * m];
+
+        cuda_check(cudaMemcpy(host_output, output, n * m * sizeof(T), cudaMemcpyDeviceToHost));
+        cuda_check(cudaMemcpy(host_labels, labels, n * m * sizeof(T), cudaMemcpyDeviceToHost));
+
+        for (size_t i = 0; i < n * m; i++) {
+            loss += std::log(host_output[i]) * host_labels[i];
+        }
+
+        for (size_t i = 0; i < n; i++) {
+            int max_l = 0;
+            int max_o = 0;
+
+            for (size_t j = 1; j < m; ++j) {
+                if (host_labels[i * m + j] > host_labels[i * m + max_l]) {
+                    max_l = j;
+                }
+
+                if (host_output[i * m + j] > host_output[i * m + max_o]) {
+                    max_o = j;
+                }
+            }
+
+            error += std::min(T(abs(max_l - max_o)), T(1.0));
+        }
+
+        delete[] host_output;
+        delete[] host_labels;
+
+        return std::make_pair(loss, error);
+    }
+
+    const size_t maxThreads    = 512;
+    const size_t maxBlocks     = 64;
+
+    // Compute the launch configuration of the kernel
+    size_t numThreads = n < maxThreads * 2 ? nextPow2((n + 1) / 2) : maxThreads;
+    size_t numBlocks  = std::min((n + numThreads * 2 - 1) / (numThreads * 2), maxBlocks);
+
+    // Allocate memory on the device
+
+    T* tmp_gpu;
+    cuda_check(cudaMalloc((void**)&tmp_gpu, 2 * numBlocks * sizeof(T)));
+
+    T* tmp_loss = tmp_gpu;
+    T* tmp_error = tmp_gpu + numBlocks;
+
+    // Run the first reduction on GPU
+
+    invoke_cce_loss_kernel<T, false>(n, output, 1, labels, 1, tmp_loss, numThreads, numBlocks);
+    invoke_cce_error_kernel<T, false>(n, m, output, labels, tmp_error, numThreads, numBlocks);
+
+    size_t s = numBlocks;
+
+    // Run the following reductions on GPU
+
+    while(s > cpu_threshold){
+        // Compute again the configuration of the reduction kernel
+        numThreads = s < maxThreads * 2 ? nextPow2((s + 1) / 2) : maxThreads;
+        numBlocks  = std::min((s + numThreads * 2 - 1) / (numThreads * 2), maxBlocks);
+
+        invoke_cce_loss_kernel<T, true>(s, tmp_loss, 1, tmp_loss, 1, tmp_loss, numThreads, numBlocks);
+        invoke_cce_error_kernel<T, true>(s, m, tmp_error, tmp_error, tmp_error, numThreads, numBlocks);
+
+        s = (s + numThreads * 2 - 1) / (numThreads * 2);
+    }
+
+    if(s > 1){
+        T* host_data = new T[2 * numBlocks];
+
+        cuda_check(cudaMemcpy(host_data, tmp_gpu, 2 * numBlocks * sizeof(T), cudaMemcpyDeviceToHost));
+
+        for (size_t i = 0; i < s; i++) {
+            loss += host_data[i];
+        }
+
+        for (size_t i = 0; i < s; i++) {
+            error += host_data[numBlocks + i];
+        }
+
+        delete[] host_data;
+    } else {
+        cuda_check(cudaMemcpy(&loss, tmp_loss, 1 * sizeof(T), cudaMemcpyDeviceToHost));
+        cuda_check(cudaMemcpy(&error, tmp_error, 1 * sizeof(T), cudaMemcpyDeviceToHost));
+    }
+
+    cuda_check(cudaFree(tmp_gpu));
+
+    return std::make_pair(loss, error);
+}
+
+
+std::pair<float, float> egblas_scce(size_t n, size_t m, float alpha, float beta, const float* output, const float* labels) {
+    auto res = cce_kernel_both_run(n, m, output, labels);
+    return std::make_pair(alpha * res.first, beta * res.second);
+}
+
+std::pair<double, double> egblas_dcce(size_t n, size_t m, double alpha, double beta, const double* output, const double* labels) {
+    auto res = cce_kernel_both_run(n, m, output, labels);
+    return std::make_pair(alpha * res.first, beta * res.second);
+}
