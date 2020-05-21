@@ -537,10 +537,11 @@ std::pair<T, T> bce_kernel_both_run(size_t n, const T* output, size_t incx, cons
 
     // Allocate memory on the device
 
-    T* tmp_loss;
-    T* tmp_error;
-    cuda_check(cudaMalloc((void**)&tmp_loss, numBlocks * sizeof(T)));
-    cuda_check(cudaMalloc((void**)&tmp_error, numBlocks * sizeof(T)));
+    T* tmp_gpu;
+    cuda_check(cudaMalloc((void**)&tmp_gpu, 2 * numBlocks * sizeof(T)));
+
+    T* tmp_loss = tmp_gpu;
+    T* tmp_error = tmp_gpu + numBlocks;
 
     // Run the first reduction on GPU
 
@@ -563,18 +564,16 @@ std::pair<T, T> bce_kernel_both_run(size_t n, const T* output, size_t incx, cons
     }
 
     if(s > 1){
-        T* host_data = new T[s];
+        T* host_data = new T[2 * numBlocks];
 
-        cuda_check(cudaMemcpy(host_data, tmp_loss, s * sizeof(T), cudaMemcpyDeviceToHost));
+        cuda_check(cudaMemcpy(host_data, tmp_gpu, 2 * numBlocks * sizeof(T), cudaMemcpyDeviceToHost));
 
         for (size_t i = 0; i < s; i++) {
             loss += host_data[i];
         }
 
-        cuda_check(cudaMemcpy(host_data, tmp_error, s * sizeof(T), cudaMemcpyDeviceToHost));
-
         for (size_t i = 0; i < s; i++) {
-            error += host_data[i];
+            error += host_data[numBlocks + i];
         }
 
         delete[] host_data;
@@ -583,8 +582,7 @@ std::pair<T, T> bce_kernel_both_run(size_t n, const T* output, size_t incx, cons
         cuda_check(cudaMemcpy(&error, tmp_error, 1 * sizeof(T), cudaMemcpyDeviceToHost));
     }
 
-    cuda_check(cudaFree(tmp_loss));
-    cuda_check(cudaFree(tmp_error));
+    cuda_check(cudaFree(tmp_gpu));
 
     return std::make_pair(loss, error);
 }
