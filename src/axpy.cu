@@ -12,9 +12,8 @@
 template <typename T>
 __global__ void axpy_kernel(size_t n, T alpha, const T* x, size_t incx, T* y, size_t incy) {
     auto index  = threadIdx.x + blockIdx.x * blockDim.x;
-    const auto stride = blockDim.x * gridDim.x;
 
-    for (; index < n; index += stride) {
+    if (index < n) {
         y[incy * index] += alpha * x[incx * index];
     }
 }
@@ -22,9 +21,8 @@ __global__ void axpy_kernel(size_t n, T alpha, const T* x, size_t incx, T* y, si
 template <typename T>
 __global__ void axpy_kernel_flat(size_t n, T alpha, const T* x, T* y) {
     auto index  = threadIdx.x + blockIdx.x * blockDim.x;
-    const auto stride = blockDim.x * gridDim.x;
 
-    for (; index < n; index += stride) {
+    if (index < n) {
         y[index] += alpha * x[index];
     }
 }
@@ -32,9 +30,8 @@ __global__ void axpy_kernel_flat(size_t n, T alpha, const T* x, T* y) {
 template <typename T>
 __global__ void axpy_kernel1(size_t n, const T* x, size_t incx, T* y, size_t incy) {
     auto index  = threadIdx.x + blockIdx.x * blockDim.x;
-    const auto stride = blockDim.x * gridDim.x;
 
-    for (; index < n; index += stride) {
+    if (index < n) {
         y[incy * index] = x[incx * index] + y[incy * index];
     }
 }
@@ -42,9 +39,8 @@ __global__ void axpy_kernel1(size_t n, const T* x, size_t incx, T* y, size_t inc
 template <typename T>
 __global__ void axpy_kernel0(size_t n, T* y, size_t incy) {
     auto index  = threadIdx.x + blockIdx.x * blockDim.x;
-    const auto stride = blockDim.x * gridDim.x;
 
-    for (; index < n; index += stride) {
+    if (index < n) {
         y[incy * index] = zero<T>();
     }
 }
@@ -56,9 +52,11 @@ void axpy_kernel_run(size_t n, T alpha, const T* x, size_t incx, T* y, size_t in
 
     if (!blockSize) {
         cudaOccupancyMaxPotentialBlockSize(&minGridSize, &blockSize, axpy_kernel<T>, 0, 0);
+        blockSize = blockSize > 256 ? 256 : blockSize;
     }
 
-    int gridSize = ((n / incy) + blockSize - 1) / blockSize;
+    const int gridSize = (n + blockSize - 1) / blockSize;
+
     axpy_kernel<T><<<gridSize, blockSize>>>(n, alpha, x, incx, y, incy);
 
 #ifdef EGBLAS_SYNCHRONIZE
@@ -73,9 +71,11 @@ void axpy_kernel_run_flat(size_t n, T alpha, const T* x, T* y) {
 
     if (!blockSize) {
         cudaOccupancyMaxPotentialBlockSize(&minGridSize, &blockSize, axpy_kernel_flat<T>, 0, 0);
+        blockSize = blockSize > 256 ? 256 : blockSize;
     }
 
     const int gridSize = (n + blockSize - 1) / blockSize;
+
     axpy_kernel_flat<T><<<gridSize, blockSize>>>(n, alpha, x, y);
 
 #ifdef EGBLAS_SYNCHRONIZE
@@ -90,9 +90,10 @@ void axpy_kernel1_run(size_t n, const T* x, size_t incx, T* y, size_t incy) {
 
     if (!blockSize) {
         cudaOccupancyMaxPotentialBlockSize(&minGridSize, &blockSize, axpy_kernel1<T>, 0, 0);
+        blockSize = blockSize > 256 ? 256 : blockSize;
     }
 
-    int gridSize = ((n / incy) + blockSize - 1) / blockSize;
+    const int gridSize = (n + blockSize - 1) / blockSize;
     axpy_kernel1<T><<<gridSize, blockSize>>>(n, x, incx, y, incy);
 
 #ifdef EGBLAS_SYNCHRONIZE
@@ -107,9 +108,11 @@ void axpy_kernel0_run(size_t n, T* y, size_t incy) {
 
     if (!blockSize) {
         cudaOccupancyMaxPotentialBlockSize(&minGridSize, &blockSize, axpy_kernel0<T>, 0, 0);
+        blockSize = blockSize > 256 ? 256 : blockSize;
     }
 
-    int gridSize = ((n / incy) + blockSize - 1) / blockSize;
+    const int gridSize = (n + blockSize - 1) / blockSize;
+
     axpy_kernel0<T><<<gridSize, blockSize>>>(n, y, incy);
 
 #ifdef EGBLAS_SYNCHRONIZE
