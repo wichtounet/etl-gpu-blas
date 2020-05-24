@@ -61,7 +61,7 @@ __global__ void stddev_kernel(size_t n, const T* input, size_t incx, T* output, 
 
     __syncthreads();
 
-    sum_reduce_impl<T, blockSize>(output, shared_data, mySum);
+    sum_reduce_impl<T, blockSize>(output, shared_data);
 }
 
 template <typename T, bool Reduce>
