@@ -9,12 +9,13 @@
 
 #include "complex.hpp"
 
+static constexpr int MAX_BLOCK_SIZE = 256;
+
 template <typename T>
 __global__ void axpby_kernel(size_t n, T alpha, const T* x, size_t incx, T beta, T* y, size_t incy) {
     auto index  = threadIdx.x + blockIdx.x * blockDim.x;
-    const auto stride = blockDim.x * gridDim.x;
 
-    for (; index < n; index += stride) {
+    if (index < n) {
         y[incy * index] = alpha * x[incx * index] + beta * y[incy * index];
     }
 }
@@ -22,9 +23,8 @@ __global__ void axpby_kernel(size_t n, T alpha, const T* x, size_t incx, T beta,
 template <typename T>
 __global__ void axpby_kernel1(size_t n, T alpha, const T* x, T beta, T* y) {
     auto index  = threadIdx.x + blockIdx.x * blockDim.x;
-    const auto stride = blockDim.x * gridDim.x;
 
-    for (; index < n; index += stride) {
+    if (index < n) {
         y[index] = alpha * x[index] + beta * y[index];
     }
 }
@@ -32,9 +32,8 @@ __global__ void axpby_kernel1(size_t n, T alpha, const T* x, T beta, T* y) {
 template <typename T>
 __global__ void axpby_kernel_alpha1(size_t n, const T* x, size_t incx, T* y, size_t incy) {
     auto index  = threadIdx.x + blockIdx.x * blockDim.x;
-    const auto stride = blockDim.x * gridDim.x;
 
-    for (; index < n; index += stride) {
+    if (index < n) {
         y[incy * index] = x[incx * index] + y[incy * index];
     }
 }
@@ -42,9 +41,8 @@ __global__ void axpby_kernel_alpha1(size_t n, const T* x, size_t incx, T* y, siz
 template <typename T>
 __global__ void axpby_kernel_alpha0(size_t n, T* y, size_t incy) {
     auto index  = threadIdx.x + blockIdx.x * blockDim.x;
-    const auto stride = blockDim.x * gridDim.x;
 
-    for (; index < n; index += stride) {
+    if (index < n) {
         y[incy * index] = zero<T>();
     }
 }
@@ -56,9 +54,10 @@ void axpby_kernel_run(size_t n, T alpha, const T* x, size_t incx, T beta, T* y, 
 
     if (!blockSize) {
         cudaOccupancyMaxPotentialBlockSize(&minGridSize, &blockSize, axpby_kernel1<T>, 0, 0);
+        blockSize = blockSize > MAX_BLOCK_SIZE ? MAX_BLOCK_SIZE : blockSize;
     }
 
-    int gridSize = ((n / incy) + blockSize - 1) / blockSize;
+    const int gridSize = (n + blockSize - 1) / blockSize;
 
     if (incx == 1 && incy == 1) {
         axpby_kernel1<T><<<gridSize, blockSize>>>(n, alpha, x, beta, y);
@@ -78,6 +77,7 @@ void axpby_kernel1_run(size_t n, const T* x, size_t incx, T* y, size_t incy) {
 
     if (!blockSize) {
         cudaOccupancyMaxPotentialBlockSize(&minGridSize, &blockSize, axpby_kernel_alpha1<T>, 0, 0);
+        blockSize = blockSize > MAX_BLOCK_SIZE ? MAX_BLOCK_SIZE : blockSize;
     }
 
     int gridSize = ((n / incy) + blockSize - 1) / blockSize;
@@ -95,6 +95,7 @@ void axpby_kernel0_run(size_t n, T* y, size_t incy) {
 
     if (!blockSize) {
         cudaOccupancyMaxPotentialBlockSize(&minGridSize, &blockSize, axpby_kernel_alpha0<T>, 0, 0);
+        blockSize = blockSize > MAX_BLOCK_SIZE ? MAX_BLOCK_SIZE : blockSize;
     }
 
     int gridSize = ((n / incy) + blockSize - 1) / blockSize;

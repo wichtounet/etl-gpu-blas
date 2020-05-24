@@ -9,6 +9,8 @@
 
 #include "complex.hpp"
 
+static constexpr int MAX_BLOCK_SIZE = 256;
+
 template <typename T>
 __global__ void axpy_kernel(size_t n, T alpha, const T* x, size_t incx, T* y, size_t incy) {
     auto index  = threadIdx.x + blockIdx.x * blockDim.x;
@@ -52,7 +54,7 @@ void axpy_kernel_run(size_t n, T alpha, const T* x, size_t incx, T* y, size_t in
 
     if (!blockSize) {
         cudaOccupancyMaxPotentialBlockSize(&minGridSize, &blockSize, axpy_kernel<T>, 0, 0);
-        blockSize = blockSize > 256 ? 256 : blockSize;
+        blockSize = blockSize > MAX_BLOCK_SIZE ? MAX_BLOCK_SIZE : blockSize;
     }
 
     const int gridSize = (n + blockSize - 1) / blockSize;
@@ -71,7 +73,7 @@ void axpy_kernel_run_flat(size_t n, T alpha, const T* x, T* y) {
 
     if (!blockSize) {
         cudaOccupancyMaxPotentialBlockSize(&minGridSize, &blockSize, axpy_kernel_flat<T>, 0, 0);
-        blockSize = blockSize > 256 ? 256 : blockSize;
+        blockSize = blockSize > MAX_BLOCK_SIZE ? MAX_BLOCK_SIZE : blockSize;
     }
 
     const int gridSize = (n + blockSize - 1) / blockSize;
@@ -90,7 +92,7 @@ void axpy_kernel1_run(size_t n, const T* x, size_t incx, T* y, size_t incy) {
 
     if (!blockSize) {
         cudaOccupancyMaxPotentialBlockSize(&minGridSize, &blockSize, axpy_kernel1<T>, 0, 0);
-        blockSize = blockSize > 256 ? 256 : blockSize;
+        blockSize = blockSize > MAX_BLOCK_SIZE ? MAX_BLOCK_SIZE : blockSize;
     }
 
     const int gridSize = (n + blockSize - 1) / blockSize;
@@ -108,7 +110,7 @@ void axpy_kernel0_run(size_t n, T* y, size_t incy) {
 
     if (!blockSize) {
         cudaOccupancyMaxPotentialBlockSize(&minGridSize, &blockSize, axpy_kernel0<T>, 0, 0);
-        blockSize = blockSize > 256 ? 256 : blockSize;
+        blockSize = blockSize > MAX_BLOCK_SIZE ? MAX_BLOCK_SIZE : blockSize;
     }
 
     const int gridSize = (n + blockSize - 1) / blockSize;
