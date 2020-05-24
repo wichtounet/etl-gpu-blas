@@ -20,15 +20,29 @@ __global__ void axdbpy_kernel(size_t n, const T alpha, const T* x, size_t incx, 
 }
 
 template <typename T>
+__global__ void axdbpy_kernel1(size_t n, const T alpha, const T* x, T beta, T* y) {
+    auto index  = threadIdx.x + blockIdx.x * blockDim.x;
+    auto stride = blockDim.x * gridDim.x;
+
+    for (; index < n; index += stride) {
+        y[index] = (alpha * x[index]) / (beta + y[index]);
+    }
+}
+
+template <typename T>
 void axdbpy_kernel_run(size_t n, T alpha, const T* x, size_t incx, T beta, T* y, size_t incy) {
     int blockSize;
     int minGridSize;
 
-    cudaOccupancyMaxPotentialBlockSize(&minGridSize, &blockSize, axdbpy_kernel<T>, 0, 0);
+    cudaOccupancyMaxPotentialBlockSize(&minGridSize, &blockSize, axdbpy_kernel1<T>, 0, 0);
 
     int gridSize = ((n / incy) + blockSize - 1) / blockSize;
 
-    axdbpy_kernel<T><<<gridSize, blockSize>>>(n, alpha, x, incx, beta, y, incy);
+    if (incx == 1 && incy == 1) {
+        axdbpy_kernel1<T><<<gridSize, blockSize>>>(n, alpha, x, beta, y);
+    } else {
+        axdbpy_kernel<T><<<gridSize, blockSize>>>(n, alpha, x, incx, beta, y, incy);
+    }
 
 #ifdef EGBLAS_SYNCHRONIZE
     cudaDeviceSynchronize();
