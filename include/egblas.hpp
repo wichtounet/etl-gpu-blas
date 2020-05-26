@@ -85,6 +85,7 @@
 // Random
 #include "egblas/dropout.hpp"
 #include "egblas/shuffle.hpp"
+#include "egblas/logistic_noise.hpp"
 
 // Modifications of vector/matrix
 #include "egblas/binarize.hpp"
