@@ -69,6 +69,7 @@
 #include "egblas/sqrt.hpp"
 #include "egblas/tan.hpp"
 #include "egblas/tanh.hpp"
+#include "egblas/sigmoid.hpp"
 
 // Reductions
 #include "egblas/mean.hpp"

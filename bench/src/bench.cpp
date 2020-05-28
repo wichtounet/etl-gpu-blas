@@ -12,6 +12,7 @@
 #include "cuda_runtime.h"
 #include "cuda_runtime_api.h"
 #include "cublas_v2.h"
+#include "cudnn.h"
 
 #include "egblas.hpp"
 
@@ -32,6 +33,15 @@
             std::cerr << "CUDA error: " << status << " from " << #call << std::endl \
                       << "from " << __FILE__ << ":" << __LINE__ << std::endl;       \
         }                                                                           \
+    }
+
+#define cudnn_check(call)                                                                                 \
+    {                                                                                                     \
+        cudnnStatus_t status = call;                                                                      \
+        if (status != CUDNN_STATUS_SUCCESS) {                                                             \
+            std::cerr << "CUDNN error: " << cudnnGetErrorString(status) << " from " << #call << std::endl \
+                      << "from " << __FILE__ << ":" << __LINE__ << std::endl;                             \
+        }                                                                                                 \
     }
 
 namespace {
@@ -636,6 +646,170 @@ void bench_cublas_saxpy(){
     std::cout << std::endl;
 }
 
+void bench_sigmoid(float alpha, size_t N,size_t repeat = 10){
+    auto* x_cpu = prepare_cpu(N, 2.0f);
+    auto* y_cpu = prepare_cpu(N, 3.0f);
+
+    auto* x_gpu = prepare_gpu(N, x_cpu);
+    auto* y_gpu = prepare_gpu(N, y_cpu);
+
+    egblas_ssigmoid(N, alpha, x_gpu, 1, y_gpu, 1);
+
+    auto t0 = timer::now();
+
+    for(size_t i = 0; i < repeat; ++i){
+        egblas_ssigmoid(N, alpha, x_gpu, 1, y_gpu, 1);
+    }
+
+    report("sigmoid", t0, repeat, N);
+
+    cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
+
+    release(x_cpu, x_gpu);
+    release(y_cpu, y_gpu);
+}
+
+void bench_sigmoid(float alpha){
+    bench_sigmoid(alpha, 100);
+    bench_sigmoid(alpha, 1000);
+    bench_sigmoid(alpha, 10000);
+    bench_sigmoid(alpha, 100000);
+    bench_sigmoid(alpha, 1000000);
+    bench_sigmoid(alpha, 10000000);
+    bench_sigmoid(alpha, 100000000);
+    std::cout << std::endl;
+}
+
+void bench_cudnn_sigmoid_lazy(float alpha, size_t N,size_t repeat = 10){
+    auto* x_cpu = prepare_cpu(N, 2.0f);
+    auto* y_cpu = prepare_cpu(N, 3.0f);
+
+    auto* x_gpu = prepare_gpu(N, x_cpu);
+    auto* y_gpu = prepare_gpu(N, y_cpu);
+
+    cudnnHandle_t handle;
+    cudnnCreate(&handle);
+
+    cudnnTensorDescriptor_t x_tensor;
+    cudnn_check(cudnnCreateTensorDescriptor(&x_tensor));
+    cudnn_check(cudnnSetTensor4dDescriptor(x_tensor, CUDNN_TENSOR_NCHW, CUDNN_DATA_FLOAT, 1, 1, 1, N));
+
+    cudnnTensorDescriptor_t y_tensor;
+    cudnn_check(cudnnCreateTensorDescriptor(&y_tensor));
+    cudnn_check(cudnnSetTensor4dDescriptor(y_tensor, CUDNN_TENSOR_NCHW, CUDNN_DATA_FLOAT, 1, 1, 1, N));
+
+    cudnnActivationDescriptor_t func_tensor;
+    cudnn_check(cudnnCreateActivationDescriptor(&func_tensor));
+    cudnn_check(cudnnSetActivationDescriptor(func_tensor, CUDNN_ACTIVATION_SIGMOID, CUDNN_PROPAGATE_NAN, 0.0));
+
+    float beta = 0.0f;
+
+    cudnn_check(cudnnActivationForward(handle, func_tensor, &alpha, x_tensor, x_gpu, &beta, y_tensor, y_gpu));
+
+    auto t0 = timer::now();
+
+    for(size_t i = 0; i < repeat; ++i){
+        cudnn_check(cudnnActivationForward(handle, func_tensor, &alpha, x_tensor, x_gpu, &beta, y_tensor, y_gpu));
+    }
+
+    report("cudnn_sigmoid_lazy", t0, repeat, N);
+
+    cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
+
+    cudnn_check(cudnnDestroyTensorDescriptor(x_tensor));
+    cudnn_check(cudnnDestroyTensorDescriptor(y_tensor));
+    cudnn_check(cudnnDestroyActivationDescriptor(func_tensor));
+
+    release(x_cpu, x_gpu);
+    release(y_cpu, y_gpu);
+
+    cudnnDestroy(handle);
+}
+
+void bench_cudnn_sigmoid_lazy(float alpha){
+    bench_cudnn_sigmoid_lazy(alpha, 100);
+    bench_cudnn_sigmoid_lazy(alpha, 1000);
+    bench_cudnn_sigmoid_lazy(alpha, 10000);
+    bench_cudnn_sigmoid_lazy(alpha, 100000);
+    bench_cudnn_sigmoid_lazy(alpha, 1000000);
+    bench_cudnn_sigmoid_lazy(alpha, 10000000);
+    bench_cudnn_sigmoid_lazy(alpha, 100000000);
+    std::cout << std::endl;
+}
+
+void bench_cudnn_sigmoid(float alpha, size_t N,size_t repeat = 100){
+    auto* x_cpu = prepare_cpu(N, 2.0f);
+    auto* y_cpu = prepare_cpu(N, 3.0f);
+
+    auto* x_gpu = prepare_gpu(N, x_cpu);
+    auto* y_gpu = prepare_gpu(N, y_cpu);
+
+    cudnnHandle_t handle;
+    cudnnCreate(&handle);
+
+    cudnnTensorDescriptor_t x_tensor;
+    cudnn_check(cudnnCreateTensorDescriptor(&x_tensor));
+    cudnn_check(cudnnSetTensor4dDescriptor(x_tensor, CUDNN_TENSOR_NCHW, CUDNN_DATA_FLOAT, 1, 1, 1, N));
+
+    cudnnTensorDescriptor_t y_tensor;
+    cudnn_check(cudnnCreateTensorDescriptor(&y_tensor));
+    cudnn_check(cudnnSetTensor4dDescriptor(y_tensor, CUDNN_TENSOR_NCHW, CUDNN_DATA_FLOAT, 1, 1, 1, N));
+
+    cudnnActivationDescriptor_t func_tensor;
+    cudnn_check(cudnnCreateActivationDescriptor(&func_tensor));
+    cudnn_check(cudnnSetActivationDescriptor(func_tensor, CUDNN_ACTIVATION_SIGMOID, CUDNN_PROPAGATE_NAN, 0.0));
+
+    float beta = 0.0f;
+
+    cudnn_check(cudnnActivationForward(handle, func_tensor, &alpha, x_tensor, x_gpu, &beta, y_tensor, y_gpu));
+
+    auto t0 = timer::now();
+
+    for(size_t i = 0; i < repeat; ++i){
+        cudnnTensorDescriptor_t x_tensor;
+        cudnn_check(cudnnCreateTensorDescriptor(&x_tensor));
+        cudnn_check(cudnnSetTensor4dDescriptor(x_tensor, CUDNN_TENSOR_NCHW, CUDNN_DATA_FLOAT, 1, 1, 1, N));
+
+        cudnnTensorDescriptor_t y_tensor;
+        cudnn_check(cudnnCreateTensorDescriptor(&y_tensor));
+        cudnn_check(cudnnSetTensor4dDescriptor(y_tensor, CUDNN_TENSOR_NCHW, CUDNN_DATA_FLOAT, 1, 1, 1, N));
+
+        cudnnActivationDescriptor_t func_tensor;
+        cudnn_check(cudnnCreateActivationDescriptor(&func_tensor));
+        cudnn_check(cudnnSetActivationDescriptor(func_tensor, CUDNN_ACTIVATION_SIGMOID, CUDNN_PROPAGATE_NAN, 0.0));
+
+        cudnn_check(cudnnActivationForward(handle, func_tensor, &alpha, x_tensor, x_gpu, &beta, y_tensor, y_gpu));
+
+        cudnn_check(cudnnDestroyTensorDescriptor(x_tensor));
+        cudnn_check(cudnnDestroyTensorDescriptor(y_tensor));
+        cudnn_check(cudnnDestroyActivationDescriptor(func_tensor));
+    }
+
+    report("cudnn_sigmoid", t0, repeat, N);
+
+    cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
+
+    release(x_cpu, x_gpu);
+    release(y_cpu, y_gpu);
+
+    cudnn_check(cudnnDestroyTensorDescriptor(x_tensor));
+    cudnn_check(cudnnDestroyTensorDescriptor(y_tensor));
+    cudnn_check(cudnnDestroyActivationDescriptor(func_tensor));
+
+    cudnnDestroy(handle);
+}
+
+void bench_cudnn_sigmoid(float alpha){
+    bench_cudnn_sigmoid(alpha, 100);
+    bench_cudnn_sigmoid(alpha, 1000);
+    bench_cudnn_sigmoid(alpha, 10000);
+    bench_cudnn_sigmoid(alpha, 100000);
+    bench_cudnn_sigmoid(alpha, 1000000);
+    bench_cudnn_sigmoid(alpha, 10000000);
+    bench_cudnn_sigmoid(alpha, 100000000);
+    std::cout << std::endl;
+}
+
 void bench_saxpby(size_t N,size_t repeat = 100){
     auto* x_cpu = prepare_cpu(N, 2.2f);
     auto* y_cpu = prepare_cpu(N, 3.1f);
@@ -826,6 +1000,17 @@ int main(int argc, char* argv[]){
 
     if (sub == "dropout" || sub == "all") {
         bench_inv_dropout();
+    }
+
+    if (sub == "sigmoid" || sub == "all") {
+        std::cout << "alpha=1.0f" << std::endl;
+        bench_sigmoid(1.0f);
+        bench_cudnn_sigmoid(1.0f);
+        bench_cudnn_sigmoid_lazy(1.0f);
+        std::cout << "alpha=2.17f" << std::endl;
+        bench_sigmoid(2.17f);
+        bench_cudnn_sigmoid(2.17f);
+        bench_cudnn_sigmoid_lazy(2.17f);
     }
 
     if (sub == "shuffle" || sub == "all") {
