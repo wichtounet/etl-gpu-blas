@@ -868,6 +868,7 @@ void bench_shuffle(){
     bench_shuffle(1000);
     bench_shuffle(10000);
     bench_shuffle(100000);
+    bench_shuffle(1000000);
     std::cout << std::endl;
 }
 
@@ -900,6 +901,7 @@ void bench_par_shuffle(){
     bench_par_shuffle(1000);
     bench_par_shuffle(10000);
     bench_par_shuffle(100000);
+    bench_par_shuffle(1000000);
     std::cout << std::endl;
 }
 

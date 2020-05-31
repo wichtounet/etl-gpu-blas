@@ -8,29 +8,119 @@
 #include <iostream>
 #include <random>
 
+#include "curand_kernel.h"
+
 #include "egblas/shuffle.hpp"
 #include "egblas/cuda_check.hpp"
 
-// Swap one 4 bytes element from the array
-__global__ void shuffle_one_4_kernel(uint32_t* x, size_t i, size_t new_i) {
-    uint32_t tmp;
+namespace {
 
-    tmp = x[i];
-    x[i] = x[new_i];
-    x[new_i] = tmp;
+// Kernel to setup the random states
+
+__global__ void setup_kernel(curandState* states, size_t seed) {
+    int id = threadIdx.x + blockIdx.x * blockDim.x;
+
+    curand_init(seed, id, 0, &states[id]);
 }
 
-// Swap one 4 bytes element from each array
-__global__ void par_shuffle_one_4_kernel(uint32_t* x, uint32_t* y, size_t i, size_t new_i) {
-    uint32_t tmp;
+template <size_t Threads, size_t Distance, typename T>
+__global__ void shuffle_4_kernel_states(curandState* states, size_t n, T* x) {
+    const auto base_index  = threadIdx.x + blockIdx.x * blockDim.x;
 
-    tmp = x[i];
-    x[i] = x[new_i];
-    x[new_i] = tmp;
+    const size_t split_size = n / Threads;
+    const size_t half_split_size = split_size / 2;
 
-    tmp = y[i];
-    y[i] = y[new_i];
-    y[new_i] = tmp;
+    //Copy state to local memory for efficiency
+    auto local_state = states[base_index];
+
+    if (Distance == 1) {
+        const size_t i_start = base_index * split_size;
+        const size_t i_end   = i_start + half_split_size;
+
+        const size_t new_i_start = i_end;
+
+        for (size_t i = i_start; i < i_end; ++i) {
+            unsigned int new_i = new_i_start + ceilf(curand_uniform(&local_state) * half_split_size) - 1;
+
+            if (i < n && new_i < n) {
+                T tmp    = x[i];
+                x[i]     = x[new_i];
+                x[new_i] = tmp;
+            }
+        }
+    } else if (Distance == 2) {
+        const size_t i_start = base_index * half_split_size;
+        const size_t i_end   = i_start + half_split_size;
+
+        const size_t new_i_start = i_start + Threads * half_split_size;
+
+        for (size_t i = i_start; i < i_end; ++i) {
+            unsigned int new_i = new_i_start + ceilf(curand_uniform(&local_state) * half_split_size) - 1;
+
+            if (i < n && new_i < n) {
+                T tmp    = x[i];
+                x[i]     = x[new_i];
+                x[new_i] = tmp;
+            }
+        }
+    }
+
+    // Copy state back to global memory
+    states[base_index] = local_state;
+}
+
+template <size_t Threads, size_t Distance, typename T>
+__global__ void par_shuffle_4_kernel_states(curandState* states, size_t n, T* x, T* y) {
+    const auto base_index  = threadIdx.x + blockIdx.x * blockDim.x;
+
+    const size_t split_size = n / Threads;
+    const size_t half_split_size = split_size / 2;
+
+    //Copy state to local memory for efficiency
+    auto local_state = states[base_index];
+
+    if (Distance == 1) {
+        const size_t i_start = base_index * split_size;
+        const size_t i_end   = i_start + half_split_size;
+
+        const size_t new_i_start = i_end;
+
+        for (size_t i = i_start; i < i_end; ++i) {
+            unsigned int new_i = new_i_start + ceilf(curand_uniform(&local_state) * half_split_size) - 1;
+
+            if (i < n && new_i < n) {
+                T tmp    = x[i];
+                x[i]     = x[new_i];
+                x[new_i] = tmp;
+
+                tmp      = y[i];
+                y[i]     = y[new_i];
+                y[new_i] = tmp;
+            }
+        }
+    } else if (Distance == 2) {
+        const size_t i_start = base_index * half_split_size;
+        const size_t i_end   = i_start + half_split_size;
+
+        const size_t new_i_start = i_start + Threads * half_split_size;
+
+        for (size_t i = i_start; i < i_end; ++i) {
+            unsigned int new_i = new_i_start + ceilf(curand_uniform(&local_state) * half_split_size) - 1;
+
+            if (i < n && new_i < n) {
+                T tmp    = x[i];
+                x[i]     = x[new_i];
+                x[new_i] = tmp;
+
+                tmp      = y[i];
+                y[i]     = y[new_i];
+                y[new_i] = tmp;
+            }
+        }
+    }
+
+    // Copy state back to global memory
+    states[base_index] = local_state;
 }
 
 // Swap one element from the array
@@ -97,6 +187,8 @@ void par_shuffle_kernel_run(T* x, T* y, size_t i, size_t new_i, size_t incx, siz
     par_shuffle_kernel<T><<<gridSize, blockSize>>>(x, y, i, new_i, incx, incy);
 }
 
+} // end of anonymous namespace
+
 void egblas_shuffle_seed(size_t n, void* x, size_t incx, size_t seed){
     std::default_random_engine g(seed);
 
@@ -109,11 +201,34 @@ void egblas_shuffle_seed(size_t n, void* x, size_t incx, size_t seed){
     if (incx == 4) {
         uint32_t* x_flat = reinterpret_cast<uint32_t*>(x);
 
-        for (auto i = n - 1; i > 0; --i) {
-            auto new_i = dist(g, param_t(0, i));
+        // Allocate room for the states
+        curandState* states;
+        cuda_check(cudaMalloc((void**)&states, 64 * 64 * sizeof(curandState)));
 
-            shuffle_one_4_kernel<<<1, 1, 1>>>(x_flat, i, new_i);
+        if (n < 1000) {
+            setup_kernel<<<8, 1>>>(states, seed);
+
+            shuffle_4_kernel_states<8, 1, uint32_t><<<8, 1>>>(states, n, x_flat);
+            shuffle_4_kernel_states<8, 2, uint32_t><<<8, 1>>>(states, n, x_flat);
+            shuffle_4_kernel_states<8, 1, uint32_t><<<8, 1>>>(states, n, x_flat);
+            shuffle_4_kernel_states<8, 2, uint32_t><<<8, 1>>>(states, n, x_flat);
+        } else if (n < 50000) {
+            setup_kernel<<<64, 1>>>(states, seed);
+
+            shuffle_4_kernel_states<64, 1, uint32_t><<<64, 1>>>(states, n, x_flat);
+            shuffle_4_kernel_states<64, 2, uint32_t><<<64, 1>>>(states, n, x_flat);
+            shuffle_4_kernel_states<64, 1, uint32_t><<<64, 1>>>(states, n, x_flat);
+            shuffle_4_kernel_states<64, 2, uint32_t><<<64, 1>>>(states, n, x_flat);
+        } else {
+            setup_kernel<<<64, 64>>>(states, seed);
+
+            shuffle_4_kernel_states<64 * 64, 1, uint32_t><<<64, 64>>>(states, n, x_flat);
+            shuffle_4_kernel_states<64 * 64, 2, uint32_t><<<64, 64>>>(states, n, x_flat);
+            shuffle_4_kernel_states<64 * 64, 1, uint32_t><<<64, 64>>>(states, n, x_flat);
+            shuffle_4_kernel_states<64 * 64, 2, uint32_t><<<64, 64>>>(states, n, x_flat);
         }
+
+        cuda_check(cudaFree(states));
 
 #ifdef EGBLAS_SYNCHRONIZE
     cudaDeviceSynchronize();
@@ -171,11 +286,34 @@ void egblas_par_shuffle_seed(size_t n, void* x, size_t incx, void* y, size_t inc
         uint32_t* x_flat = reinterpret_cast<uint32_t*>(x);
         uint32_t* y_flat = reinterpret_cast<uint32_t*>(y);
 
-        for (auto i = n - 1; i > 0; --i) {
-            auto new_i = dist(g, param_t(0, i));
+        // Allocate room for the states
+        curandState* states;
+        cuda_check(cudaMalloc((void**)&states, 64 * 64 * sizeof(curandState)));
 
-            par_shuffle_one_4_kernel<<<1,1,1>>>(x_flat, y_flat, i, new_i);
+        if (n < 1000) {
+            setup_kernel<<<8, 1>>>(states, seed);
+
+            par_shuffle_4_kernel_states<8, 1, uint32_t><<<8, 1>>>(states, n, x_flat, y_flat);
+            par_shuffle_4_kernel_states<8, 2, uint32_t><<<8, 1>>>(states, n, x_flat, y_flat);
+            par_shuffle_4_kernel_states<8, 1, uint32_t><<<8, 1>>>(states, n, x_flat, y_flat);
+            par_shuffle_4_kernel_states<8, 2, uint32_t><<<8, 1>>>(states, n, x_flat, y_flat);
+        } else if (n < 50000) {
+            setup_kernel<<<64, 1>>>(states, seed);
+
+            par_shuffle_4_kernel_states<64, 1, uint32_t><<<64, 1>>>(states, n, x_flat, y_flat);
+            par_shuffle_4_kernel_states<64, 2, uint32_t><<<64, 1>>>(states, n, x_flat, y_flat);
+            par_shuffle_4_kernel_states<64, 1, uint32_t><<<64, 1>>>(states, n, x_flat, y_flat);
+            par_shuffle_4_kernel_states<64, 2, uint32_t><<<64, 1>>>(states, n, x_flat, y_flat);
+        } else {
+            setup_kernel<<<64, 64>>>(states, seed);
+
+            par_shuffle_4_kernel_states<64 * 64, 1, uint32_t><<<64, 64>>>(states, n, x_flat, y_flat);
+            par_shuffle_4_kernel_states<64 * 64, 2, uint32_t><<<64, 64>>>(states, n, x_flat, y_flat);
+            par_shuffle_4_kernel_states<64 * 64, 1, uint32_t><<<64, 64>>>(states, n, x_flat, y_flat);
+            par_shuffle_4_kernel_states<64 * 64, 2, uint32_t><<<64, 64>>>(states, n, x_flat, y_flat);
         }
+
+        cuda_check(cudaFree(states));
 
 #ifdef EGBLAS_SYNCHRONIZE
     cudaDeviceSynchronize();
