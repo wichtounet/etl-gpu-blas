@@ -23,6 +23,27 @@ __global__ void setup_kernel(curandState* states, size_t seed) {
     curand_init(seed, id, 0, &states[id]);
 }
 
+__global__ void setup_permutation_kernel(size_t n, size_t* permutation) {
+    auto index = threadIdx.x + blockIdx.x * blockDim.x;
+
+    if (index < n) {
+        permutation[index] = index;
+    }
+}
+
+template <typename T>
+__global__ void apply_permutation_kernel(size_t n, size_t* permutation, T* x_tmp, T* x, size_t incx) {
+    auto i = threadIdx.x + blockIdx.x * blockDim.x;
+
+    if (i < n) {
+        size_t new_i = permutation[i];
+
+        for (size_t index = 0; index < incx; ++index) {
+            x[i * incx + index] = x_tmp[new_i * incx + index];
+        }
+    }
+}
+
 template <size_t Threads, size_t Distance, typename T>
 __global__ void shuffle_one_kernel_states(curandState* states, size_t n, T* x) {
     const auto base_index  = threadIdx.x + blockIdx.x * blockDim.x;
@@ -262,23 +283,14 @@ void egblas_shuffle_seed(size_t n, void* x, size_t incx, size_t seed){
         return;
     }
 
-    if (incx % 8 == 0) {
-        uint64_t* x_flat = reinterpret_cast<uint64_t*>(x);
+    const int blockSize = 256;
+    const int gridSize = (n + blockSize - 1) / blockSize;
 
-        for (auto i = n - 1; i > 0; --i) {
-            auto new_i = dist(g, param_t(0, i));
+    // TODO Instead of fixing the size to 64, 32 and 8
+    // This could be simply delegate the task of doing it efficienly in the 
+    // apply_permutation_kernel
 
-            shuffle_kernel_run(x_flat, size_t(i), new_i, incx / 8);
-        }
-    } else if (incx % 4 == 0) {
-        uint32_t* x_flat = reinterpret_cast<uint32_t*>(x);
-
-        for (auto i = n - 1; i > 0; --i) {
-            auto new_i = dist(g, param_t(0, i));
-
-            shuffle_kernel_run(x_flat, size_t(i), new_i, incx / 4);
-        }
-    } else {
+    if (n < 512) {
         uint8_t* x_flat = reinterpret_cast<uint8_t*>(x);
 
         for (auto i = n - 1; i > 0; --i) {
@@ -286,6 +298,60 @@ void egblas_shuffle_seed(size_t n, void* x, size_t incx, size_t seed){
 
             shuffle_kernel_run(x_flat, size_t(i), new_i, incx);
         }
+    } else if (incx % 8 == 0) {
+        uint64_t* x_flat = reinterpret_cast<uint64_t*>(x);
+
+        uint64_t* x_tmp;
+        cuda_check(cudaMalloc((void**)&x_tmp, n * incx));
+        cuda_check(cudaMemcpy(x_flat, x_tmp, n * incx, cudaMemcpyDeviceToDevice));
+
+        size_t* permutation;
+        cuda_check(cudaMalloc((void**)&permutation, n * sizeof(size_t)));
+
+        setup_permutation_kernel<<<gridSize, blockSize>>>(n, permutation);
+
+        egblas_shuffle_one(n, permutation, seed);
+
+        apply_permutation_kernel<<<gridSize, blockSize>>>(n, permutation, x_tmp, x_flat, incx / 8);
+
+        cuda_check(cudaFree(x_tmp));
+        cuda_check(cudaFree(permutation));
+    } else if (incx % 4 == 0) {
+        uint32_t* x_flat = reinterpret_cast<uint32_t*>(x);
+
+        uint32_t* x_tmp;
+        cuda_check(cudaMalloc((void**)&x_tmp, n * incx));
+        cuda_check(cudaMemcpy(x_flat, x_tmp, n * incx, cudaMemcpyDeviceToDevice));
+
+        size_t* permutation;
+        cuda_check(cudaMalloc((void**)&permutation, n * sizeof(size_t)));
+
+        setup_permutation_kernel<<<gridSize, blockSize>>>(n, permutation);
+
+        egblas_shuffle_one(n, permutation, seed);
+
+        apply_permutation_kernel<<<gridSize, blockSize>>>(n, permutation, x_tmp, x_flat, incx / 4);
+
+        cuda_check(cudaFree(x_tmp));
+        cuda_check(cudaFree(permutation));
+    } else {
+        uint8_t* x_flat = reinterpret_cast<uint8_t*>(x);
+
+        uint8_t* x_tmp;
+        cuda_check(cudaMalloc((void**)&x_tmp, n * incx));
+        cuda_check(cudaMemcpy(x_flat, x_tmp, n * incx, cudaMemcpyDeviceToDevice));
+
+        size_t* permutation;
+        cuda_check(cudaMalloc((void**)&permutation, n * sizeof(size_t)));
+
+        setup_permutation_kernel<<<gridSize, blockSize>>>(n, permutation);
+
+        egblas_shuffle_one(n, permutation, seed);
+
+        apply_permutation_kernel<<<gridSize, blockSize>>>(n, permutation, x_tmp, x_flat, incx);
+
+        cuda_check(cudaFree(x_tmp));
+        cuda_check(cudaFree(permutation));
     }
 
 #ifdef EGBLAS_SYNCHRONIZE
@@ -370,25 +436,14 @@ void egblas_par_shuffle_seed(size_t n, void* x, size_t incx, void* y, size_t inc
         return;
     }
 
-    if (incx % 8 == 0 && incy % 8 == 0) {
-        uint64_t* x_flat = reinterpret_cast<uint64_t*>(x);
-        uint64_t* y_flat = reinterpret_cast<uint64_t*>(y);
+    const int blockSize = 256;
+    const int gridSize = (n + blockSize - 1) / blockSize;
 
-        for (auto i = n - 1; i > 0; --i) {
-            auto new_i = dist(g, param_t(0, i));
+    // TODO Instead of fixing the size to 64, 32 and 8
+    // This could be simply delegate the task of doing it efficienly in the 
+    // apply_permutation_kernel
 
-            par_shuffle_kernel_run(x_flat, y_flat, size_t(i), new_i, incx / 8, incy / 8);
-        }
-    } else if (incx % 4 == 0 && incy % 4 == 0) {
-        uint32_t* x_flat = reinterpret_cast<uint32_t*>(x);
-        uint32_t* y_flat = reinterpret_cast<uint32_t*>(y);
-
-        for (auto i = n - 1; i > 0; --i) {
-            auto new_i = dist(g, param_t(0, i));
-
-            par_shuffle_kernel_run(x_flat, y_flat, size_t(i), new_i, incx / 4, incy / 4);
-        }
-    } else {
+    if (n < 512) {
         uint8_t* x_flat = reinterpret_cast<uint8_t*>(x);
         uint8_t* y_flat = reinterpret_cast<uint8_t*>(y);
 
@@ -397,6 +452,84 @@ void egblas_par_shuffle_seed(size_t n, void* x, size_t incx, void* y, size_t inc
 
             par_shuffle_kernel_run(x_flat, y_flat, size_t(i), new_i, incx, incy);
         }
+    } else if (incx % 8 == 0 && incy % 8 == 0) {
+        uint64_t* x_flat = reinterpret_cast<uint64_t*>(x);
+        uint64_t* y_flat = reinterpret_cast<uint64_t*>(y);
+
+        uint64_t* x_tmp;
+        uint64_t* y_tmp;
+
+        cuda_check(cudaMalloc((void**)&x_tmp, n * incx));
+        cuda_check(cudaMalloc((void**)&y_tmp, n * incy));
+
+        cuda_check(cudaMemcpy(x_flat, x_tmp, n * incx, cudaMemcpyDeviceToDevice));
+        cuda_check(cudaMemcpy(y_flat, y_tmp, n * incy, cudaMemcpyDeviceToDevice));
+
+        size_t* permutation;
+        cuda_check(cudaMalloc((void**)&permutation, n * sizeof(size_t)));
+
+        setup_permutation_kernel<<<gridSize, blockSize>>>(n, permutation);
+
+        egblas_shuffle_one(n, permutation, seed);
+
+        apply_permutation_kernel<<<gridSize, blockSize>>>(n, permutation, x_tmp, x_flat, incx / 8);
+        apply_permutation_kernel<<<gridSize, blockSize>>>(n, permutation, y_tmp, y_flat, incy / 8);
+
+        cuda_check(cudaFree(x_tmp));
+        cuda_check(cudaFree(y_tmp));
+        cuda_check(cudaFree(permutation));
+    } else if (incx % 4 == 0 && incy % 4 == 0) {
+        uint32_t* x_flat = reinterpret_cast<uint32_t*>(x);
+        uint32_t* y_flat = reinterpret_cast<uint32_t*>(y);
+
+        uint32_t* x_tmp;
+        uint32_t* y_tmp;
+
+        cuda_check(cudaMalloc((void**)&x_tmp, n * incx));
+        cuda_check(cudaMalloc((void**)&y_tmp, n * incy));
+
+        cuda_check(cudaMemcpy(x_flat, x_tmp, n * incx, cudaMemcpyDeviceToDevice));
+        cuda_check(cudaMemcpy(y_flat, y_tmp, n * incy, cudaMemcpyDeviceToDevice));
+
+        size_t* permutation;
+        cuda_check(cudaMalloc((void**)&permutation, n * sizeof(size_t)));
+
+        setup_permutation_kernel<<<gridSize, blockSize>>>(n, permutation);
+
+        egblas_shuffle_one(n, permutation, seed);
+
+        apply_permutation_kernel<<<gridSize, blockSize>>>(n, permutation, x_tmp, x_flat, incx / 4);
+        apply_permutation_kernel<<<gridSize, blockSize>>>(n, permutation, y_tmp, y_flat, incy / 4);
+
+        cuda_check(cudaFree(x_tmp));
+        cuda_check(cudaFree(y_tmp));
+        cuda_check(cudaFree(permutation));
+    } else {
+        uint8_t* x_flat = reinterpret_cast<uint8_t*>(x);
+        uint8_t* y_flat = reinterpret_cast<uint8_t*>(y);
+
+        uint8_t* x_tmp;
+        uint8_t* y_tmp;
+
+        cuda_check(cudaMalloc((void**)&x_tmp, n * incx));
+        cuda_check(cudaMalloc((void**)&y_tmp, n * incy));
+
+        cuda_check(cudaMemcpy(x_flat, x_tmp, n * incx, cudaMemcpyDeviceToDevice));
+        cuda_check(cudaMemcpy(y_flat, y_tmp, n * incy, cudaMemcpyDeviceToDevice));
+
+        size_t* permutation;
+        cuda_check(cudaMalloc((void**)&permutation, n * sizeof(size_t)));
+
+        setup_permutation_kernel<<<gridSize, blockSize>>>(n, permutation);
+
+        egblas_shuffle_one(n, permutation, seed);
+
+        apply_permutation_kernel<<<gridSize, blockSize>>>(n, permutation, x_tmp, x_flat, incx);
+        apply_permutation_kernel<<<gridSize, blockSize>>>(n, permutation, y_tmp, y_flat, incy);
+
+        cuda_check(cudaFree(x_tmp));
+        cuda_check(cudaFree(y_tmp));
+        cuda_check(cudaFree(permutation));
     }
 
 #ifdef EGBLAS_SYNCHRONIZE

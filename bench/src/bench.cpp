@@ -938,12 +938,12 @@ void bench_par_big_shuffle(size_t N,size_t repeat = 100){
     auto* x_gpu = prepare_gpu(N * 1024, x_cpu);
     auto* y_gpu = prepare_gpu(N * 1024, y_cpu);
 
-    egblas_par_shuffle_seed(N, x_gpu, 4 * 1024, y_gpu, 4, 42);
+    egblas_par_shuffle_seed(N, x_gpu, 4 * 1024, y_gpu, 8, 42);
 
     auto t0 = timer::now();
 
     for(size_t i = 0; i < repeat; ++i){
-        egblas_par_shuffle_seed(N, x_gpu, 4 * 1024, y_gpu, 4, 42);
+        egblas_par_shuffle_seed(N, x_gpu, 4 * 1024, y_gpu, 8, 42);
     }
 
     report("par_big_shuffle", t0, repeat, N);
