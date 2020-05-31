@@ -962,6 +962,56 @@ void bench_par_big_shuffle(){
     std::cout << std::endl;
 }
 
+void bench_cudnn_bias_batch_sum(size_t B, size_t N, size_t repeat = 100){
+    auto* x_cpu = prepare_cpu(B * N, 2.0f);
+    auto* y_cpu = prepare_cpu(B * N, 3.0f);
+
+    auto* x_gpu = prepare_gpu(B * N, x_cpu);
+    auto* y_gpu = prepare_gpu(B * N, y_cpu);
+
+    cudnnHandle_t handle;
+    cudnnCreate(&handle);
+
+    cudnnTensorDescriptor_t x_tensor;
+    cudnn_check(cudnnCreateTensorDescriptor(&x_tensor));
+    cudnn_check(cudnnSetTensor4dDescriptor(x_tensor, CUDNN_TENSOR_NCHW, CUDNN_DATA_FLOAT, B, N, 1, 1));
+
+    cudnnTensorDescriptor_t y_tensor;
+    cudnn_check(cudnnCreateTensorDescriptor(&y_tensor));
+    cudnn_check(cudnnSetTensor4dDescriptor(y_tensor, CUDNN_TENSOR_NCHW, CUDNN_DATA_FLOAT, 1, N, 1, 1));
+
+    float alpha = 1.0f;
+    float beta = 0.0f;
+
+    cudnn_check(cudnnConvolutionBackwardBias(handle, &alpha, x_tensor, x_gpu, &beta, y_tensor, y_gpu));
+
+    auto t0 = timer::now();
+
+    for(size_t i = 0; i < repeat; ++i){
+        cudnn_check(cudnnConvolutionBackwardBias(handle, &alpha, x_tensor, x_gpu, &beta, y_tensor, y_gpu));
+    }
+
+    report("cudnn_bias_batch_sum", t0, repeat, N);
+
+    cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
+
+    release(x_cpu, x_gpu);
+    release(y_cpu, y_gpu);
+
+    cudnn_check(cudnnDestroyTensorDescriptor(x_tensor));
+    cudnn_check(cudnnDestroyTensorDescriptor(y_tensor));
+
+    cudnnDestroy(handle);
+}
+
+void bench_cudnn_bias_batch_sum(){
+    bench_cudnn_bias_batch_sum(256, 10);
+    bench_cudnn_bias_batch_sum(256, 100);
+    bench_cudnn_bias_batch_sum(256, 1000);
+    bench_cudnn_bias_batch_sum(256, 10000);
+    std::cout << std::endl;
+}
+
 } // End of anonymous namespace
 
 int main(int argc, char* argv[]){
@@ -1026,5 +1076,9 @@ int main(int argc, char* argv[]){
         bench_saxpy();
         bench_cublas_saxpy();
         bench_saxpby();
+    }
+
+    if (sub == "bias_batch") {
+        bench_cudnn_bias_batch_sum();
     }
 }
