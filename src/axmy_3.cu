@@ -92,6 +92,7 @@ void axmy_3_kernel1_run(size_t n, const T* x, size_t incx, const T* y, size_t in
 
     if (!blockSize) {
         cudaOccupancyMaxPotentialBlockSize(&minGridSize, &blockSize, axmy_3_kernel1<T>, 0, 0);
+        blockSize = blockSize < 256 ? blockSize : 256;
     }
 
     int gridSize = (n + blockSize - 1) / blockSize;
