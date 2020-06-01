@@ -858,7 +858,7 @@ void bench_saxmy_3(size_t N,size_t repeat = 100){
     auto t0 = timer::now();
 
     for(size_t i = 0; i < repeat; ++i){
-    egblas_saxmy_3(N, 1.0f, x_gpu, 1, y_gpu, 1, yy_gpu, 1);
+        egblas_saxmy_3(N, 1.0f, x_gpu, 1, y_gpu, 1, yy_gpu, 1);
     }
 
     report("saxmy_3", t0, repeat, N);
@@ -878,6 +878,40 @@ void bench_saxmy_3(){
     bench_saxmy_3(1000000);
     bench_saxmy_3(10000000);
     bench_saxmy_3(100000000);
+    std::cout << std::endl;
+}
+
+void bench_sqrt(size_t N,size_t repeat = 100){
+    auto* x_cpu = prepare_cpu(N, 2.2f);
+    auto* y_cpu = prepare_cpu(N, 3.1f);
+
+    auto* x_gpu = prepare_gpu(N, x_cpu);
+    auto* y_gpu = prepare_gpu(N, y_cpu);
+
+    egblas_ssqrt(N, 1.0f, x_gpu, 1, y_gpu, 1);
+
+    auto t0 = timer::now();
+
+    for(size_t i = 0; i < repeat; ++i){
+        egblas_ssqrt(N, 1.0f, x_gpu, 1, y_gpu, 1);
+    }
+
+    report("sqrt", t0, repeat, N);
+
+    cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
+
+    release(x_cpu, x_gpu);
+    release(y_cpu, y_gpu);
+}
+
+void bench_sqrt(){
+    bench_sqrt(100);
+    bench_sqrt(1000);
+    bench_sqrt(10000);
+    bench_sqrt(100000);
+    bench_sqrt(1000000);
+    bench_sqrt(10000000);
+    bench_sqrt(100000000);
     std::cout << std::endl;
 }
 
@@ -1176,6 +1210,10 @@ int main(int argc, char* argv[]){
         bench_cublas_saxpy();
         bench_saxpby();
         bench_saxmy_3();
+    }
+
+    if (sub == "sqrt" || sub == "all") {
+        bench_sqrt();
     }
 
     if (sub == "bias_batch") {

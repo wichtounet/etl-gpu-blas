@@ -12,19 +12,26 @@
 template <typename T>
 __global__ void sqrt_kernel(size_t n, T alpha, const T* x, size_t incx, T* y, size_t incy) {
     auto index  = threadIdx.x + blockIdx.x * blockDim.x;
-    auto stride = blockDim.x * gridDim.x;
 
-    for (; index < n; index += stride) {
+    if (index < n) {
         y[incy * index] = alpha * sqrt(x[incx * index]);
+    }
+}
+
+template <typename T>
+__global__ void sqrt_kernel_flat(size_t n, T alpha, const T* x, T* y) {
+    auto index  = threadIdx.x + blockIdx.x * blockDim.x;
+
+    if (index < n) {
+        y[index] = alpha * sqrt(x[index]);
     }
 }
 
 template <>
 __global__ void sqrt_kernel(size_t n, cuComplex alpha, const cuComplex* x, size_t incx, cuComplex* y, size_t incy) {
     auto index  = threadIdx.x + blockIdx.x * blockDim.x;
-    auto stride = blockDim.x * gridDim.x;
 
-    for (; index < n; index += stride) {
+    if (index < n) {
         auto c = x[incx * index];
 
         auto res = sqrt(c);
@@ -34,11 +41,23 @@ __global__ void sqrt_kernel(size_t n, cuComplex alpha, const cuComplex* x, size_
 }
 
 template <>
+__global__ void sqrt_kernel_flat(size_t n, cuComplex alpha, const cuComplex* x, cuComplex* y) {
+    auto index  = threadIdx.x + blockIdx.x * blockDim.x;
+
+    if (index < n) {
+        auto c = x[index];
+
+        auto res = sqrt(c);
+
+        y[index] = cuCmulf(alpha, res);
+    }
+}
+
+template <>
 __global__ void sqrt_kernel(size_t n, cuDoubleComplex alpha, const cuDoubleComplex* x, size_t incx, cuDoubleComplex* y, size_t incy) {
     auto index  = threadIdx.x + blockIdx.x * blockDim.x;
-    auto stride = blockDim.x * gridDim.x;
 
-    for (; index < n; index += stride) {
+    if (index < n) {
         auto c = x[incx * index];
 
         auto res = sqrt(c);
@@ -47,36 +66,68 @@ __global__ void sqrt_kernel(size_t n, cuDoubleComplex alpha, const cuDoubleCompl
     }
 }
 
+template <>
+__global__ void sqrt_kernel_flat(size_t n, cuDoubleComplex alpha, const cuDoubleComplex* x, cuDoubleComplex* y) {
+    auto index  = threadIdx.x + blockIdx.x * blockDim.x;
+
+    if (index < n) {
+        auto c = x[index];
+
+        auto res = sqrt(c);
+
+        y[index] = cuCmul(alpha, res);
+    }
+}
+
 template <typename T>
 __global__ void sqrt_kernel1(size_t n, const T* x, size_t incx, T* y, size_t incy) {
     auto index  = threadIdx.x + blockIdx.x * blockDim.x;
-    auto stride = blockDim.x * gridDim.x;
 
-    for (; index < n; index += stride) {
+    if (index < n) {
         y[incy * index] = sqrt(x[incx * index]);
+    }
+}
+
+template <typename T>
+__global__ void sqrt_kernel1_flat(size_t n, const T* x, T* y) {
+    auto index  = threadIdx.x + blockIdx.x * blockDim.x;
+
+    if (index < n) {
+        y[index] = sqrt(x[index]);
     }
 }
 
 template <>
 __global__ void sqrt_kernel1(size_t n, const cuComplex* x, size_t incx, cuComplex* y, size_t incy) {
     auto index  = threadIdx.x + blockIdx.x * blockDim.x;
-    auto stride = blockDim.x * gridDim.x;
 
-    for (; index < n; index += stride) {
+    if (index < n) {
         auto c = x[incx * index];
 
         auto res = sqrt(c);
 
         y[incy * index] = res;
+    }
+}
+
+template <>
+__global__ void sqrt_kernel1_flat(size_t n, const cuComplex* x, cuComplex* y) {
+    auto index  = threadIdx.x + blockIdx.x * blockDim.x;
+
+    if (index < n) {
+        auto c = x[index];
+
+        auto res = sqrt(c);
+
+        y[index] = res;
     }
 }
 
 template <>
 __global__ void sqrt_kernel1(size_t n, const cuDoubleComplex* x, size_t incx, cuDoubleComplex* y, size_t incy) {
     auto index  = threadIdx.x + blockIdx.x * blockDim.x;
-    auto stride = blockDim.x * gridDim.x;
 
-    for (; index < n; index += stride) {
+    if (index < n) {
         auto c = x[incx * index];
 
         auto res = sqrt(c);
@@ -85,46 +136,53 @@ __global__ void sqrt_kernel1(size_t n, const cuDoubleComplex* x, size_t incx, cu
     }
 }
 
+template <>
+__global__ void sqrt_kernel1_flat(size_t n, const cuDoubleComplex* x, cuDoubleComplex* y) {
+    auto index  = threadIdx.x + blockIdx.x * blockDim.x;
+
+    if (index < n) {
+        auto c = x[index];
+
+        auto res = sqrt(c);
+
+        y[index] = res;
+    }
+}
+
 template <typename T>
 __global__ void sqrt_kernel0(size_t n, T* y, size_t incy) {
     auto index  = threadIdx.x + blockIdx.x * blockDim.x;
-    auto stride = blockDim.x * gridDim.x;
 
-    for (; index < n; index += stride) {
-        y[incy * index] = T(0);
+    if (index < n) {
+        y[incy * index] = zero<T>();
     }
 }
 
-template <>
-__global__ void sqrt_kernel0(size_t n, cuComplex* y, size_t incy) {
+template <typename T>
+__global__ void sqrt_kernel0_flat(size_t n, T* y) {
     auto index  = threadIdx.x + blockIdx.x * blockDim.x;
-    auto stride = blockDim.x * gridDim.x;
 
-    for (; index < n; index += stride) {
-        y[incy * index] = make_cuComplex(0, 0);
-    }
-}
-
-template <>
-__global__ void sqrt_kernel0(size_t n, cuDoubleComplex* y, size_t incy) {
-    auto index  = threadIdx.x + blockIdx.x * blockDim.x;
-    auto stride = blockDim.x * gridDim.x;
-
-    for (; index < n; index += stride) {
-        y[incy * index] = make_cuDoubleComplex(0, 0);
+    if (index < n) {
+        y[index] = zero<T>();
     }
 }
 
 template <typename T>
 void sqrt_kernel_run(size_t n, T alpha, const T* x, size_t incx, T* y, size_t incy) {
-    int blockSize;
-    int minGridSize;
+    static int blockSize   = 0;
+    static int minGridSize = 0;
 
-    cudaOccupancyMaxPotentialBlockSize(&minGridSize, &blockSize, sqrt_kernel<T>, 0, 0);
+    if (!blockSize) {
+        cudaOccupancyMaxPotentialBlockSize(&minGridSize, &blockSize, sqrt_kernel<T>, 0, 0);
+    }
 
-    int gridSize = ((n / incy) + blockSize - 1) / blockSize;
+    int gridSize = (n + blockSize - 1) / blockSize;
 
-    sqrt_kernel<T><<<gridSize, blockSize>>>(n, alpha, x, incx, y, incy);
+    if (incx == 1 && incy == 1) {
+        sqrt_kernel_flat<T><<<gridSize, blockSize>>>(n, alpha, x, y);
+    } else {
+        sqrt_kernel<T><<<gridSize, blockSize>>>(n, alpha, x, incx, y, incy);
+    }
 
 #ifdef EGBLAS_SYNCHRONIZE
     cudaDeviceSynchronize();
@@ -133,14 +191,20 @@ void sqrt_kernel_run(size_t n, T alpha, const T* x, size_t incx, T* y, size_t in
 
 template <typename T>
 void sqrt_kernel1_run(size_t n, const T* x, size_t incx, T* y, size_t incy) {
-    int blockSize;
-    int minGridSize;
+    static int blockSize   = 0;
+    static int minGridSize = 0;
 
-    cudaOccupancyMaxPotentialBlockSize(&minGridSize, &blockSize, sqrt_kernel1<T>, 0, 0);
+    if (!blockSize) {
+        cudaOccupancyMaxPotentialBlockSize(&minGridSize, &blockSize, sqrt_kernel1<T>, 0, 0);
+    }
 
-    int gridSize = ((n / incy) + blockSize - 1) / blockSize;
+    int gridSize = (n + blockSize - 1) / blockSize;
 
-    sqrt_kernel1<T><<<gridSize, blockSize>>>(n, x, incx, y, incy);
+    if (incx == 1 && incy == 1) {
+        sqrt_kernel1_flat<T><<<gridSize, blockSize>>>(n, x, y);
+    } else {
+        sqrt_kernel1<T><<<gridSize, blockSize>>>(n, x, incx, y, incy);
+    }
 
 #ifdef EGBLAS_SYNCHRONIZE
     cudaDeviceSynchronize();
@@ -149,14 +213,20 @@ void sqrt_kernel1_run(size_t n, const T* x, size_t incx, T* y, size_t incy) {
 
 template <typename T>
 void sqrt_kernel0_run(size_t n, T* y, size_t incy) {
-    int blockSize;
-    int minGridSize;
+    static int blockSize   = 0;
+    static int minGridSize = 0;
 
-    cudaOccupancyMaxPotentialBlockSize(&minGridSize, &blockSize, sqrt_kernel0<T>, 0, 0);
+    if (!blockSize) {
+        cudaOccupancyMaxPotentialBlockSize(&minGridSize, &blockSize, sqrt_kernel0<T>, 0, 0);
+    }
 
-    int gridSize = ((n / incy) + blockSize - 1) / blockSize;
+    int gridSize = (n + blockSize - 1) / blockSize;
 
-    sqrt_kernel0<T><<<gridSize, blockSize>>>(n, y, incy);
+    if (incy == 1) {
+        sqrt_kernel0_flat<T><<<gridSize, blockSize>>>(n, y);
+    } else {
+        sqrt_kernel0<T><<<gridSize, blockSize>>>(n, y, incy);
+    }
 
 #ifdef EGBLAS_SYNCHRONIZE
     cudaDeviceSynchronize();
