@@ -41,7 +41,33 @@ __global__ void bias_batch_sum_kernel_flat(size_t B, size_t N, const T* x, T* y)
     if (n < N) {
         T sum = 0;
 
-        for (size_t b = 0; b < B; ++b) {
+        size_t b = 0;
+
+        for (; b + 7 < B; b += 8) {
+            sum += x[(b + 0) * N + n];
+            sum += x[(b + 1) * N + n];
+            sum += x[(b + 2) * N + n];
+            sum += x[(b + 3) * N + n];
+            sum += x[(b + 4) * N + n];
+            sum += x[(b + 5) * N + n];
+            sum += x[(b + 6) * N + n];
+            sum += x[(b + 7) * N + n];
+        }
+
+        for (; b + 3 < B; b += 4) {
+            sum += x[(b + 0) * N + n];
+            sum += x[(b + 1) * N + n];
+            sum += x[(b + 2) * N + n];
+            sum += x[(b + 3) * N + n];
+        }
+
+        for (; b + 1 < B; b += 2) {
+            sum += x[(b + 0) * N + n];
+            sum += x[(b + 1) * N + n];
+        }
+
+        // Note: This should be a if, but using a if makes it slower
+        for (; b < B; ++b) {
             sum += x[b * N + n];
         }
 
