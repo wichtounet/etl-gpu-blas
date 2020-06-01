@@ -1043,6 +1043,37 @@ void bench_bias_batch_sum(){
     std::cout << std::endl;
 }
 
+void bench_bias_batch_mean(size_t B, size_t N, size_t repeat = 100){
+    auto* x_cpu = prepare_cpu(B * N, 2.0f);
+    auto* y_cpu = prepare_cpu(N, 3.0f);
+
+    auto* x_gpu = prepare_gpu(B * N, x_cpu);
+    auto* y_gpu = prepare_gpu(N, y_cpu);
+
+    egblas_sbias_batch_mean(B, N, x_gpu, 1, y_gpu, 1);
+
+    auto t0 = timer::now();
+
+    for(size_t i = 0; i < repeat; ++i){
+        egblas_sbias_batch_mean(B, N, x_gpu, 1, y_gpu, 1);
+    }
+
+    report("bias_batch_mean", t0, repeat, B * N);
+
+    cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
+
+    release(x_cpu, x_gpu);
+    release(y_cpu, y_gpu);
+}
+
+void bench_bias_batch_mean(){
+    bench_bias_batch_mean(256, 10);
+    bench_bias_batch_mean(256, 100);
+    bench_bias_batch_mean(256, 1000);
+    bench_bias_batch_mean(256, 10000);
+    std::cout << std::endl;
+}
+
 } // End of anonymous namespace
 
 int main(int argc, char* argv[]){
@@ -1111,6 +1142,7 @@ int main(int argc, char* argv[]){
 
     if (sub == "bias_batch") {
         bench_bias_batch_sum();
+        bench_bias_batch_mean();
         bench_cudnn_bias_batch_sum();
     }
 }

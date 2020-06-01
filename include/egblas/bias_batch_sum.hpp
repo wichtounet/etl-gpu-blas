@@ -13,5 +13,12 @@ void egblas_sbias_batch_sum(size_t b, size_t n, float* x, size_t incx, float* y,
 
 void egblas_dbias_batch_sum(size_t b, size_t n, double* x, size_t incx, double* y, size_t incy);
 
+void egblas_sbias_batch_mean(size_t b, size_t n, float* x, size_t incx, float* y, size_t incy);
+
+void egblas_dbias_batch_mean(size_t b, size_t n, double* x, size_t incx, double* y, size_t incy);
+
 #define EGBLAS_HAS_SBIAS_BATCH_SUM true
 #define EGBLAS_HAS_DBIAS_BATCH_SUM true
+
+#define EGBLAS_HAS_SBIAS_BATCH_MEAN true
+#define EGBLAS_HAS_DBIAS_BATCH_MEAN true
