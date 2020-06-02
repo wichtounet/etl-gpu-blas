@@ -77,6 +77,7 @@
 #include "egblas/sum.hpp"
 #include "egblas/asum.hpp"
 #include "egblas/bias_batch_sum.hpp"
+#include "egblas/max_reduce.hpp"
 
 // Machine Learning Special functions
 #include "egblas/bias_add.hpp"

@@ -191,6 +191,36 @@ void bench_cublas_asum(){
     std::cout << std::endl;
 }
 
+void bench_max(size_t N,size_t repeat = 100){
+    auto* x_cpu = prepare_cpu(N, 2.1f);
+    auto* x_gpu = prepare_gpu(N, x_cpu);
+
+    egblas_smax(x_gpu, N, 1);
+
+    auto t0 = timer::now();
+
+    for(size_t i = 0; i < repeat; ++i){
+        egblas_smax(x_gpu, N, 1);
+    }
+
+    report("max", t0, repeat, N, false);
+
+    cuda_check(cudaMemcpy(x_cpu, x_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
+
+    release(x_cpu, x_gpu);
+}
+
+void bench_max(){
+    bench_max(100);
+    bench_max(1000);
+    bench_max(10000);
+    bench_max(100000);
+    bench_max(1000000);
+    bench_max(10000000);
+    bench_max(100000000);
+    std::cout << std::endl;
+}
+
 void bench_stddev(size_t N,size_t repeat = 100){
     auto* x_cpu = prepare_cpu(N, 2.1f);
     auto* x_gpu = prepare_gpu(N, x_cpu);
@@ -1158,6 +1188,7 @@ int main(int argc, char* argv[]){
         bench_sum();
         bench_asum();
         bench_cublas_asum();
+        bench_max();
     }
 
     if (sub == "stddev" || sub == "all") {
