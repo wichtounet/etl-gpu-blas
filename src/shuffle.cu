@@ -303,7 +303,7 @@ void egblas_shuffle_seed(size_t n, void* x, size_t incx, size_t seed){
 
         uint64_t* x_tmp;
         cuda_check(cudaMalloc((void**)&x_tmp, n * incx));
-        cuda_check(cudaMemcpy(x_flat, x_tmp, n * incx, cudaMemcpyDeviceToDevice));
+        cuda_check(cudaMemcpy(x_tmp, x_flat, n * incx, cudaMemcpyDeviceToDevice));
 
         size_t* permutation;
         cuda_check(cudaMalloc((void**)&permutation, n * sizeof(size_t)));
@@ -321,7 +321,7 @@ void egblas_shuffle_seed(size_t n, void* x, size_t incx, size_t seed){
 
         uint32_t* x_tmp;
         cuda_check(cudaMalloc((void**)&x_tmp, n * incx));
-        cuda_check(cudaMemcpy(x_flat, x_tmp, n * incx, cudaMemcpyDeviceToDevice));
+        cuda_check(cudaMemcpy(x_tmp, x_flat, n * incx, cudaMemcpyDeviceToDevice));
 
         size_t* permutation;
         cuda_check(cudaMalloc((void**)&permutation, n * sizeof(size_t)));
@@ -339,7 +339,7 @@ void egblas_shuffle_seed(size_t n, void* x, size_t incx, size_t seed){
 
         uint8_t* x_tmp;
         cuda_check(cudaMalloc((void**)&x_tmp, n * incx));
-        cuda_check(cudaMemcpy(x_flat, x_tmp, n * incx, cudaMemcpyDeviceToDevice));
+        cuda_check(cudaMemcpy(x_tmp, x_flat, n * incx, cudaMemcpyDeviceToDevice));
 
         size_t* permutation;
         cuda_check(cudaMalloc((void**)&permutation, n * sizeof(size_t)));
@@ -462,8 +462,8 @@ void egblas_par_shuffle_seed(size_t n, void* x, size_t incx, void* y, size_t inc
         cuda_check(cudaMalloc((void**)&x_tmp, n * incx));
         cuda_check(cudaMalloc((void**)&y_tmp, n * incy));
 
-        cuda_check(cudaMemcpy(x_flat, x_tmp, n * incx, cudaMemcpyDeviceToDevice));
-        cuda_check(cudaMemcpy(y_flat, y_tmp, n * incy, cudaMemcpyDeviceToDevice));
+        cuda_check(cudaMemcpy(x_tmp, x_flat, n * incx, cudaMemcpyDeviceToDevice));
+        cuda_check(cudaMemcpy(y_tmp, y_flat, n * incy, cudaMemcpyDeviceToDevice));
 
         size_t* permutation;
         cuda_check(cudaMalloc((void**)&permutation, n * sizeof(size_t)));
@@ -488,8 +488,8 @@ void egblas_par_shuffle_seed(size_t n, void* x, size_t incx, void* y, size_t inc
         cuda_check(cudaMalloc((void**)&x_tmp, n * incx));
         cuda_check(cudaMalloc((void**)&y_tmp, n * incy));
 
-        cuda_check(cudaMemcpy(x_flat, x_tmp, n * incx, cudaMemcpyDeviceToDevice));
-        cuda_check(cudaMemcpy(y_flat, y_tmp, n * incy, cudaMemcpyDeviceToDevice));
+        cuda_check(cudaMemcpy(x_tmp, x_flat, n * incx, cudaMemcpyDeviceToDevice));
+        cuda_check(cudaMemcpy(y_tmp, y_flat, n * incy, cudaMemcpyDeviceToDevice));
 
         size_t* permutation;
         cuda_check(cudaMalloc((void**)&permutation, n * sizeof(size_t)));
@@ -514,8 +514,8 @@ void egblas_par_shuffle_seed(size_t n, void* x, size_t incx, void* y, size_t inc
         cuda_check(cudaMalloc((void**)&x_tmp, n * incx));
         cuda_check(cudaMalloc((void**)&y_tmp, n * incy));
 
-        cuda_check(cudaMemcpy(x_flat, x_tmp, n * incx, cudaMemcpyDeviceToDevice));
-        cuda_check(cudaMemcpy(y_flat, y_tmp, n * incy, cudaMemcpyDeviceToDevice));
+        cuda_check(cudaMemcpy(x_tmp, x_flat, n * incx, cudaMemcpyDeviceToDevice));
+        cuda_check(cudaMemcpy(y_tmp, y_flat, n * incy, cudaMemcpyDeviceToDevice));
 
         size_t* permutation;
         cuda_check(cudaMalloc((void**)&permutation, n * sizeof(size_t)));
