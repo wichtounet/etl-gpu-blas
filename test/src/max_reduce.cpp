@@ -66,8 +66,8 @@ TEST_CASE("max_reduce/s/2", "[float][max]") {
 
     float* cpu_vec = new float[N];
 
-    for (size_t i = 0; i < N; ++i) {
-        cpu_vec[i] = -i;
+    for (int i = 0; i < int(N); ++i) {
+        cpu_vec[i] = float(-i - 10);
     }
 
     float* gpu_vec;
@@ -75,7 +75,7 @@ TEST_CASE("max_reduce/s/2", "[float][max]") {
 
     cuda_check(cudaMemcpy(gpu_vec, cpu_vec, N * sizeof(float), cudaMemcpyHostToDevice));
 
-    REQUIRE(egblas_smax(gpu_vec, N, 1) == Approx(float(-N)));
+    REQUIRE(egblas_smax(gpu_vec, N, 1) == Approx(float(-10)));
 
     cuda_check(cudaFree(gpu_vec));
 
@@ -87,8 +87,8 @@ TEST_CASE("max_reduce/s/3", "[float][max]") {
 
     float* cpu_vec = new float[N];
 
-    for (size_t i = 0; i < N; ++i) {
-        cpu_vec[i] = -float(i) + 1;
+    for (int i = 0; i < int(N); ++i) {
+        cpu_vec[i] = float(-i) + 1;
     }
 
     cpu_vec[666] = 1000;

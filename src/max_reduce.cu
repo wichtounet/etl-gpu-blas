@@ -31,7 +31,7 @@ __global__ void max_kernel(size_t n, const T* input, size_t incx, T* output) {
     T myMax = 0;
 
     if (i < n) {
-        myMax = input[i];
+        myMax = input[i * incx];
 
         while (i < n) {
             myMax = input[i * incx];
