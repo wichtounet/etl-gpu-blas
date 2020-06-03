@@ -15,6 +15,8 @@
 
 #else
 
+#include <iostream>
+
 #define egblas_assert(condition, message)                                       \
     (condition ? ((void)0)                                                      \
                : assertion_failed_msg(#condition, message, __PRETTY_FUNCTION__, \

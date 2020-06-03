@@ -71,6 +71,7 @@
 #include "egblas/tanh.hpp"
 #include "egblas/sigmoid.hpp"
 #include "egblas/one_if_max.hpp"
+#include "egblas/one_if_max_sub.hpp"
 
 // Reductions
 #include "egblas/mean.hpp"
