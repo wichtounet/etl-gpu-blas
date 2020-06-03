@@ -31,5 +31,5 @@ void egblas_sone_if_max_sub(size_t b, size_t n, float alpha, const float* x, siz
  */
 void egblas_done_if_max_sub(size_t b, size_t n, double alpha, const double* x, size_t incx, double* y, size_t incy);
 
-#define EGBLAS_HAS_SONE_IF_MAX true
-#define EGBLAS_HAS_DONE_IF_MAX true
+#define EGBLAS_HAS_SONE_IF_MAX_SUB true
+#define EGBLAS_HAS_DONE_IF_MAX_SUB true
