@@ -251,14 +251,14 @@ T min_kernel_run(size_t n, const T* input, size_t incx) {
     return result;
 }
 
-float egblas_smin(float* x, size_t n, size_t s) {
+float egblas_smin(const float* x, size_t n, size_t s) {
     egblas_assert(s == 1, "Stride is not yet supported for egblas_smin");
     egblas_unused(s);
 
     return min_kernel_run(n, x, s);
 }
 
-double egblas_dmin(double* x, size_t n, size_t s) {
+double egblas_dmin(const double* x, size_t n, size_t s) {
     egblas_assert(s == 1, "Stride is not yet supported for egblas_smin");
     egblas_unused(s);
 

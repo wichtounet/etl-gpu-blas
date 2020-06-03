@@ -251,14 +251,14 @@ T max_kernel_run(size_t n, const T* input, size_t incx) {
     return result;
 }
 
-float egblas_smax(float* x, size_t n, size_t s) {
+float egblas_smax(const float* x, size_t n, size_t s) {
     egblas_assert(s == 1, "Stride is not yet supported for egblas_smax");
     egblas_unused(s);
 
     return max_kernel_run(n, x, s);
 }
 
-double egblas_dmax(double* x, size_t n, size_t s) {
+double egblas_dmax(const double* x, size_t n, size_t s) {
     egblas_assert(s == 1, "Stride is not yet supported for egblas_smax");
     egblas_unused(s);
 
