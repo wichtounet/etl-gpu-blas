@@ -43,9 +43,11 @@ TEST_CASE("bias_add_2d/s/0", "[float][abs]") {
 
     cuda_check(cudaFree(x_gpu));
     cuda_check(cudaFree(y_gpu));
+    cuda_check(cudaFree(b_gpu));
 
     delete[] x_cpu;
     delete[] y_cpu;
+    delete[] b_cpu;
 }
 
 TEST_CASE("bias_add_2d/d/0", "[double][abs]") {
@@ -84,9 +86,11 @@ TEST_CASE("bias_add_2d/d/0", "[double][abs]") {
 
     cuda_check(cudaFree(x_gpu));
     cuda_check(cudaFree(y_gpu));
+    cuda_check(cudaFree(b_gpu));
 
     delete[] x_cpu;
     delete[] y_cpu;
+    delete[] b_cpu;
 }
 
 TEST_CASE("bias_add_4d/s/0", "[float][abs]") {
@@ -127,9 +131,11 @@ TEST_CASE("bias_add_4d/s/0", "[float][abs]") {
 
     cuda_check(cudaFree(x_gpu));
     cuda_check(cudaFree(y_gpu));
+    cuda_check(cudaFree(b_gpu));
 
     delete[] x_cpu;
     delete[] y_cpu;
+    delete[] b_cpu;
 }
 
 TEST_CASE("bias_add_4d/d/0", "[float][abs]") {
@@ -173,4 +179,5 @@ TEST_CASE("bias_add_4d/d/0", "[float][abs]") {
 
     delete[] x_cpu;
     delete[] y_cpu;
+    delete[] b_cpu;
 }

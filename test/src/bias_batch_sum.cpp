@@ -45,8 +45,10 @@ TEST_CASE("bias_batch_sum/s/0", "[float][bias_batch_sum]") {
     REQUIRE(y_cpu[2] == 7.0f);
 
     cuda_check(cudaFree(x_gpu));
+    cuda_check(cudaFree(y_gpu));
 
     delete[] x_cpu;
+    delete[] y_cpu;
 }
 
 TEST_CASE("bias_batch_sum/s/1", "[float][bias_batch_sum]") {
@@ -79,8 +81,10 @@ TEST_CASE("bias_batch_sum/s/1", "[float][bias_batch_sum]") {
     }
 
     cuda_check(cudaFree(x_gpu));
+    cuda_check(cudaFree(y_gpu));
 
     delete[] x_cpu;
+    delete[] y_cpu;
 }
 
 TEST_CASE("bias_batch_sum/d/0", "[double][bias_batch_sum]") {
@@ -111,8 +115,10 @@ TEST_CASE("bias_batch_sum/d/0", "[double][bias_batch_sum]") {
     REQUIRE(y_cpu[2] == 7.0f);
 
     cuda_check(cudaFree(x_gpu));
+    cuda_check(cudaFree(y_gpu));
 
     delete[] x_cpu;
+    delete[] y_cpu;
 }
 
 TEST_CASE("bias_batch_sum/d/1", "[double][bias_batch_sum]") {
@@ -145,8 +151,10 @@ TEST_CASE("bias_batch_sum/d/1", "[double][bias_batch_sum]") {
     }
 
     cuda_check(cudaFree(x_gpu));
+    cuda_check(cudaFree(y_gpu));
 
     delete[] x_cpu;
+    delete[] y_cpu;
 }
 
 TEST_CASE("bias_batch_mean/s/0", "[float][bias_batch_mean]") {
@@ -177,8 +185,10 @@ TEST_CASE("bias_batch_mean/s/0", "[float][bias_batch_mean]") {
     REQUIRE(y_cpu[2] == 7.0f / B);
 
     cuda_check(cudaFree(x_gpu));
+    cuda_check(cudaFree(y_gpu));
 
     delete[] x_cpu;
+    delete[] y_cpu;
 }
 
 TEST_CASE("bias_batch_mean/s/1", "[float][bias_batch_mean]") {
@@ -211,8 +221,10 @@ TEST_CASE("bias_batch_mean/s/1", "[float][bias_batch_mean]") {
     }
 
     cuda_check(cudaFree(x_gpu));
+    cuda_check(cudaFree(y_gpu));
 
     delete[] x_cpu;
+    delete[] y_cpu;
 }
 
 TEST_CASE("bias_batch_mean/d/0", "[double][bias_batch_mean]") {
@@ -243,8 +255,10 @@ TEST_CASE("bias_batch_mean/d/0", "[double][bias_batch_mean]") {
     REQUIRE(y_cpu[2] == 7.0f / B);
 
     cuda_check(cudaFree(x_gpu));
+    cuda_check(cudaFree(y_gpu));
 
     delete[] x_cpu;
+    delete[] y_cpu;
 }
 
 TEST_CASE("bias_batch_mean/d/1", "[double][bias_batch_mean]") {
@@ -277,6 +291,8 @@ TEST_CASE("bias_batch_mean/d/1", "[double][bias_batch_mean]") {
     }
 
     cuda_check(cudaFree(x_gpu));
+    cuda_check(cudaFree(y_gpu));
 
     delete[] x_cpu;
+    delete[] y_cpu;
 }
