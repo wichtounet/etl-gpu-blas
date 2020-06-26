@@ -122,3 +122,59 @@ void egblas_dbias_batch_mean(size_t b, size_t n, double* x, size_t incx, double*
         bias_batch_sum_kernel<true><<<gridSize, blockSize>>>(b, n, x, incx, y, incy);
     }
 }
+
+// 4D Versions
+
+template <bool Mean, typename T>
+__global__ void bias_batch_sum4_kernel_full(size_t B, size_t N, size_t W, size_t H, const T* x, T* y) {
+    auto n  = threadIdx.x + blockIdx.x * blockDim.x;
+
+    if (n < N) {
+        const size_t IN1 = N * W * H;
+        const size_t IN2 = W * H;
+
+        T sum = 0;
+
+        for (size_t b = 0; b < B; ++b) {
+            const T* x_b = x + b * IN1 + n * IN2;
+
+            for (size_t o = 0; o < IN2; ++o) {
+                sum += x_b[o];
+            }
+        }
+
+        if (Mean) {
+            y[n] = sum / (B * W * H);
+        } else {
+            y[n] = sum;
+        }
+    }
+}
+
+void egblas_sbias_batch_sum4(size_t b, size_t n, size_t w, size_t h, float* x, float* y) {
+    const int blockSize = 128;
+    const int gridSize = (n + blockSize - 1) / blockSize;
+
+    bias_batch_sum4_kernel_full<false><<<gridSize, blockSize>>>(b, n, w, h, x, y);
+}
+
+void egblas_dbias_batch_sum4(size_t b, size_t n, size_t w, size_t h, double* x, double* y) {
+    const int blockSize = 128;
+    const int gridSize = (n + blockSize - 1) / blockSize;
+
+    bias_batch_sum4_kernel_full<false><<<gridSize, blockSize>>>(b, n, w, h, x, y);
+}
+
+void egblas_sbias_batch_mean4(size_t b, size_t n, size_t w, size_t h, float* x, float* y) {
+    const int blockSize = 128;
+    const int gridSize = (n + blockSize - 1) / blockSize;
+
+    bias_batch_sum4_kernel_full<true><<<gridSize, blockSize>>>(b, n, w, h, x, y);
+}
+
+void egblas_dbias_batch_mean4(size_t b, size_t n, size_t w, size_t h, double* x, double* y) {
+    const int blockSize = 128;
+    const int gridSize = (n + blockSize - 1) / blockSize;
+
+    bias_batch_sum4_kernel_full<true><<<gridSize, blockSize>>>(b, n, w, h, x, y);
+}

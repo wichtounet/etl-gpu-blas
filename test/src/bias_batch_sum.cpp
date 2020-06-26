@@ -296,3 +296,149 @@ TEST_CASE("bias_batch_mean/d/1", "[double][bias_batch_mean]") {
     delete[] x_cpu;
     delete[] y_cpu;
 }
+
+// Test for 4D
+
+TEST_CASE("bias_batch_sum4/s/0", "[float][bias_batch_sum4]") {
+    const size_t B = 2;
+    const size_t N = 3;
+    const size_t W = 2;
+    const size_t H = 2;
+
+    float* x_cpu = new float[B * N * W * H];
+    float* y_cpu = new float[N];
+
+    for (size_t i = 0; i < B * N * W * H; ++i) {
+        x_cpu[i] = i + 1;
+    }
+
+    float* x_gpu;
+    float* y_gpu;
+
+    cuda_check(cudaMalloc((void**)&x_gpu, B * N  * W * H* sizeof(float)));
+    cuda_check(cudaMalloc((void**)&y_gpu, N * sizeof(float)));
+
+    cuda_check(cudaMemcpy(x_gpu, x_cpu, B * N  * W * H* sizeof(float), cudaMemcpyHostToDevice));
+
+    egblas_sbias_batch_sum4(B, N, W, H, x_gpu, y_gpu);
+
+    cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
+
+    REQUIRE(y_cpu[0] == 8 * 8.5f);
+    REQUIRE(y_cpu[1] == 8 * 12.5f);
+    REQUIRE(y_cpu[2] == 8 * 16.5f);
+
+    cuda_check(cudaFree(x_gpu));
+    cuda_check(cudaFree(y_gpu));
+
+    delete[] x_cpu;
+    delete[] y_cpu;
+}
+
+TEST_CASE("bias_batch_sum4/d/0", "[double][bias_batch_sum4]") {
+    const size_t B = 2;
+    const size_t N = 3;
+    const size_t W = 2;
+    const size_t H = 2;
+
+    double* x_cpu = new double[B * N * W * H];
+    double* y_cpu = new double[N];
+
+    for (size_t i = 0; i < B * N * W * H; ++i) {
+        x_cpu[i] = i + 1;
+    }
+
+    double* x_gpu;
+    double* y_gpu;
+
+    cuda_check(cudaMalloc((void**)&x_gpu, B * N  * W * H* sizeof(double)));
+    cuda_check(cudaMalloc((void**)&y_gpu, N * sizeof(double)));
+
+    cuda_check(cudaMemcpy(x_gpu, x_cpu, B * N  * W * H* sizeof(double), cudaMemcpyHostToDevice));
+
+    egblas_dbias_batch_sum4(B, N, W, H, x_gpu, y_gpu);
+
+    cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(double), cudaMemcpyDeviceToHost));
+
+    REQUIRE(y_cpu[0] == 8 * 8.5f);
+    REQUIRE(y_cpu[1] == 8 * 12.5f);
+    REQUIRE(y_cpu[2] == 8 * 16.5f);
+
+    cuda_check(cudaFree(x_gpu));
+    cuda_check(cudaFree(y_gpu));
+
+    delete[] x_cpu;
+    delete[] y_cpu;
+}
+
+TEST_CASE("bias_batch_mean4/s/0", "[float][bias_batch_mean4]") {
+    const size_t B = 2;
+    const size_t N = 3;
+    const size_t W = 2;
+    const size_t H = 2;
+
+    float* x_cpu = new float[B * N * W * H];
+    float* y_cpu = new float[N];
+
+    for (size_t i = 0; i < B * N * W * H; ++i) {
+        x_cpu[i] = i + 1;
+    }
+
+    float* x_gpu;
+    float* y_gpu;
+
+    cuda_check(cudaMalloc((void**)&x_gpu, B * N  * W * H* sizeof(float)));
+    cuda_check(cudaMalloc((void**)&y_gpu, N * sizeof(float)));
+
+    cuda_check(cudaMemcpy(x_gpu, x_cpu, B * N  * W * H* sizeof(float), cudaMemcpyHostToDevice));
+
+    egblas_sbias_batch_mean4(B, N, W, H, x_gpu, y_gpu);
+
+    cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
+
+    REQUIRE(y_cpu[0] == 8.5f);
+    REQUIRE(y_cpu[1] == 12.5f);
+    REQUIRE(y_cpu[2] == 16.5f);
+
+    cuda_check(cudaFree(x_gpu));
+    cuda_check(cudaFree(y_gpu));
+
+    delete[] x_cpu;
+    delete[] y_cpu;
+}
+
+TEST_CASE("bias_batch_mean4/d/0", "[double][bias_batch_mean4]") {
+    const size_t B = 2;
+    const size_t N = 3;
+    const size_t W = 2;
+    const size_t H = 2;
+
+    double* x_cpu = new double[B * N * W * H];
+    double* y_cpu = new double[N];
+
+    for (size_t i = 0; i < B * N * W * H; ++i) {
+        x_cpu[i] = i + 1;
+    }
+
+    double* x_gpu;
+    double* y_gpu;
+
+    cuda_check(cudaMalloc((void**)&x_gpu, B * N  * W * H* sizeof(double)));
+    cuda_check(cudaMalloc((void**)&y_gpu, N * sizeof(double)));
+
+    cuda_check(cudaMemcpy(x_gpu, x_cpu, B * N  * W * H* sizeof(double), cudaMemcpyHostToDevice));
+
+    egblas_dbias_batch_mean4(B, N, W, H, x_gpu, y_gpu);
+
+    cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(double), cudaMemcpyDeviceToHost));
+
+    REQUIRE(y_cpu[0] == 8.5f);
+    REQUIRE(y_cpu[1] == 12.5f);
+    REQUIRE(y_cpu[2] == 16.5f);
+
+    cuda_check(cudaFree(x_gpu));
+    cuda_check(cudaFree(y_gpu));
+
+    delete[] x_cpu;
+    delete[] y_cpu;
+}
