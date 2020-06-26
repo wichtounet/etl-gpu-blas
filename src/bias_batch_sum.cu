@@ -130,10 +130,37 @@ __global__ void bias_batch_sum4_kernel_zero(size_t B, size_t N, size_t W, size_t
     auto base_n  = threadIdx.x + blockIdx.x * blockDim.x;
 
     if (base_n < B * N * W) {
+        const T * xx = x + base_n * H;
+
+        size_t o = 0;
+
         T sum = 0;
 
-        for (size_t o = 0; o < H; ++o) {
-            sum += x[base_n * H + o];
+        for (; o + 7 < H; o += 8) {
+            sum += xx[o];
+            sum += xx[o + 1];
+            sum += xx[o + 2];
+            sum += xx[o + 3];
+            sum += xx[o + 4];
+            sum += xx[o + 5];
+            sum += xx[o + 6];
+            sum += xx[o + 7];
+        }
+
+        for (; o + 3 < H; o += 4) {
+            sum += xx[o];
+            sum += xx[o + 1];
+            sum += xx[o + 2];
+            sum += xx[o + 3];
+        }
+
+        for (; o + 1 < H; o += 2) {
+            sum += xx[o];
+            sum += xx[o + 1];
+        }
+
+        for (; o < H; ++o) {
+            sum += xx[o];
         }
 
         y[base_n] = sum;
@@ -145,10 +172,12 @@ __global__ void bias_batch_sum4_kernel_first(size_t B, size_t N, size_t W, size_
     auto base_n  = threadIdx.x + blockIdx.x * blockDim.x;
 
     if (base_n < B * N) {
+        const T * xx = x + base_n * W;
+
         T sum = 0;
 
         for (size_t o = 0; o < W; ++o) {
-            sum += x[base_n * W + o];
+            sum += xx[o];
         }
 
         y[base_n] = sum;
@@ -183,7 +212,7 @@ void egblas_sbias_batch_sum4_run(size_t b, size_t n, size_t w, size_t h, T* x, T
 
     // Phase 0
 
-    int blockSize = 64;
+    int blockSize = 32;
     int gridSize = (b * n * w + blockSize - 1) / blockSize;
 
     bias_batch_sum4_kernel_zero<<<gridSize, blockSize>>>(b, n, w, h, x, tmp_zero);
