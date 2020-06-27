@@ -1176,11 +1176,11 @@ void bench_bias_batch_mean(){
 }
 
 
-void bench_cudnn_bias_batch_sum4(size_t B, size_t N, size_t repeat = 100){
-    auto* x_cpu = prepare_cpu(B * N * 28 * 28, 2.0f);
+void bench_cudnn_bias_batch_sum4(size_t B, size_t N, size_t W, size_t repeat = 100){
+    auto* x_cpu = prepare_cpu(B * N * W * W, 2.0f);
     auto* y_cpu = prepare_cpu(N, 3.0f);
 
-    auto* x_gpu = prepare_gpu(B * N * 28 * 28, x_cpu);
+    auto* x_gpu = prepare_gpu(B * N * W * W, x_cpu);
     auto* y_gpu = prepare_gpu(N, y_cpu);
 
     cudnnHandle_t handle;
@@ -1188,7 +1188,7 @@ void bench_cudnn_bias_batch_sum4(size_t B, size_t N, size_t repeat = 100){
 
     cudnnTensorDescriptor_t x_tensor;
     cudnn_check(cudnnCreateTensorDescriptor(&x_tensor));
-    cudnn_check(cudnnSetTensor4dDescriptor(x_tensor, CUDNN_TENSOR_NCHW, CUDNN_DATA_FLOAT, B, N, 28, 28));
+    cudnn_check(cudnnSetTensor4dDescriptor(x_tensor, CUDNN_TENSOR_NCHW, CUDNN_DATA_FLOAT, B, N, W, W));
 
     cudnnTensorDescriptor_t y_tensor;
     cudnn_check(cudnnCreateTensorDescriptor(&y_tensor));
@@ -1219,26 +1219,37 @@ void bench_cudnn_bias_batch_sum4(size_t B, size_t N, size_t repeat = 100){
 }
 
 void bench_cudnn_bias_batch_sum4(){
-    bench_cudnn_bias_batch_sum4(256, 16);
-    bench_cudnn_bias_batch_sum4(256, 32);
-    bench_cudnn_bias_batch_sum4(256, 64);
-    bench_cudnn_bias_batch_sum4(256, 128);
+    std::cout << "16x16" << std::endl;
+    bench_cudnn_bias_batch_sum4(256, 16, 16);
+    bench_cudnn_bias_batch_sum4(256, 32, 16);
+    bench_cudnn_bias_batch_sum4(256, 64, 16);
+    bench_cudnn_bias_batch_sum4(256, 128, 16);
+    std::cout << "28x28" << std::endl;
+    bench_cudnn_bias_batch_sum4(256, 16, 28);
+    bench_cudnn_bias_batch_sum4(256, 32, 28);
+    bench_cudnn_bias_batch_sum4(256, 64, 28);
+    bench_cudnn_bias_batch_sum4(256, 128, 28);
+    std::cout << "32x32" << std::endl;
+    bench_cudnn_bias_batch_sum4(256, 16, 32);
+    bench_cudnn_bias_batch_sum4(256, 32, 32);
+    bench_cudnn_bias_batch_sum4(256, 64, 32);
+    bench_cudnn_bias_batch_sum4(256, 128, 32);
     std::cout << std::endl;
 }
 
-void bench_bias_batch_sum4(size_t B, size_t N, size_t repeat = 100){
-    auto* x_cpu = prepare_cpu(B * N * 28 * 28, 2.0f);
+void bench_bias_batch_sum4(size_t B, size_t N, size_t W, size_t repeat = 100){
+    auto* x_cpu = prepare_cpu(B * N * W * W, 2.0f);
     auto* y_cpu = prepare_cpu(N, 3.0f);
 
-    auto* x_gpu = prepare_gpu(B * N * 28 * 28, x_cpu);
+    auto* x_gpu = prepare_gpu(B * N * W * W, x_cpu);
     auto* y_gpu = prepare_gpu(N, y_cpu);
 
-    egblas_sbias_batch_sum4(B, N, 28, 28, x_gpu, y_gpu);
+    egblas_sbias_batch_sum4(B, N, W, W, x_gpu, y_gpu);
 
     auto t0 = timer::now();
 
     for(size_t i = 0; i < repeat; ++i){
-        egblas_sbias_batch_sum4(B, N, 28, 28, x_gpu, y_gpu);
+        egblas_sbias_batch_sum4(B, N, W, W, x_gpu, y_gpu);
     }
 
     report("bias_batch_sum4", t0, repeat, B * N);
@@ -1250,26 +1261,37 @@ void bench_bias_batch_sum4(size_t B, size_t N, size_t repeat = 100){
 }
 
 void bench_bias_batch_sum4(){
-    bench_bias_batch_sum4(256, 16);
-    bench_bias_batch_sum4(256, 32);
-    bench_bias_batch_sum4(256, 64);
-    bench_bias_batch_sum4(256, 128);
+    std::cout << "16x16" << std::endl;
+    bench_bias_batch_sum4(256, 16, 16);
+    bench_bias_batch_sum4(256, 32, 16);
+    bench_bias_batch_sum4(256, 64, 16);
+    bench_bias_batch_sum4(256, 128, 16);
+    std::cout << "28x28" << std::endl;
+    bench_bias_batch_sum4(256, 16, 28);
+    bench_bias_batch_sum4(256, 32, 28);
+    bench_bias_batch_sum4(256, 64, 28);
+    bench_bias_batch_sum4(256, 128, 28);
+    std::cout << "32x32" << std::endl;
+    bench_bias_batch_sum4(256, 16, 32);
+    bench_bias_batch_sum4(256, 32, 32);
+    bench_bias_batch_sum4(256, 64, 32);
+    bench_bias_batch_sum4(256, 128, 32);
     std::cout << std::endl;
 }
 
-void bench_bias_batch_mean4(size_t B, size_t N, size_t repeat = 100){
-    auto* x_cpu = prepare_cpu(B * N * 28 * 28, 2.0f);
+void bench_bias_batch_mean4(size_t B, size_t N, size_t W, size_t repeat = 100){
+    auto* x_cpu = prepare_cpu(B * N * W * W, 2.0f);
     auto* y_cpu = prepare_cpu(N, 3.0f);
 
-    auto* x_gpu = prepare_gpu(B * N * 28 * 28, x_cpu);
+    auto* x_gpu = prepare_gpu(B * N * W * W, x_cpu);
     auto* y_gpu = prepare_gpu(N, y_cpu);
 
-    egblas_sbias_batch_mean4(B, N, 28, 28, x_gpu, y_gpu);
+    egblas_sbias_batch_mean4(B, N, W, W, x_gpu, y_gpu);
 
     auto t0 = timer::now();
 
     for(size_t i = 0; i < repeat; ++i){
-        egblas_sbias_batch_mean4(B, N, 28, 28, x_gpu, y_gpu);
+        egblas_sbias_batch_mean4(B, N, W, W, x_gpu, y_gpu);
     }
 
     report("bias_batch_mean4", t0, repeat, B * N);
@@ -1281,10 +1303,21 @@ void bench_bias_batch_mean4(size_t B, size_t N, size_t repeat = 100){
 }
 
 void bench_bias_batch_mean4(){
-    bench_bias_batch_mean4(256, 16);
-    bench_bias_batch_mean4(256, 32);
-    bench_bias_batch_mean4(256, 64);
-    bench_bias_batch_mean4(256, 128);
+    std::cout << "16x16" << std::endl;
+    bench_bias_batch_mean4(256, 16, 16);
+    bench_bias_batch_mean4(256, 32, 16);
+    bench_bias_batch_mean4(256, 64, 16);
+    bench_bias_batch_mean4(256, 128, 16);
+    std::cout << "28x28" << std::endl;
+    bench_bias_batch_mean4(256, 16, 28);
+    bench_bias_batch_mean4(256, 32, 28);
+    bench_bias_batch_mean4(256, 64, 28);
+    bench_bias_batch_mean4(256, 128, 28);
+    std::cout << "32x32" << std::endl;
+    bench_bias_batch_mean4(256, 16, 32);
+    bench_bias_batch_mean4(256, 32, 32);
+    bench_bias_batch_mean4(256, 64, 32);
+    bench_bias_batch_mean4(256, 128, 32);
     std::cout << std::endl;
 }
 
