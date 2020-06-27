@@ -145,7 +145,7 @@ __device__ inline void atomicAddF(double* address, double value){
 }
 
 template <size_t Factor, typename T>
-__global__ void bias_batch_sum4_kernel_zero(size_t B, size_t N, size_t W, size_t H, size_t Limit, const T* x, T* y) {
+__global__ void bias_batch_sum4_kernel_zero(size_t Last, size_t Limit, const T* x, T* y) {
     auto base_n  = threadIdx.x + blockIdx.x * blockDim.x;
 
     if (base_n < Limit) {
@@ -153,32 +153,11 @@ __global__ void bias_batch_sum4_kernel_zero(size_t B, size_t N, size_t W, size_t
 
         base_n = base_n / Factor;
 
-        const T * xx = x + base_n * H;
+        const T * xx = x + base_n * Last;
 
         T sum = 0;
 
-        for (size_t o = t; o < H; o += Factor) {
-            sum += xx[o];
-        }
-
-        atomicAddF(&y[base_n], sum);
-    }
-}
-
-template <size_t Factor, typename T>
-__global__ void bias_batch_sum4_kernel_first(size_t B, size_t N, size_t W, size_t H, size_t Limit, const T* x, T* y) {
-    auto base_n  = threadIdx.x + blockIdx.x * blockDim.x;
-
-    if (base_n < Limit) {
-        const size_t t = base_n & (Factor - 1);
-
-        base_n = base_n / Factor;
-
-        const T * xx = x + base_n * W;
-
-        T sum = 0;
-
-        for (size_t o = t; o < W; o += Factor) {
+        for (size_t o = t; o < Last; o += Factor) {
             sum += xx[o];
         }
 
@@ -187,7 +166,7 @@ __global__ void bias_batch_sum4_kernel_first(size_t B, size_t N, size_t W, size_
 }
 
 template <size_t Factor, bool Mean, typename T>
-__global__ void bias_batch_sum4_kernel_second(size_t B, size_t N, size_t W, size_t H, size_t Limit, const T* x, T* y) {
+__global__ void bias_batch_sum4_kernel_last(size_t B, size_t N, size_t W, size_t H, size_t Limit, const T* x, T* y) {
     auto base_n  = threadIdx.x + blockIdx.x * blockDim.x;
 
     if (base_n < Limit) {
@@ -226,21 +205,21 @@ void egblas_sbias_batch_sum4_run(size_t b, size_t n, size_t w, size_t h, T* x, T
     int blockSize = 128;
     int gridSize = (8 * b * n * w + blockSize - 1) / blockSize;
 
-    bias_batch_sum4_kernel_zero<8><<<blockSize, gridSize>>>(b, n, w, h, 8 * b * n * w, x, tmp_zero);
+    bias_batch_sum4_kernel_zero<8><<<blockSize, gridSize>>>(h, 8 * b * n * w, x, tmp_zero);
 
     // Phase 1
 
     blockSize = 128;
     gridSize = (8 * b * n + blockSize - 1) / blockSize;
 
-    bias_batch_sum4_kernel_first<8><<<blockSize, gridSize>>>(b, n, w, h, 8 * b * n, tmp_zero, tmp_first);
+    bias_batch_sum4_kernel_zero<8><<<blockSize, gridSize>>>(w, 8 * b * n, tmp_zero, tmp_first);
 
     // Phase 2
 
     blockSize = 128;
     gridSize = (8 * n + blockSize - 1) / blockSize;
 
-    bias_batch_sum4_kernel_second<8, Mean><<<gridSize, blockSize>>>(b, n, w, h, 8 * n, tmp_first, y);
+    bias_batch_sum4_kernel_last<8, Mean><<<gridSize, blockSize>>>(b, n, w, h, 8 * n, tmp_first, y);
 
     cuda_check(cudaFree(tmp_zero));
     cuda_check(cudaFree(tmp_first));
