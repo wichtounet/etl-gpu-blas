@@ -125,45 +125,43 @@ void egblas_dbias_batch_mean(size_t b, size_t n, double* x, size_t incx, double*
 
 // 4D Versions
 
-template <typename T>
-__global__ void bias_batch_sum4_kernel_zero(size_t B, size_t N, size_t W, size_t H, const T* x, T* y) {
+__device__ inline void atomicAddF(float* address, float value){
+#if __CUDA_ARCH__ >= 200 // for Fermi, atomicAdd supports floats
+  atomicAdd(address,value);
+#elif __CUDA_ARCH__ >= 110
+  float old = value;
+  while ((old = atomicExch(address, atomicExch(address, 0.0f) + old)) != 0.0f);
+#endif
+}
+
+__device__ inline void atomicAddF(double* address, double value){
+    unsigned long long int* a = (unsigned long long int*) address;
+    unsigned long long int old = *a, assumed;
+
+    do {
+        assumed = old;
+        old     = atomicCAS(a, assumed, __double_as_longlong(value + __longlong_as_double(assumed)));
+    } while (assumed != old);
+}
+
+template <size_t Factor, typename T>
+__global__ void bias_batch_sum4_kernel_zero(size_t B, size_t N, size_t W, size_t H, size_t Limit, const T* x, T* y) {
     auto base_n  = threadIdx.x + blockIdx.x * blockDim.x;
 
-    if (base_n < B * N * W) {
-        const T * xx = x + base_n * H;
+    if (base_n < Limit) {
+        const size_t t = base_n & (Factor - 1);
 
-        size_t o = 0;
+        base_n = base_n / Factor;
+
+        const T * xx = x + base_n * H;
 
         T sum = 0;
 
-        for (; o + 7 < H; o += 8) {
-            sum += xx[o];
-            sum += xx[o + 1];
-            sum += xx[o + 2];
-            sum += xx[o + 3];
-            sum += xx[o + 4];
-            sum += xx[o + 5];
-            sum += xx[o + 6];
-            sum += xx[o + 7];
-        }
-
-        for (; o + 3 < H; o += 4) {
-            sum += xx[o];
-            sum += xx[o + 1];
-            sum += xx[o + 2];
-            sum += xx[o + 3];
-        }
-
-        for (; o + 1 < H; o += 2) {
-            sum += xx[o];
-            sum += xx[o + 1];
-        }
-
-        for (; o < H; ++o) {
+        for (size_t o = t; o < H; o += Factor) {
             sum += xx[o];
         }
 
-        y[base_n] = sum;
+        atomicAddF(&y[base_n], sum);
     }
 }
 
@@ -206,16 +204,19 @@ __global__ void bias_batch_sum4_kernel_second(size_t B, size_t N, size_t W, size
 template <bool Mean, typename T>
 void egblas_sbias_batch_sum4_run(size_t b, size_t n, size_t w, size_t h, T* x, T* y) {
     T* tmp_zero;
-    cuda_check(cudaMalloc((void**)&tmp_zero, b * n * w * sizeof(T)));
     T* tmp_first;
+
+    cuda_check(cudaMalloc((void**)&tmp_zero, b * n * w * sizeof(T)));
     cuda_check(cudaMalloc((void**)&tmp_first, b * n * sizeof(T)));
 
-    // Phase 0
+    cudaMemset(tmp_zero, 0, b * n * w * sizeof(T));
 
-    int blockSize = 32;
-    int gridSize = (b * n * w + blockSize - 1) / blockSize;
+    // Phase 0 (Bottleneck)
 
-    bias_batch_sum4_kernel_zero<<<gridSize, blockSize>>>(b, n, w, h, x, tmp_zero);
+    int blockSize = 128;
+    int gridSize = (8 * b * n * w + blockSize - 1) / blockSize;
+
+    bias_batch_sum4_kernel_zero<8><<<blockSize, gridSize>>>(b, n, w, h, 8 * b * n * w, x, tmp_zero);
 
     // Phase 1
 
