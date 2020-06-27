@@ -442,3 +442,105 @@ TEST_CASE("bias_batch_mean4/d/0", "[double][bias_batch_mean4]") {
     delete[] x_cpu;
     delete[] y_cpu;
 }
+
+TEST_CASE("bias_batch_sum4/s/1", "[float][bias_batch_sum4]") {
+    const size_t B = 11;
+    const size_t N = 13;
+    const size_t W = 33;
+    const size_t H = 33;
+
+    float* x_cpu = new float[B * N * W * H];
+    float* y_cpu = new float[N];
+    float* y_res = new float[N];
+
+    for (size_t n = 0; n < N; ++n) {
+        y_res[n] = 0;
+    }
+
+    size_t i = 0;
+    for (size_t b = 0; b < B; ++b) {
+        for (size_t n = 0; n < N; ++n) {
+            for (size_t w = 0; w < W; ++w) {
+                for (size_t h = 0; h < H; ++h) {
+                    x_cpu[i] = (i + 1) / 111.0f;
+                    y_res[n] += x_cpu[i];
+                    ++i;
+                }
+            }
+        }
+    }
+
+    float* x_gpu;
+    float* y_gpu;
+
+    cuda_check(cudaMalloc((void**)&x_gpu, B * N  * W * H* sizeof(float)));
+    cuda_check(cudaMalloc((void**)&y_gpu, N * sizeof(float)));
+
+    cuda_check(cudaMemcpy(x_gpu, x_cpu, B * N  * W * H* sizeof(float), cudaMemcpyHostToDevice));
+
+    egblas_sbias_batch_sum4(B, N, W, H, x_gpu, y_gpu);
+
+    cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
+
+    for (size_t i = 0; i < N; ++i) {
+        REQUIRE(y_cpu[i] == Approx(y_res[i]));
+    }
+
+    cuda_check(cudaFree(x_gpu));
+    cuda_check(cudaFree(y_gpu));
+
+    delete[] x_cpu;
+    delete[] y_cpu;
+    delete[] y_res;
+}
+
+TEST_CASE("bias_batch_sum4/d/1", "[float][bias_batch_sum4]") {
+    const size_t B = 13;
+    const size_t N = 13;
+    const size_t W = 37;
+    const size_t H = 33;
+
+    float* x_cpu = new float[B * N * W * H];
+    float* y_cpu = new float[N];
+    float* y_res = new float[N];
+
+    for (size_t n = 0; n < N; ++n) {
+        y_res[n] = 0;
+    }
+
+    size_t i = 0;
+    for (size_t b = 0; b < B; ++b) {
+        for (size_t n = 0; n < N; ++n) {
+            for (size_t w = 0; w < W; ++w) {
+                for (size_t h = 0; h < H; ++h) {
+                    x_cpu[i] = (i + 1) / 123.0f;
+                    y_res[n] += x_cpu[i];
+                    ++i;
+                }
+            }
+        }
+    }
+
+    float* x_gpu;
+    float* y_gpu;
+
+    cuda_check(cudaMalloc((void**)&x_gpu, B * N  * W * H* sizeof(float)));
+    cuda_check(cudaMalloc((void**)&y_gpu, N * sizeof(float)));
+
+    cuda_check(cudaMemcpy(x_gpu, x_cpu, B * N  * W * H* sizeof(float), cudaMemcpyHostToDevice));
+
+    egblas_sbias_batch_sum4(B, N, W, H, x_gpu, y_gpu);
+
+    cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
+
+    for (size_t i = 0; i < N; ++i) {
+        REQUIRE(y_cpu[i] == Approx(y_res[i]));
+    }
+
+    cuda_check(cudaFree(x_gpu));
+    cuda_check(cudaFree(y_gpu));
+
+    delete[] x_cpu;
+    delete[] y_cpu;
+    delete[] y_res;
+}
