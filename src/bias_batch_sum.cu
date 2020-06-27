@@ -186,21 +186,25 @@ __global__ void bias_batch_sum4_kernel_first(size_t B, size_t N, size_t W, size_
     }
 }
 
-template <bool Mean, typename T>
-__global__ void bias_batch_sum4_kernel_second(size_t B, size_t N, size_t W, size_t H, const T* x, T* y) {
-    auto n  = threadIdx.x + blockIdx.x * blockDim.x;
+template <size_t Factor, bool Mean, typename T>
+__global__ void bias_batch_sum4_kernel_second(size_t B, size_t N, size_t W, size_t H, size_t Limit, const T* x, T* y) {
+    auto base_n  = threadIdx.x + blockIdx.x * blockDim.x;
 
-    if (n < N) {
+    if (base_n < Limit) {
+        const size_t t = base_n & (Factor - 1);
+
+        base_n = base_n / Factor;
+
         T sum = 0;
 
-        for (size_t b = 0; b < B; ++b) {
-            sum += x[b * N + n];
+        for (size_t o = t; o < B; o += Factor) {
+            sum += x[o * N + base_n];
         }
 
         if (Mean) {
-            y[n] = sum / (B * W * H);
+            atomicAddF(&y[base_n], sum / (B * W * H));
         } else {
-            y[n] = sum;
+            atomicAddF(&y[base_n], sum);
         }
     }
 }
@@ -215,6 +219,7 @@ void egblas_sbias_batch_sum4_run(size_t b, size_t n, size_t w, size_t h, T* x, T
 
     cudaMemset(tmp_zero, 0, b * n * w * sizeof(T));
     cudaMemset(tmp_first, 0, b * n * sizeof(T));
+    cudaMemset(y, 0, n * sizeof(T));
 
     // Phase 0 (Bottleneck)
 
@@ -232,10 +237,10 @@ void egblas_sbias_batch_sum4_run(size_t b, size_t n, size_t w, size_t h, T* x, T
 
     // Phase 2
 
-    blockSize = 64;
-    gridSize = (n + blockSize - 1) / blockSize;
+    blockSize = 128;
+    gridSize = (8 * n + blockSize - 1) / blockSize;
 
-    bias_batch_sum4_kernel_second<Mean><<<gridSize, blockSize>>>(b, n, w, h, tmp_first, y);
+    bias_batch_sum4_kernel_second<8, Mean><<<gridSize, blockSize>>>(b, n, w, h, 8 * n, tmp_first, y);
 
     cuda_check(cudaFree(tmp_zero));
     cuda_check(cudaFree(tmp_first));
