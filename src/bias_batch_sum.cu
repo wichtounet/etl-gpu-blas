@@ -188,6 +188,11 @@ __global__ void bias_batch_sum4_kernel_last(size_t B, size_t N, size_t W, size_t
     }
 }
 
+// Opportunities for further reductions
+// Do a wrap reduction instead of an atomic reduction
+// Optimize the three Factor parameter based on the data
+// Optimize blockSize based on the data
+
 template <bool Mean, typename T>
 void egblas_sbias_batch_sum4_run(size_t b, size_t n, size_t w, size_t h, T* x, T* y) {
     T* tmp_zero;
@@ -205,14 +210,14 @@ void egblas_sbias_batch_sum4_run(size_t b, size_t n, size_t w, size_t h, T* x, T
     int blockSize = 128;
     int gridSize = (8 * b * n * w + blockSize - 1) / blockSize;
 
-    bias_batch_sum4_kernel_zero<8><<<blockSize, gridSize>>>(h, 8 * b * n * w, x, tmp_zero);
+    bias_batch_sum4_kernel_zero<8><<<gridSize, blockSize>>>(h, 8 * b * n * w, x, tmp_zero);
 
     // Phase 1
 
     blockSize = 128;
     gridSize = (8 * b * n + blockSize - 1) / blockSize;
 
-    bias_batch_sum4_kernel_zero<8><<<blockSize, gridSize>>>(w, 8 * b * n, tmp_zero, tmp_first);
+    bias_batch_sum4_kernel_zero<8><<<gridSize, blockSize>>>(w, 8 * b * n, tmp_zero, tmp_first);
 
     // Phase 2
 
