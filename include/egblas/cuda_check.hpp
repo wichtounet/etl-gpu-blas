@@ -5,6 +5,8 @@
 //  http://opensource.org/licenses/MIT)
 //=======================================================================
 
+#include<iostream>
+
 #define cuda_check(call)                                                                                \
     {                                                                                                   \
         auto status = call;                                                                             \
