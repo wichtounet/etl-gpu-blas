@@ -1321,6 +1321,41 @@ void bench_bias_batch_mean4(){
     std::cout << std::endl;
 }
 
+void bench_bias_add4(size_t B, size_t N, size_t W, size_t repeat = 100){
+    auto* x_cpu = prepare_cpu(B * N * W * W, 2.0f);
+    auto* y_cpu = prepare_cpu(B * N * W * W, 3.0f);
+    auto* b_cpu = prepare_cpu(N, 4.0f);
+
+    auto* x_gpu = prepare_gpu(B * N * W * W, x_cpu);
+    auto* y_gpu = prepare_gpu(B * N * W * W, x_cpu);
+    auto* b_gpu = prepare_gpu(N, b_cpu);
+
+    egblas_sbias_add_4d(B, N, W, W, x_gpu, 1, b_gpu, 1, y_gpu, 1);
+
+    auto t0 = timer::now();
+
+    for(size_t i = 0; i < repeat; ++i){
+        egblas_sbias_add_4d(B, N, W, W, x_gpu, 1, b_gpu, 1, y_gpu, 1);
+    }
+
+    report("bias_add4", t0, repeat, B * N * W * W);
+
+    cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
+
+    release(x_cpu, x_gpu);
+    release(y_cpu, y_gpu);
+    release(b_cpu, b_gpu);
+}
+
+void bench_bias_add4(){
+    bench_bias_add4(200, 15, 14);
+    bench_bias_add4(256, 16, 16);
+    bench_bias_add4(256, 32, 16);
+    bench_bias_add4(256, 64, 16);
+    bench_bias_add4(256, 128, 16);
+    std::cout << std::endl;
+}
+
 } // End of anonymous namespace
 
 int main(int argc, char* argv[]){
@@ -1403,5 +1438,9 @@ int main(int argc, char* argv[]){
         bench_bias_batch_sum4();
         bench_bias_batch_mean4();
         bench_cudnn_bias_batch_sum4();
+    }
+
+    if (sub == "bias_add4") {
+        bench_bias_add4();
     }
 }
