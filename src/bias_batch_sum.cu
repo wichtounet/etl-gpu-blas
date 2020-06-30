@@ -195,15 +195,16 @@ __global__ void bias_batch_sum4_kernel_last(size_t B, size_t N, size_t W, size_t
 
 template <bool Mean, typename T>
 void egblas_sbias_batch_sum4_run(size_t b, size_t n, size_t w, size_t h, T* x, T* y) {
-    T* tmp_zero;
-    T* tmp_first;
+    const size_t big_size = b * n * w * sizeof(T) + b * n * sizeof(T);
 
-    cuda_check(cudaMalloc((void**)&tmp_zero, b * n * w * sizeof(T)));
-    cuda_check(cudaMalloc((void**)&tmp_first, b * n * sizeof(T)));
+    T* tmp;
+    cuda_check(cudaMalloc((void**)&tmp, big_size));
 
-    cudaMemset(tmp_zero, 0, b * n * w * sizeof(T));
-    cudaMemset(tmp_first, 0, b * n * sizeof(T));
+    cudaMemset(tmp, 0, big_size);
     cudaMemset(y, 0, n * sizeof(T));
+
+    T* tmp_zero  = tmp;
+    T* tmp_first = tmp + b * n * w;
 
     // Phase 0 (Bottleneck)
 
@@ -226,8 +227,7 @@ void egblas_sbias_batch_sum4_run(size_t b, size_t n, size_t w, size_t h, T* x, T
 
     bias_batch_sum4_kernel_last<8, Mean><<<gridSize, blockSize>>>(b, n, w, h, 8 * n, tmp_first, y);
 
-    cuda_check(cudaFree(tmp_zero));
-    cuda_check(cudaFree(tmp_first));
+    cuda_check(cudaFree(tmp));
 }
 
 void egblas_sbias_batch_sum4(size_t b, size_t n, size_t w, size_t h, float* x, float* y) {
