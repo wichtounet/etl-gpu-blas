@@ -82,6 +82,9 @@
 #include "egblas/max_reduce.hpp"
 #include "egblas/min_reduce.hpp"
 
+// Special batch operations
+#include "egblas/batch_k_scale.hpp"
+
 // Machine Learning Special functions
 #include "egblas/bias_add.hpp"
 #include "egblas/cce.hpp"

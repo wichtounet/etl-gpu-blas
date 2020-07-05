@@ -1436,7 +1436,7 @@ int main(int argc, char* argv[]){
 
     if (sub == "bias_batch4") {
         bench_bias_batch_sum4();
-        bench_bias_batch_mean4();
+        //bench_bias_batch_mean4();
         bench_cudnn_bias_batch_sum4();
     }
 
