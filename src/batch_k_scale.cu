@@ -28,7 +28,7 @@ __global__ void batch_k_scale2_kernel(size_t B, size_t K, const T* x, const T* g
 }
 
 template <typename T>
-void egblas_batch_k_scale2_run(size_t b, size_t k, T* x, T* gamma, T* y) {
+void egblas_batch_k_scale2_run(size_t b, size_t k, const T* x, const T* gamma, T* y) {
     int blockSize;
     int minGridSize;
 
@@ -43,11 +43,11 @@ void egblas_batch_k_scale2_run(size_t b, size_t k, T* x, T* gamma, T* y) {
 #endif
 }
 
-void egblas_sbatch_k_scale2(size_t b, size_t k, float* x, float* gamma, float* y) {
+void egblas_sbatch_k_scale2(size_t b, size_t k, const float* x, const float* gamma, float* y) {
     egblas_batch_k_scale2_run(b, k, x, gamma, y);
 }
 
-void egblas_dbatch_k_scale2(size_t b, size_t k, double* x, double * gamma, double* y) {
+void egblas_dbatch_k_scale2(size_t b, size_t k, const double* x, const double * gamma, double* y) {
     egblas_batch_k_scale2_run(b, k, x, gamma, y);
 }
 
@@ -65,7 +65,7 @@ __global__ void batch_k_scale4_kernel(size_t B, size_t K, size_t M, size_t N, co
 }
 
 template <typename T>
-void egblas_batch_k_scale4_run(size_t b, size_t k, size_t m, size_t n, T* x, T* gamma, T* y) {
+void egblas_batch_k_scale4_run(size_t b, size_t k, size_t m, size_t n, const T* x, const T* gamma, T* y) {
     int blockSize;
     int minGridSize;
 
@@ -80,10 +80,10 @@ void egblas_batch_k_scale4_run(size_t b, size_t k, size_t m, size_t n, T* x, T* 
 #endif
 }
 
-void egblas_sbatch_k_scale4(size_t b, size_t k, size_t m, size_t n, float* x, float* gamma, float* y) {
+void egblas_sbatch_k_scale4(size_t b, size_t k, size_t m, size_t n, const float* x, const float* gamma, float* y) {
     egblas_batch_k_scale4_run(b, k, m, n, x, gamma, y);
 }
 
-void egblas_dbatch_k_scale4(size_t b, size_t k, size_t m, size_t n, double* x, double * gamma, double* y) {
+void egblas_dbatch_k_scale4(size_t b, size_t k, size_t m, size_t n, const double* x, const double * gamma, double* y) {
     egblas_batch_k_scale4_run(b, k, m, n, x, gamma, y);
 }
