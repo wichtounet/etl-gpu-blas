@@ -145,7 +145,7 @@ __device__ inline void atomicAddF(double* address, double value){
 }
 
 template <size_t Factor, typename T>
-__global__ void bias_batch_sum4_kernel_zero(size_t Last, size_t Limit, const T* x, T* y) {
+__global__ void bias_batch_sum4_kernel_zero(size_t Last, size_t Limit, const T* __restrict__ x, T* __restrict__ y) {
     auto base_n  = threadIdx.x + blockIdx.x * blockDim.x;
 
     if (base_n < Limit) {
@@ -166,7 +166,7 @@ __global__ void bias_batch_sum4_kernel_zero(size_t Last, size_t Limit, const T* 
 }
 
 template <size_t Factor, bool Mean, typename T>
-__global__ void bias_batch_sum4_kernel_last(size_t B, size_t N, size_t W, size_t H, size_t Limit, const T* x, T* y) {
+__global__ void bias_batch_sum4_kernel_last(size_t B, size_t N, size_t W, size_t H, size_t Limit, const T* __restrict__ x, T* __restrict__ y) {
     auto base_n  = threadIdx.x + blockIdx.x * blockDim.x;
 
     if (base_n < Limit) {
