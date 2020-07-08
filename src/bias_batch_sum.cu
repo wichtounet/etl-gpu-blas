@@ -233,13 +233,7 @@ void egblas_sbias_batch_sum4_run(size_t b, size_t n, size_t w, size_t h, T* x, T
 // Then, we reduce the first dimension
 // Only the first reduction takes a significant amount of time
 
-// Opportunities for further improvements in speed
-// * Even though we are not expecting very large W/H, we could still probably
-// do a multi-step reductions of of the first two dimensions in the same model
-// as the full sum reduuction
-// * We could probably profit from extra unrolling
-
-// Reduce version
+// Two-Pass Reduce version
 
 template <size_t blockSize, typename T>
 __global__ void bias_batch_sum4_kernel_reduce(size_t lda, const T* __restrict__ x, T* __restrict__ y) {
@@ -341,18 +335,241 @@ void egblas_sbias_batch_sum4_run_reduce(size_t b, size_t n, size_t w, size_t h, 
     cuda_check(cudaFree(tmp));
 }
 
+// When W*H is very small, we do  a full reduction
+// In the cases, the two-pass is not great because of the small W*H opportunities
+// Full Reduce versioon
+
+template <bool Mean, size_t blockSize, typename T>
+__global__ void bias_batch_sum4_kernel_reduce_full_kernel_general(size_t lda1, size_t lda2, size_t limit, const T* __restrict__ x, T* __restrict__ y) {
+    extern __shared__ volatile unsigned char shared_data_raw[];
+
+    volatile T* shared_data = reinterpret_cast<volatile T*>(shared_data_raw);
+
+    const size_t ik = blockIdx.x; /// Index in k dimension
+
+    const size_t tid = threadIdx.x;
+
+    T mySum = 0.0;
+
+    size_t i = tid;
+
+    size_t ib = i / lda2;
+    size_t ii = i % lda2;
+
+    const T * p = x + ik * lda2;
+
+    while (i < limit) {
+        mySum += p[ib * lda1 + ii];
+
+        i += blockSize;
+
+        ib = i / lda2;
+        ii = i % lda2;
+    }
+
+    shared_data[tid] = mySum;
+
+    __syncthreads();
+
+    sum_reduce_impl<T, blockSize>(y, shared_data);
+
+    if (Mean) {
+        if (tid == 0) {
+            y[blockIdx.x] /= limit;
+        }
+    }
+}
+
+template <size_t Max, bool Mean, size_t blockSize, typename T>
+__global__ void bias_batch_sum4_kernel_reduce_impl_small(size_t b, size_t n, size_t w, size_t h, size_t llimit, const T* __restrict__ x, T* __restrict__ y) {
+    extern __shared__ volatile unsigned char shared_data_raw[];
+
+    volatile T* shared_data = reinterpret_cast<volatile T*>(shared_data_raw);
+
+    const size_t ik = blockIdx.x; /// Index in k dimension
+
+    const size_t tid = threadIdx.x;
+
+    T mySum = 0.0;
+
+    const size_t lda1 = n * w * h;
+    const size_t lda2 = w * h;
+
+    size_t i = tid;
+
+    size_t ib = Max == 1 ? 0 : i / (lda2); // Index in b dimension
+    size_t ii = Max == 1 ? i : i % (lda2); // Index in i dimension
+
+    const T * p = x + ik * lda2;
+
+    while (i < llimit) {
+        mySum += p[ib * lda1 + ii];
+
+        i += blockSize;
+        ii += blockSize;
+
+        if (ii >= lda2) {
+            ++ib;
+            ii = ii - lda2;
+        }
+
+        if /* compile-time */ (Max > 1) {
+            if (ii >= lda2) {
+                ++ib;
+                ii = ii - lda2;
+            }
+        }
+
+        if /* compile-time */ (Max > 2) {
+            if (ii >= lda2) {
+                ++ib;
+                ii = ii - lda2;
+            }
+        }
+
+        if /* compile-time */ (Max > 3) {
+            if (ii >= lda2) {
+                ++ib;
+                ii = ii - lda2;
+            }
+        }
+
+        if /* compile-time */ (Max > 4) {
+            if (ii >= lda2) {
+                ++ib;
+                ii = ii - lda2;
+            }
+        }
+    }
+
+    shared_data[tid] = mySum;
+
+    __syncthreads();
+
+    sum_reduce_impl<T, blockSize>(y, shared_data);
+
+    if (Mean) {
+        if (tid == 0) {
+            y[blockIdx.x] /= llimit;
+        }
+    }
+}
+
+template <bool Mean, size_t blockSize, typename T>
+void bias_batch_sum4_kernel_reduce_full(size_t b, size_t n, size_t w, size_t h, const T* __restrict__ x, T* __restrict__ y, size_t gridSize) {
+    // Precompute some stuff on the CPU
+    // Strangely, it seems slower for the small kernels to compute it themselves
+    // So, we only pass everything to the general kernel
+    const size_t lda1 = n * w * h;
+    const size_t lda2 = w * h;
+    const size_t limit = b * w * h;
+
+    int sharedSize = blockSize * sizeof(T);
+
+    if (blockSize <= w * h) {
+        bias_batch_sum4_kernel_reduce_impl_small<1, Mean, blockSize><<<gridSize, blockSize, sharedSize>>>(b, n, w, h, limit, x, y);
+    } else if(blockSize <= 2 * w * h) {
+        bias_batch_sum4_kernel_reduce_impl_small<2, Mean, blockSize><<<gridSize, blockSize, sharedSize>>>(b, n, w, h, limit, x, y);
+    } else if(blockSize <= 3 * w * h) {
+        bias_batch_sum4_kernel_reduce_impl_small<3, Mean, blockSize><<<gridSize, blockSize, sharedSize>>>(b, n, w, h, limit, x, y);
+    } else if(blockSize <= 4 * w * h) {
+        bias_batch_sum4_kernel_reduce_impl_small<4, Mean, blockSize><<<gridSize, blockSize, sharedSize>>>(b, n, w, h, limit, x, y);
+    } else if(blockSize <= 5 * w * h) {
+        bias_batch_sum4_kernel_reduce_impl_small<5, Mean, blockSize><<<gridSize, blockSize, sharedSize>>>(b, n, w, h, limit, x, y);
+    } else {
+        bias_batch_sum4_kernel_reduce_full_kernel_general<Mean, blockSize><<<gridSize, blockSize, sharedSize>>>(lda1, lda2, limit, x, y);
+    }
+}
+
+template <bool Mean, typename T>
+void invoke_reduce_kernel_full(size_t b, size_t n, size_t w, size_t h, const T* __restrict__ x, T* __restrict__ y, size_t blockSize, size_t gridSize) {
+    switch (blockSize) {
+        case 1024:
+            bias_batch_sum4_kernel_reduce_full<Mean, 1024>(b, n, w, h, x, y, gridSize);
+            break;
+
+        case 512:
+            bias_batch_sum4_kernel_reduce_full<Mean, 512>(b, n, w, h, x, y, gridSize);
+            break;
+
+        case 256:
+            bias_batch_sum4_kernel_reduce_full<Mean, 256>(b, n, w, h, x, y, gridSize);
+            break;
+
+        case 128:
+            bias_batch_sum4_kernel_reduce_full<Mean, 128>(b, n, w, h, x, y, gridSize);
+            break;
+
+        case 64:
+            bias_batch_sum4_kernel_reduce_full<Mean, 64>(b, n, w, h, x, y, gridSize);
+            break;
+
+        case 32:
+            bias_batch_sum4_kernel_reduce_full<Mean, 32>(b, n, w, h, x, y, gridSize);
+            break;
+
+        case 16:
+            bias_batch_sum4_kernel_reduce_full<Mean, 16>(b, n, w, h, x, y, gridSize);
+            break;
+
+        case 8:
+            bias_batch_sum4_kernel_reduce_full<Mean, 8>(b, n, w, h, x, y, gridSize);
+            break;
+
+        case 4:
+            bias_batch_sum4_kernel_reduce_full<Mean, 4>(b, n, w, h, x, y, gridSize);
+            break;
+
+        case 2:
+            bias_batch_sum4_kernel_reduce_full<Mean, 2>(b, n, w, h, x, y, gridSize);
+            break;
+
+        case 1:
+            bias_batch_sum4_kernel_reduce_full<Mean, 1>(b, n, w, h, x, y, gridSize);
+            break;
+    }
+}
+
+template <bool Mean, typename T>
+void egblas_sbias_batch_sum4_run_reduce_full(size_t b, size_t n, size_t w, size_t h, T* x, T* y) {
+    size_t s = b * w * h;
+    size_t baseBlockSize = 256;
+    size_t blockSize= s < baseBlockSize * 2 ? nextPow2((s + 1) / 2) : baseBlockSize;
+    size_t gridSize(n);
+
+    invoke_reduce_kernel_full<Mean>(b, n, w, h, x, y, blockSize, gridSize);
+}
+
+// The actual API
+
 void egblas_sbias_batch_sum4(size_t b, size_t n, size_t w, size_t h, float* x, float* y) {
-    egblas_sbias_batch_sum4_run_reduce<false>(b, n, w, h, x, y);
+    if (w * h <= 256) {
+        egblas_sbias_batch_sum4_run_reduce_full<false>(b, n, w, h, x, y);
+    } else {
+        egblas_sbias_batch_sum4_run_reduce<false>(b, n, w, h, x, y);
+    }
 }
 
 void egblas_dbias_batch_sum4(size_t b, size_t n, size_t w, size_t h, double* x, double* y) {
-    egblas_sbias_batch_sum4_run_reduce<false>(b, n, w, h, x, y);
+    if (w * h <= 256) {
+        egblas_sbias_batch_sum4_run_reduce_full<false>(b, n, w, h, x, y);
+    } else {
+        egblas_sbias_batch_sum4_run_reduce<false>(b, n, w, h, x, y);
+    }
 }
 
 void egblas_sbias_batch_mean4(size_t b, size_t n, size_t w, size_t h, float* x, float* y) {
-    egblas_sbias_batch_sum4_run_reduce<true>(b, n, w, h, x, y);
+    if (w * h <= 256) {
+        egblas_sbias_batch_sum4_run_reduce_full<true>(b, n, w, h, x, y);
+    } else {
+        egblas_sbias_batch_sum4_run_reduce<true>(b, n, w, h, x, y);
+    }
 }
 
 void egblas_dbias_batch_mean4(size_t b, size_t n, size_t w, size_t h, double* x, double* y) {
-    egblas_sbias_batch_sum4_run_reduce<true>(b, n, w, h, x, y);
+    if (w * h <= 256) {
+        egblas_sbias_batch_sum4_run_reduce_full<true>(b, n, w, h, x, y);
+    } else {
+        egblas_sbias_batch_sum4_run_reduce<true>(b, n, w, h, x, y);
+    }
 }
