@@ -7,6 +7,9 @@ The goal of this library is principally to be used as a complement
 to CUBLAS in the ETL library. The goal is to add functions that are
 not present in CUBLAS and make them available in the same format.
 
+Disclaimer: All the functions are mostly expecting row-major input
+All functions with more than 2D are always row-major.
+
 Features
 ********
 
