@@ -8,6 +8,7 @@
 #include <thrust/execution_policy.h>
 #include <thrust/reduce.h>
 
+#include "egblas/transpose_front.hpp"
 #include "egblas/assert.hpp"
 #include "egblas/utils.hpp"
 #include "egblas/sum.hpp"
@@ -41,7 +42,7 @@ void egblas_stranspose_front(size_t m, size_t n, size_t k, float* x, float* y) {
     transpose_front_kernel<<<gridSize, blockSize>>>(m, n, k, x, y);
 }
 
-void egblas_stranspose_front(size_t m, size_t n, size_t k, double* x, double* y) {
+void egblas_dtranspose_front(size_t m, size_t n, size_t k, double* x, double* y) {
     int blockSize;
     int minGridSize;
 
