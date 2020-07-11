@@ -1234,16 +1234,29 @@ void bench_cudnn_bias_batch_sum4(){
     bench_cudnn_bias_batch_sum4(256, 32, 28);
     bench_cudnn_bias_batch_sum4(256, 64, 28);
     bench_cudnn_bias_batch_sum4(256, 128, 28);
-    std::cout << "32x32" << std::endl;
+    std::cout << "256 32x32" << std::endl;
     bench_cudnn_bias_batch_sum4(256, 16, 32);
     bench_cudnn_bias_batch_sum4(256, 32, 32);
     bench_cudnn_bias_batch_sum4(256, 64, 32);
     bench_cudnn_bias_batch_sum4(256, 128, 32);
-    std::cout << "32x32" << std::endl;
+    std::cout << "300 32x32" << std::endl;
     bench_cudnn_bias_batch_sum4(300, 16, 32);
     bench_cudnn_bias_batch_sum4(300, 32, 32);
     bench_cudnn_bias_batch_sum4(300, 64, 32);
     bench_cudnn_bias_batch_sum4(300, 128, 32);
+    std::cout << "300 64x64" << std::endl;
+    bench_cudnn_bias_batch_sum4(300, 16, 64);
+    bench_cudnn_bias_batch_sum4(300, 32, 64);
+    bench_cudnn_bias_batch_sum4(300, 64, 64);
+    bench_cudnn_bias_batch_sum4(300, 128, 64);
+    std::cout << "300 128x128" << std::endl;
+    bench_cudnn_bias_batch_sum4(300, 3, 128);
+    bench_cudnn_bias_batch_sum4(300, 8, 128);
+    bench_cudnn_bias_batch_sum4(300, 16, 128);
+    std::cout << "300 256x256" << std::endl;
+    bench_cudnn_bias_batch_sum4(300, 3, 256);
+    bench_cudnn_bias_batch_sum4(300, 8, 256);
+    bench_cudnn_bias_batch_sum4(300, 16, 256);
     std::cout << std::endl;
 }
 
@@ -1296,6 +1309,19 @@ void bench_bias_batch_sum4(){
     bench_bias_batch_sum4(300, 32, 32);
     bench_bias_batch_sum4(300, 64, 32);
     bench_bias_batch_sum4(300, 128, 32);
+    std::cout << "300 64x64" << std::endl;
+    bench_bias_batch_sum4(300, 16, 64);
+    bench_bias_batch_sum4(300, 32, 64);
+    bench_bias_batch_sum4(300, 64, 64);
+    bench_bias_batch_sum4(300, 128, 64);
+    std::cout << "300 128x128" << std::endl;
+    bench_bias_batch_sum4(300, 3, 128);
+    bench_bias_batch_sum4(300, 8, 128);
+    bench_bias_batch_sum4(300, 16, 128);
+    std::cout << "300 256x256" << std::endl;
+    bench_bias_batch_sum4(300, 3, 256);
+    bench_bias_batch_sum4(300, 8, 256);
+    bench_bias_batch_sum4(300, 16, 256);
     std::cout << std::endl;
 }
 
