@@ -97,6 +97,9 @@
 #include "egblas/logistic_noise.hpp"
 #include "egblas/bernoulli.hpp"
 
+// Transformations
+#include "egblas/transpose_front.hpp"
+
 // Modifications of vector/matrix
 #include "egblas/binarize.hpp"
 #include "egblas/normalize.hpp"
