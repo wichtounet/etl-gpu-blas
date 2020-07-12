@@ -79,6 +79,36 @@ __global__ void bias_batch_sum_kernel_flat(size_t B, size_t N, const T* x, T* y)
     }
 }
 
+template <typename T>
+__global__ void bias_batch_var_kernel(size_t M, size_t N, const T* a, size_t inca, const T* b, size_t incb, T* y, size_t incy) {
+    auto n  = threadIdx.x + blockIdx.x * blockDim.x;
+
+    if (n < N) {
+        T sum = 0;
+
+        for (size_t m = 0; m < M; ++m) {
+            sum += (a[(m * N + n) * inca] - b[n * incb]) * (a[(m * N + n) * inca] - b[n * incb]);
+        }
+
+        y[incy * n] = sum / M;
+    }
+}
+
+template <typename T>
+__global__ void bias_batch_var_kernel_flat(size_t M, size_t N, const T* a, const T* b, T* y) {
+    auto n  = threadIdx.x + blockIdx.x * blockDim.x;
+
+    if (n < N) {
+        T sum = 0;
+
+        for (size_t m = 0; m < M; ++m) {
+            sum += (a[m * N + n] - b[n]) * (a[m * N + n] - b[n]);
+        }
+
+        y[n] = sum / M;
+    }
+}
+
 void egblas_sbias_batch_sum(size_t b, size_t n, float* x, size_t incx, float* y, size_t incy) {
     const int blockSize = 64;
     const int gridSize = (n + blockSize - 1) / blockSize;
@@ -120,6 +150,28 @@ void egblas_dbias_batch_mean(size_t b, size_t n, double* x, size_t incx, double*
         bias_batch_sum_kernel_flat<true><<<gridSize, blockSize>>>(b, n, x, y);
     } else {
         bias_batch_sum_kernel<true><<<gridSize, blockSize>>>(b, n, x, incx, y, incy);
+    }
+}
+
+void egblas_sbias_batch_var(size_t m, size_t n, float* a, size_t inca, float* b, size_t incb, float* y, size_t incy) {
+    const int blockSize = 64;
+    const int gridSize = (n + blockSize - 1) / blockSize;
+
+    if (inca == 1 && incb == 1 && incy == 1) {
+        bias_batch_var_kernel_flat<<<gridSize, blockSize>>>(m, n, a, b, y);
+    } else {
+        bias_batch_var_kernel<<<gridSize, blockSize>>>(m, n, a, inca, b, incb, y, incy);
+    }
+}
+
+void egblas_dbias_batch_var(size_t m, size_t n, double* a, size_t inca, double* b, size_t incb, double* y, size_t incy) {
+    const int blockSize = 64;
+    const int gridSize = (n + blockSize - 1) / blockSize;
+
+    if (inca == 1 && incb == 1 && incy == 1) {
+        bias_batch_var_kernel_flat<<<gridSize, blockSize>>>(m, n, a, b, y);
+    } else {
+        bias_batch_var_kernel<<<gridSize, blockSize>>>(m, n, a, inca, b, incb, y, incy);
     }
 }
 
