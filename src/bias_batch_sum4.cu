@@ -463,3 +463,211 @@ void egblas_dbias_batch_mean4(size_t b, size_t n, size_t w, size_t h, double* x,
         egblas_sbias_batch_sum4_run_reduce<true>(b, n, w, h, x, y);
     }
 }
+
+// bias_batch_var4 version
+
+template <size_t blockSize, typename T>
+__global__ void bias_batch_var4_kernel_reduce_full_kernel_general(size_t lda1, size_t lda2, size_t limit, const T* __restrict__ a, const T* __restrict__ c, T* __restrict__ y) {
+    extern __shared__ volatile unsigned char shared_data_raw[];
+
+    volatile T* shared_data = reinterpret_cast<volatile T*>(shared_data_raw);
+
+    const size_t ik = blockIdx.x; /// Index in k dimension
+
+    const size_t tid = threadIdx.x;
+
+    T mySum = 0.0;
+
+    size_t i = tid;
+
+    size_t ib = i / lda2;
+    size_t ii = i % lda2;
+
+    const T * p = a + ik * lda2;
+
+    while (i < limit) {
+        mySum += (p[ib * lda1 + ii] - c[blockIdx.x]) * (p[ib * lda1 + ii] - c[blockIdx.x]);
+
+        i += blockSize;
+
+        ib = i / lda2;
+        ii = i % lda2;
+    }
+
+    shared_data[tid] = mySum;
+
+    __syncthreads();
+
+    sum_reduce_impl<T, blockSize>(y, shared_data);
+
+    if (tid == 0) {
+        y[blockIdx.x] /= limit;
+    }
+}
+
+template <size_t Max, size_t blockSize, typename T>
+__global__ void bias_batch_var4_kernel_reduce_impl_small(size_t b, size_t n, size_t w, size_t h, size_t llimit, const T* __restrict__ a, const T* __restrict__ c, T* __restrict__ y) {
+    extern __shared__ volatile unsigned char shared_data_raw[];
+
+    volatile T* shared_data = reinterpret_cast<volatile T*>(shared_data_raw);
+
+    const size_t ik = blockIdx.x; /// Index in k dimension
+
+    const size_t tid = threadIdx.x;
+
+    T mySum = 0.0;
+
+    const size_t lda1 = n * w * h;
+    const size_t lda2 = w * h;
+
+    size_t i = tid;
+
+    size_t ib = Max == 1 ? 0 : i / (lda2); // Index in b dimension
+    size_t ii = Max == 1 ? i : i % (lda2); // Index in i dimension
+
+    const T * p = a + ik * lda2;
+
+    while (i < llimit) {
+        mySum += (p[ib * lda1 + ii] - c[blockIdx.x]) * (p[ib * lda1 + ii] - c[blockIdx.x]);
+
+        i += blockSize;
+        ii += blockSize;
+
+        if (ii >= lda2) {
+            ++ib;
+            ii = ii - lda2;
+        }
+
+        if /* compile-time */ (Max > 1) {
+            if (ii >= lda2) {
+                ++ib;
+                ii = ii - lda2;
+            }
+        }
+
+        if /* compile-time */ (Max > 2) {
+            if (ii >= lda2) {
+                ++ib;
+                ii = ii - lda2;
+            }
+        }
+
+        if /* compile-time */ (Max > 3) {
+            if (ii >= lda2) {
+                ++ib;
+                ii = ii - lda2;
+            }
+        }
+
+        if /* compile-time */ (Max > 4) {
+            if (ii >= lda2) {
+                ++ib;
+                ii = ii - lda2;
+            }
+        }
+    }
+
+    shared_data[tid] = mySum;
+
+    __syncthreads();
+
+    sum_reduce_impl<T, blockSize>(y, shared_data);
+
+    if (tid == 0) {
+        y[blockIdx.x] /= llimit;
+    }
+}
+
+template <size_t blockSize, typename T>
+void bias_batch_var4_kernel_reduce_full(size_t b, size_t n, size_t w, size_t h, const T* __restrict__ a, const T* __restrict__ c, T* __restrict__ y, size_t gridSize) {
+    // Precompute some stuff on the CPU
+    // Strangely, it seems slower for the small kernels to compute it themselves
+    // So, we only pass everything to the general kernel
+    const size_t lda1 = n * w * h;
+    const size_t lda2 = w * h;
+    const size_t limit = b * w * h;
+
+    int sharedSize = blockSize * sizeof(T);
+
+    if (blockSize <= w * h) {
+        bias_batch_var4_kernel_reduce_impl_small<1, blockSize><<<gridSize, blockSize, sharedSize>>>(b, n, w, h, limit, a, c, y);
+    } else if(blockSize <= 2 * w * h) {
+        bias_batch_var4_kernel_reduce_impl_small<2, blockSize><<<gridSize, blockSize, sharedSize>>>(b, n, w, h, limit, a, c, y);
+    } else if(blockSize <= 3 * w * h) {
+        bias_batch_var4_kernel_reduce_impl_small<3, blockSize><<<gridSize, blockSize, sharedSize>>>(b, n, w, h, limit, a, c, y);
+    } else if(blockSize <= 4 * w * h) {
+        bias_batch_var4_kernel_reduce_impl_small<4, blockSize><<<gridSize, blockSize, sharedSize>>>(b, n, w, h, limit, a, c, y);
+    } else if(blockSize <= 5 * w * h) {
+        bias_batch_var4_kernel_reduce_impl_small<5, blockSize><<<gridSize, blockSize, sharedSize>>>(b, n, w, h, limit, a, c, y);
+    } else {
+        bias_batch_var4_kernel_reduce_full_kernel_general<blockSize><<<gridSize, blockSize, sharedSize>>>(lda1, lda2, limit, a, c, y);
+    }
+}
+template <typename T>
+void invoke_reduce_kernel_full_var(size_t b, size_t n, size_t w, size_t h, const T* __restrict__ a, const T* __restrict__ c, T* __restrict__ y, size_t blockSize, size_t gridSize) {
+    switch (blockSize) {
+        case 1024:
+            bias_batch_var4_kernel_reduce_full<1024>(b, n, w, h, a, c, y, gridSize);
+            break;
+
+        case 512:
+            bias_batch_var4_kernel_reduce_full<512>(b, n, w, h, a, c, y, gridSize);
+            break;
+
+        case 256:
+            bias_batch_var4_kernel_reduce_full<256>(b, n, w, h, a, c, y, gridSize);
+            break;
+
+        case 128:
+            bias_batch_var4_kernel_reduce_full<128>(b, n, w, h, a, c, y, gridSize);
+            break;
+
+        case 64:
+            bias_batch_var4_kernel_reduce_full<64>(b, n, w, h, a, c, y, gridSize);
+            break;
+
+        case 32:
+            bias_batch_var4_kernel_reduce_full<32>(b, n, w, h, a, c, y, gridSize);
+            break;
+
+        case 16:
+            bias_batch_var4_kernel_reduce_full<16>(b, n, w, h, a, c, y, gridSize);
+            break;
+
+        case 8:
+            bias_batch_var4_kernel_reduce_full<8>(b, n, w, h, a, c, y, gridSize);
+            break;
+
+        case 4:
+            bias_batch_var4_kernel_reduce_full<4>(b, n, w, h, a, c, y, gridSize);
+            break;
+
+        case 2:
+            bias_batch_var4_kernel_reduce_full<2>(b, n, w, h, a, c, y, gridSize);
+            break;
+
+        case 1:
+            bias_batch_var4_kernel_reduce_full<1>(b, n, w, h, a, c, y, gridSize);
+            break;
+    }
+}
+
+template <typename T>
+void egblas_sbias_batch_var4_run_reduce_full(size_t b, size_t n, size_t w, size_t h, T* a, T* c, T* y) {
+    size_t s = b * w * h;
+    size_t baseBlockSize = 256;
+    size_t blockSize= s < baseBlockSize * 2 ? nextPow2((s + 1) / 2) : baseBlockSize;
+    size_t gridSize(n);
+
+    invoke_reduce_kernel_full_var(b, n, w, h, a, c, y, blockSize, gridSize);
+}
+
+// Performance Note: bias_batch_var could be optimized better for large matrices
+
+void egblas_sbias_batch_var4(size_t b, size_t n, size_t w, size_t h, float* a, float* c, float* y) {
+    egblas_sbias_batch_var4_run_reduce_full(b, n, w, h, a, c, y);
+}
+
+void egblas_dbias_batch_var4(size_t b, size_t n, size_t w, size_t h, double* a, double* c, double* y){
+    egblas_sbias_batch_var4_run_reduce_full(b, n, w, h, a, c, y);
+}

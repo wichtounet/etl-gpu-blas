@@ -33,8 +33,14 @@ void egblas_dbias_batch_sum4(size_t b, size_t n, size_t w, size_t h, double* x, 
 void egblas_sbias_batch_mean4(size_t b, size_t n, size_t w, size_t h, float* x, float* y);
 void egblas_dbias_batch_mean4(size_t b, size_t n, size_t w, size_t h, double* x, double* y);
 
+void egblas_sbias_batch_var4(size_t b, size_t n, size_t w, size_t h, float* a, float* c, float* y);
+void egblas_dbias_batch_var4(size_t b, size_t n, size_t w, size_t h, double* a, double* c, double* y);
+
 #define EGBLAS_HAS_SBIAS_BATCH_SUM4 true
 #define EGBLAS_HAS_DBIAS_BATCH_SUM4 true
 
 #define EGBLAS_HAS_SBIAS_BATCH_MEAN4 true
 #define EGBLAS_HAS_DBIAS_BATCH_MEAN4 true
+
+#define EGBLAS_HAS_SBIAS_BATCH_VAR4 true
+#define EGBLAS_HAS_DBIAS_BATCH_VAR4 true
