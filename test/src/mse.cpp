@@ -38,7 +38,7 @@ TEST_CASE("mse/loss/s/0", "[float][mse]") {
 
     float loss = egblas_mse_sloss(N, 1.1f, x_gpu, 1, y_gpu, 1);
 
-    REQUIRE(loss == Approx(3381.71 * 1.1f));
+    REQUIRE(loss == Approx(338171 * 1.1f));
 
     auto both = egblas_smse(N, 1.1f, 1.1f, x_gpu, 1, y_gpu, 1);
     REQUIRE(both.first == Approx(loss));
@@ -71,7 +71,7 @@ TEST_CASE("mse/loss/d/0", "[double][mse]") {
 
     double loss = egblas_mse_dloss(N, 1.2, x_gpu, 1, y_gpu, 1);
 
-    REQUIRE(loss == Approx(11755.7 * 1.2));
+    REQUIRE(loss == Approx(2210071.6 * 1.2));
 
     auto both = egblas_dmse(N, 1.2, 1.2, x_gpu, 1, y_gpu, 1);
     REQUIRE(both.first == Approx(loss));
@@ -104,7 +104,7 @@ TEST_CASE("mse/loss/d/1", "[double][mse]") {
 
     double loss = egblas_mse_dloss(N, 1.2, x_gpu, 1, y_gpu, 1);
 
-    REQUIRE(loss == Approx(349365.0 * 1.2));
+    REQUIRE(loss == Approx(357749760 * 1.2));
 
     auto both = egblas_dmse(N, 1.2, 1.2, x_gpu, 1, y_gpu, 1);
     REQUIRE(both.first == Approx(loss));
@@ -137,7 +137,7 @@ TEST_CASE("mse/error/s/0", "[float][mse]") {
 
     float error = egblas_mse_serror(N, 1.0f / 128.0f, x_gpu, 1, y_gpu, 1);
 
-    REQUIRE(error == Approx(4.4649));
+    REQUIRE(error == Approx(5143.5648));
 
     auto both = egblas_smse(N, 1.2, 1.0f / 128.0f, x_gpu, 1, y_gpu, 1);
     REQUIRE(both.second == Approx(error));
@@ -170,7 +170,7 @@ TEST_CASE("mse/error/d/0", "[double][mse]") {
 
     double error = egblas_mse_derror(N, 1.2, x_gpu, 1, y_gpu, 1);
 
-    REQUIRE(error == Approx(86.724));
+    REQUIRE(error == Approx(12574.98));
 
     auto both = egblas_dmse(N, 1.9, 1.2f, x_gpu, 1, y_gpu, 1);
     REQUIRE(both.second == Approx(error));
@@ -203,7 +203,7 @@ TEST_CASE("mse/error/d/1", "[double][mse]") {
 
     double error = egblas_mse_derror(N, 1.2, x_gpu, 1, y_gpu, 1);
 
-    REQUIRE(error == Approx(7907.9225));
+    REQUIRE(error == Approx(105270264));
 
     auto both = egblas_dmse(N, 1.9, 1.2, x_gpu, 1, y_gpu, 1);
     REQUIRE(both.second == Approx(error));

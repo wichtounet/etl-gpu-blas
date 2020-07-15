@@ -67,7 +67,7 @@ __global__ void mse_loss_kernel(size_t n, const T* output, size_t incx, const T*
         }
     }
 
-    shared_data[tid] = mySum / n;
+    shared_data[tid] = mySum;
 
     __syncthreads();
 
@@ -115,7 +115,7 @@ __global__ void mse_loss_kernel1(size_t n, const T* output, const T* labels, T* 
         }
     }
 
-    shared_data[tid] = mySum / n;
+    shared_data[tid] = mySum;
 
     __syncthreads();
 
@@ -163,7 +163,7 @@ __global__ void mse_error_kernel(size_t n, const T* output, size_t incx, const T
         }
     }
 
-    shared_data[tid] = mySum / n;
+    shared_data[tid] = mySum;
 
     __syncthreads();
 
@@ -211,7 +211,7 @@ __global__ void mse_error_kernel1(size_t n, const T* output, const T* labels, T*
         }
     }
 
-    shared_data[tid] = mySum / n;
+    shared_data[tid] = mySum;
 
     __syncthreads();
 
@@ -408,10 +408,11 @@ T mse_kernel_run(size_t n, const T* output, size_t incx, const T* labels, size_t
         for (size_t i = 0; i < n; i++) {
             result += (host_labels[i] - host_output[i]) * (host_labels[i] - host_output[i]);
         }
-        result /= n;
 
         delete[] host_output;
         delete[] host_labels;
+
+        return result;
     }
 
     if (!Loss && n < cpu_threshold && incx == 1 && incy == 1) {
@@ -424,7 +425,6 @@ T mse_kernel_run(size_t n, const T* output, size_t incx, const T* labels, size_t
         for (size_t i = 0; i < n; i++) {
             result += fabsf(host_labels[i] - host_output[i]);
         }
-        result /= n;
 
         delete[] host_output;
         delete[] host_labels;
@@ -523,8 +523,6 @@ std::pair<T, T> mse_kernel_both_run(size_t n, const T* output, size_t incx, cons
             loss += (host_labels[i] - host_output[i]) * (host_labels[i] - host_output[i]);
             error += fabsf(host_labels[i] - host_output[i]);
         }
-        loss /= n;
-        error /= n;
 
         delete[] host_output;
         delete[] host_labels;
