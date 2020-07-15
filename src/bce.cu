@@ -411,6 +411,8 @@ T bce_kernel_run(size_t n, const T* output, size_t incx, const T* labels, size_t
 
         delete[] host_output;
         delete[] host_labels;
+
+        return result;
     }
 
     if (!Loss && n < cpu_threshold && incx == 1 && incy == 1) {
