@@ -10,24 +10,24 @@
 #include <thrust/execution_policy.h>
 #include <thrust/reduce.h>
 
-#include "egblas/bce.hpp"
+#include "egblas/mse.hpp"
 #include "egblas/cuda_check.hpp"
 #include "egblas/utils.hpp"
 
 #include "sum_reduce.hpp"
 
 template<typename T>
-__device__ T bce_loss(T output, T label){
-    return (logf(output) * label) + ((T(1) - label) * logf(T(1) - output));
+__device__ T mse_loss(T output, T label){
+    return (label - output) * (label - output);
 }
 
 template<typename T>
-__device__ T bce_error(T output, T label){
+__device__ T mse_error(T output, T label){
     return fabsf(label - output);
 }
 
 template <class T, size_t blockSize, bool Reduce>
-__global__ void bce_loss_kernel(size_t n, const T* output, size_t incx, const T* labels, size_t incy, T* r_output) {
+__global__ void mse_loss_kernel(size_t n, const T* output, size_t incx, const T* labels, size_t incy, T* r_output) {
     extern __shared__ volatile unsigned char shared_data_raw[];
 
     volatile T* shared_data = reinterpret_cast<volatile T*>(shared_data_raw);
@@ -54,13 +54,13 @@ __global__ void bce_loss_kernel(size_t n, const T* output, size_t incx, const T*
             i += gridSize;
         }
     } else {
-        // In the basic case, perform reduction and BCE loss
+        // In the basic case, perform reduction and MSE loss
 
         while (i < n) {
-            mySum += bce_loss(output[i * incx], labels[i * incy]);
+            mySum += mse_loss(output[i * incx], labels[i * incy]);
 
             if (i + blockSize < n) {
-                mySum += bce_loss(output[(i + blockSize) * incx], labels[(i + blockSize) * incx]);
+                mySum += mse_loss(output[(i + blockSize) * incx], labels[(i + blockSize) * incx]);
             }
 
             i += gridSize;
@@ -75,7 +75,7 @@ __global__ void bce_loss_kernel(size_t n, const T* output, size_t incx, const T*
 }
 
 template <class T, size_t blockSize, bool Reduce>
-__global__ void bce_loss_kernel1(size_t n, const T* output, const T* labels, T* r_output) {
+__global__ void mse_loss_kernel1(size_t n, const T* output, const T* labels, T* r_output) {
     extern __shared__ volatile unsigned char shared_data_raw[];
 
     volatile T* shared_data = reinterpret_cast<volatile T*>(shared_data_raw);
@@ -102,13 +102,13 @@ __global__ void bce_loss_kernel1(size_t n, const T* output, const T* labels, T* 
             i += gridSize;
         }
     } else {
-        // In the basic case, perform reduction and BCE loss
+        // In the basic case, perform reduction and MSE loss
 
         while (i < n) {
-            mySum += bce_loss(output[i], labels[i]);
+            mySum += mse_loss(output[i], labels[i]);
 
             if (i + blockSize < n) {
-                mySum += bce_loss(output[i + blockSize], labels[i + blockSize]);
+                mySum += mse_loss(output[i + blockSize], labels[i + blockSize]);
             }
 
             i += gridSize;
@@ -123,7 +123,7 @@ __global__ void bce_loss_kernel1(size_t n, const T* output, const T* labels, T* 
 }
 
 template <class T, size_t blockSize, bool Reduce>
-__global__ void bce_error_kernel(size_t n, const T* output, size_t incx, const T* labels, size_t incy, T* r_output) {
+__global__ void mse_error_kernel(size_t n, const T* output, size_t incx, const T* labels, size_t incy, T* r_output) {
     extern __shared__ volatile unsigned char shared_data_raw[];
 
     volatile T* shared_data = reinterpret_cast<volatile T*>(shared_data_raw);
@@ -150,13 +150,13 @@ __global__ void bce_error_kernel(size_t n, const T* output, size_t incx, const T
             i += gridSize;
         }
     } else {
-        // In the basic case, perform reduction and BCE error
+        // In the basic case, perform reduction and MSE error
 
         while (i < n) {
-            mySum += bce_error(output[i * incx], labels[i * incy]);
+            mySum += mse_error(output[i * incx], labels[i * incy]);
 
             if (i + blockSize < n) {
-                mySum += bce_error(output[(i + blockSize) * incx], labels[(i + blockSize) * incx]);
+                mySum += mse_error(output[(i + blockSize) * incx], labels[(i + blockSize) * incx]);
             }
 
             i += gridSize;
@@ -171,7 +171,7 @@ __global__ void bce_error_kernel(size_t n, const T* output, size_t incx, const T
 }
 
 template <class T, size_t blockSize, bool Reduce>
-__global__ void bce_error_kernel1(size_t n, const T* output, const T* labels, T* r_output) {
+__global__ void mse_error_kernel1(size_t n, const T* output, const T* labels, T* r_output) {
     extern __shared__ volatile unsigned char shared_data_raw[];
 
     volatile T* shared_data = reinterpret_cast<volatile T*>(shared_data_raw);
@@ -198,13 +198,13 @@ __global__ void bce_error_kernel1(size_t n, const T* output, const T* labels, T*
             i += gridSize;
         }
     } else {
-        // In the basic case, perform reduction and BCE error
+        // In the basic case, perform reduction and MSE error
 
         while (i < n) {
-            mySum += bce_error(output[i], labels[i]);
+            mySum += mse_error(output[i], labels[i]);
 
             if (i + blockSize < n) {
-                mySum += bce_error(output[i + blockSize], labels[i + blockSize]);
+                mySum += mse_error(output[i + blockSize], labels[i + blockSize]);
             }
 
             i += gridSize;
@@ -219,181 +219,181 @@ __global__ void bce_error_kernel1(size_t n, const T* output, const T* labels, T*
 }
 
 template <typename T, bool Reduce>
-void invoke_bce_loss_kernel(size_t n, const T* output, size_t incx, const T* labels, size_t incy, T* r_output, size_t numThreads, size_t numBlocks) {
+void invoke_mse_loss_kernel(size_t n, const T* output, size_t incx, const T* labels, size_t incy, T* r_output, size_t numThreads, size_t numBlocks) {
     int sharedSize = (numThreads <= 32) ? 64 * sizeof(T) : numThreads * sizeof(T);
 
     switch (numThreads) {
         case 512:
             if (incx == 1 && incy == 1) {
-                bce_loss_kernel1<T, 512, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, labels, r_output);
+                mse_loss_kernel1<T, 512, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, labels, r_output);
             } else {
-                bce_loss_kernel<T, 512, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
+                mse_loss_kernel<T, 512, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
             }
             break;
 
         case 256:
             if (incx == 1 && incy == 1) {
-                bce_loss_kernel1<T, 256, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, labels, r_output);
+                mse_loss_kernel1<T, 256, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, labels, r_output);
             } else {
-                bce_loss_kernel<T, 256, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
+                mse_loss_kernel<T, 256, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
             }
             break;
 
         case 128:
             if (incx == 1 && incy == 1) {
-                bce_loss_kernel1<T, 128, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, labels, r_output);
+                mse_loss_kernel1<T, 128, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, labels, r_output);
             } else {
-                bce_loss_kernel<T, 128, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
+                mse_loss_kernel<T, 128, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
             }
             break;
 
         case 64:
             if (incx == 1 && incy == 1) {
-                bce_loss_kernel1<T, 64, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, labels, r_output);
+                mse_loss_kernel1<T, 64, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, labels, r_output);
             } else {
-                bce_loss_kernel<T, 64, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
+                mse_loss_kernel<T, 64, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
             }
             break;
 
         case 32:
             if (incx == 1 && incy == 1) {
-                bce_loss_kernel1<T, 32, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, labels, r_output);
+                mse_loss_kernel1<T, 32, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, labels, r_output);
             } else {
-                bce_loss_kernel<T, 32, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
+                mse_loss_kernel<T, 32, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
             }
             break;
 
         case 16:
             if (incx == 1 && incy == 1) {
-                bce_loss_kernel1<T, 16, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, labels, r_output);
+                mse_loss_kernel1<T, 16, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, labels, r_output);
             } else {
-                bce_loss_kernel<T, 16, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
+                mse_loss_kernel<T, 16, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
             }
             break;
 
         case 8:
             if (incx == 1 && incy == 1) {
-                bce_loss_kernel1<T, 8, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, labels, r_output);
+                mse_loss_kernel1<T, 8, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, labels, r_output);
             } else {
-                bce_loss_kernel<T, 8, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
+                mse_loss_kernel<T, 8, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
             }
             break;
 
         case 4:
             if (incx == 1 && incy == 1) {
-                bce_loss_kernel1<T, 4, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, labels, r_output);
+                mse_loss_kernel1<T, 4, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, labels, r_output);
             } else {
-                bce_loss_kernel<T, 4, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
+                mse_loss_kernel<T, 4, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
             }
             break;
 
         case 2:
             if (incx == 1 && incy == 1) {
-                bce_loss_kernel1<T, 2, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, labels, r_output);
+                mse_loss_kernel1<T, 2, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, labels, r_output);
             } else {
-                bce_loss_kernel<T, 2, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
+                mse_loss_kernel<T, 2, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
             }
             break;
 
         case 1:
             if (incx == 1 && incy == 1) {
-                bce_loss_kernel1<T, 1, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, labels, r_output);
+                mse_loss_kernel1<T, 1, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, labels, r_output);
             } else {
-                bce_loss_kernel<T, 1, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
+                mse_loss_kernel<T, 1, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
             }
             break;
     }
 }
 
 template <typename T, bool Reduce>
-void invoke_bce_error_kernel(size_t n, const T* output, size_t incx, const T* labels, size_t incy, T* r_output, size_t numThreads, size_t numBlocks) {
+void invoke_mse_error_kernel(size_t n, const T* output, size_t incx, const T* labels, size_t incy, T* r_output, size_t numThreads, size_t numBlocks) {
     int sharedSize = (numThreads <= 32) ? 64 * sizeof(T) : numThreads * sizeof(T);
 
     switch (numThreads) {
         case 512:
             if (incx == 1 && incy == 1) {
-                bce_error_kernel1<T, 512, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, labels, r_output);
+                mse_error_kernel1<T, 512, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, labels, r_output);
             } else {
-                bce_error_kernel<T, 512, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
+                mse_error_kernel<T, 512, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
             }
             break;
 
         case 256:
             if (incx == 1 && incy == 1) {
-                bce_error_kernel1<T, 256, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, labels, r_output);
+                mse_error_kernel1<T, 256, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, labels, r_output);
             } else {
-                bce_error_kernel<T, 256, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
+                mse_error_kernel<T, 256, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
             }
             break;
 
         case 128:
             if (incx == 1 && incy == 1) {
-                bce_error_kernel1<T, 128, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, labels, r_output);
+                mse_error_kernel1<T, 128, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, labels, r_output);
             } else {
-                bce_error_kernel<T, 128, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
+                mse_error_kernel<T, 128, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
             }
             break;
 
         case 64:
             if (incx == 1 && incy == 1) {
-                bce_error_kernel1<T, 64, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, labels, r_output);
+                mse_error_kernel1<T, 64, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, labels, r_output);
             } else {
-                bce_error_kernel<T, 64, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
+                mse_error_kernel<T, 64, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
             }
             break;
 
         case 32:
             if (incx == 1 && incy == 1) {
-                bce_error_kernel1<T, 32, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, labels, r_output);
+                mse_error_kernel1<T, 32, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, labels, r_output);
             } else {
-                bce_error_kernel<T, 32, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
+                mse_error_kernel<T, 32, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
             }
             break;
 
         case 16:
             if (incx == 1 && incy == 1) {
-                bce_error_kernel1<T, 16, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, labels, r_output);
+                mse_error_kernel1<T, 16, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, labels, r_output);
             } else {
-                bce_error_kernel<T, 16, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
+                mse_error_kernel<T, 16, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
             }
             break;
 
         case 8:
             if (incx == 1 && incy == 1) {
-                bce_error_kernel1<T, 8, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, labels, r_output);
+                mse_error_kernel1<T, 8, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, labels, r_output);
             } else {
-                bce_error_kernel<T, 8, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
+                mse_error_kernel<T, 8, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
             }
             break;
 
         case 4:
             if (incx == 1 && incy == 1) {
-                bce_error_kernel1<T, 4, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, labels, r_output);
+                mse_error_kernel1<T, 4, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, labels, r_output);
             } else {
-                bce_error_kernel<T, 4, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
+                mse_error_kernel<T, 4, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
             }
             break;
 
         case 2:
             if (incx == 1 && incy == 1) {
-                bce_error_kernel1<T, 2, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, labels, r_output);
+                mse_error_kernel1<T, 2, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, labels, r_output);
             } else {
-                bce_error_kernel<T, 2, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
+                mse_error_kernel<T, 2, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
             }
             break;
 
         case 1:
             if (incx == 1 && incy == 1) {
-                bce_error_kernel1<T, 1, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, labels, r_output);
+                mse_error_kernel1<T, 1, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, labels, r_output);
             } else {
-                bce_error_kernel<T, 1, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
+                mse_error_kernel<T, 1, Reduce><<<numBlocks, numThreads, sharedSize>>>(n, output, incx, labels, incy, r_output);
             }
             break;
     }
 }
 
 template <bool Loss, typename T>
-T bce_kernel_run(size_t n, const T* output, size_t incx, const T* labels, size_t incy) {
+T mse_kernel_run(size_t n, const T* output, size_t incx, const T* labels, size_t incy) {
     T result = 0;
 
     const size_t cpu_threshold = Loss ? 1 : 1024;
@@ -406,7 +406,7 @@ T bce_kernel_run(size_t n, const T* output, size_t incx, const T* labels, size_t
         cuda_check(cudaMemcpy(host_labels, labels, n * sizeof(T), cudaMemcpyDeviceToHost));
 
         for (size_t i = 0; i < n; i++) {
-            result += (logf(host_output[i]) * host_labels[i]) + ((T(1) - host_labels[i]) * logf(T(1) - host_output[i]));
+            result += (host_labels[i] - host_output[i]) * (host_labels[i] - host_output[i]);
         }
 
         delete[] host_output;
@@ -447,9 +447,9 @@ T bce_kernel_run(size_t n, const T* output, size_t incx, const T* labels, size_t
     // Run the first reduction on GPU
 
     if (Loss) {
-        invoke_bce_loss_kernel<T, false>(n, output, incx, labels, incy, tmp_gpu, numThreads, numBlocks);
+        invoke_mse_loss_kernel<T, false>(n, output, incx, labels, incy, tmp_gpu, numThreads, numBlocks);
     } else {
-        invoke_bce_error_kernel<T, false>(n, output, incx, labels, incy, tmp_gpu, numThreads, numBlocks);
+        invoke_mse_error_kernel<T, false>(n, output, incx, labels, incy, tmp_gpu, numThreads, numBlocks);
     }
 
     size_t s = numBlocks;
@@ -462,9 +462,9 @@ T bce_kernel_run(size_t n, const T* output, size_t incx, const T* labels, size_t
         numBlocks  = std::min((s + numThreads * 2 - 1) / (numThreads * 2), maxBlocks);
 
         if (Loss) {
-            invoke_bce_loss_kernel<T, true>(s, tmp_gpu, 1, tmp_gpu, 1, tmp_gpu, numThreads, numBlocks);
+            invoke_mse_loss_kernel<T, true>(s, tmp_gpu, 1, tmp_gpu, 1, tmp_gpu, numThreads, numBlocks);
         } else {
-            invoke_bce_error_kernel<T, true>(s, tmp_gpu, 1, tmp_gpu, 1, tmp_gpu, numThreads, numBlocks);
+            invoke_mse_error_kernel<T, true>(s, tmp_gpu, 1, tmp_gpu, 1, tmp_gpu, numThreads, numBlocks);
         }
 
         s = (s + numThreads * 2 - 1) / (numThreads * 2);
@@ -489,24 +489,24 @@ T bce_kernel_run(size_t n, const T* output, size_t incx, const T* labels, size_t
     return result;
 }
 
-float egblas_bce_sloss(size_t n, float alpha, const float* output, size_t incx, const float* labels, size_t incy) {
-    return alpha * bce_kernel_run<true>(n, output, incx, labels, incy);
+float egblas_mse_sloss(size_t n, float alpha, const float* output, size_t incx, const float* labels, size_t incy) {
+    return alpha * mse_kernel_run<true>(n, output, incx, labels, incy);
 }
 
-double egblas_bce_dloss(size_t n, double alpha, const double* output, size_t incx, const double* labels, size_t incy) {
-    return alpha * bce_kernel_run<true>(n, output, incx, labels, incy);
+double egblas_mse_dloss(size_t n, double alpha, const double* output, size_t incx, const double* labels, size_t incy) {
+    return alpha * mse_kernel_run<true>(n, output, incx, labels, incy);
 }
 
-float egblas_bce_serror(size_t n, float alpha, const float* output, size_t incx, const float* labels, size_t incy) {
-    return alpha * bce_kernel_run<false>(n, output, incx, labels, incy);
+float egblas_mse_serror(size_t n, float alpha, const float* output, size_t incx, const float* labels, size_t incy) {
+    return alpha * mse_kernel_run<false>(n, output, incx, labels, incy);
 }
 
-double egblas_bce_derror(size_t n, double alpha, const double* output, size_t incx, const double* labels, size_t incy) {
-    return alpha * bce_kernel_run<false>(n, output, incx, labels, incy);
+double egblas_mse_derror(size_t n, double alpha, const double* output, size_t incx, const double* labels, size_t incy) {
+    return alpha * mse_kernel_run<false>(n, output, incx, labels, incy);
 }
 
 template <typename T>
-std::pair<T, T> bce_kernel_both_run(size_t n, const T* output, size_t incx, const T* labels, size_t incy) {
+std::pair<T, T> mse_kernel_both_run(size_t n, const T* output, size_t incx, const T* labels, size_t incy) {
     T loss = 0;
     T error = 0;
 
@@ -520,7 +520,7 @@ std::pair<T, T> bce_kernel_both_run(size_t n, const T* output, size_t incx, cons
         cuda_check(cudaMemcpy(host_labels, labels, n * sizeof(T), cudaMemcpyDeviceToHost));
 
         for (size_t i = 0; i < n; i++) {
-            loss += (logf(host_output[i]) * host_labels[i]) + ((T(1) - host_labels[i]) * logf(T(1) - host_output[i]));
+            loss += (host_labels[i] - host_output[i]) * (host_labels[i] - host_output[i]);
             error += fabsf(host_labels[i] - host_output[i]);
         }
 
@@ -547,8 +547,8 @@ std::pair<T, T> bce_kernel_both_run(size_t n, const T* output, size_t incx, cons
 
     // Run the first reduction on GPU
 
-    invoke_bce_loss_kernel<T, false>(n, output, incx, labels, incy, tmp_loss, numThreads, numBlocks);
-    invoke_bce_error_kernel<T, false>(n, output, incx, labels, incy, tmp_error, numThreads, numBlocks);
+    invoke_mse_loss_kernel<T, false>(n, output, incx, labels, incy, tmp_loss, numThreads, numBlocks);
+    invoke_mse_error_kernel<T, false>(n, output, incx, labels, incy, tmp_error, numThreads, numBlocks);
 
     size_t s = numBlocks;
 
@@ -559,8 +559,8 @@ std::pair<T, T> bce_kernel_both_run(size_t n, const T* output, size_t incx, cons
         numThreads = s < maxThreads * 2 ? nextPow2((s + 1) / 2) : maxThreads;
         numBlocks  = std::min((s + numThreads * 2 - 1) / (numThreads * 2), maxBlocks);
 
-        invoke_bce_loss_kernel<T, true>(s, tmp_loss, 1, tmp_loss, 1, tmp_loss, numThreads, numBlocks);
-        invoke_bce_error_kernel<T, true>(s, tmp_error, 1, tmp_error, 1, tmp_error, numThreads, numBlocks);
+        invoke_mse_loss_kernel<T, true>(s, tmp_loss, 1, tmp_loss, 1, tmp_loss, numThreads, numBlocks);
+        invoke_mse_error_kernel<T, true>(s, tmp_error, 1, tmp_error, 1, tmp_error, numThreads, numBlocks);
 
         s = (s + numThreads * 2 - 1) / (numThreads * 2);
     }
@@ -589,12 +589,12 @@ std::pair<T, T> bce_kernel_both_run(size_t n, const T* output, size_t incx, cons
     return std::make_pair(loss, error);
 }
 
-std::pair<float, float> egblas_sbce(size_t n, float alpha, float beta, const float* output, size_t incx, const float* labels, size_t incy) {
-    auto res = bce_kernel_both_run(n, output, incx, labels, incy);
+std::pair<float, float> egblas_smse(size_t n, float alpha, float beta, const float* output, size_t incx, const float* labels, size_t incy) {
+    auto res = mse_kernel_both_run(n, output, incx, labels, incy);
     return std::make_pair(alpha * res.first, beta * res.second);
 }
 
-std::pair<double, double> egblas_dbce(size_t n, double alpha, double beta, const double* output, size_t incx, const double* labels, size_t incy) {
-    auto res = bce_kernel_both_run(n, output, incx, labels, incy);
+std::pair<double, double> egblas_dmse(size_t n, double alpha, double beta, const double* output, size_t incx, const double* labels, size_t incy) {
+    auto res = mse_kernel_both_run(n, output, incx, labels, incy);
     return std::make_pair(alpha * res.first, beta * res.second);
 }
