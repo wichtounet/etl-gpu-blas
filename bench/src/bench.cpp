@@ -1402,6 +1402,38 @@ void bench_bias_add4(){
     std::cout << std::endl;
 }
 
+void bench_transpose_front(size_t M, size_t N, size_t K, size_t repeat = 100){
+    auto* x_cpu = prepare_cpu(M * N * K, 2.0f);
+    auto* y_cpu = prepare_cpu(M * N * K, 3.0f);
+
+    auto* x_gpu = prepare_gpu(M * N * K, x_cpu);
+    auto* y_gpu = prepare_gpu(M * N * K, x_cpu);
+
+    egblas_stranspose_front(M, N, K, x_gpu, y_gpu);
+
+    auto t0 = timer::now();
+
+    for(size_t i = 0; i < repeat; ++i){
+        egblas_stranspose_front(M, N, K, x_gpu, y_gpu);
+    }
+
+    report("transpose_front", t0, repeat, M * N * K);
+
+    cuda_check(cudaMemcpy(y_cpu, y_gpu, M * N * K * sizeof(float), cudaMemcpyDeviceToHost));
+
+    release(x_cpu, x_gpu);
+    release(y_cpu, y_gpu);
+}
+
+void bench_transpose_front(){
+    bench_transpose_front(200, 16, 16);
+    bench_transpose_front(256, 16, 32);
+    bench_transpose_front(256, 28, 28);
+    bench_transpose_front(256, 28, 32);
+    bench_transpose_front(256, 32, 64);
+    std::cout << std::endl;
+}
+
 } // End of anonymous namespace
 
 int main(int argc, char* argv[]){
@@ -1488,5 +1520,9 @@ int main(int argc, char* argv[]){
 
     if (sub == "bias_add4") {
         bench_bias_add4();
+    }
+
+    if (sub == "transpose_front") {
+        bench_transpose_front();
     }
 }
