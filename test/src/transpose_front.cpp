@@ -71,3 +71,93 @@ TEST_CASE("transpose_front/s/0", "[float][bias_batch_sum]") {
     delete[] x_cpu;
     delete[] y_cpu;
 }
+
+TEST_CASE("transpose_front/s/1", "[float][bias_batch_sum]") {
+    const size_t M = 129;
+    const size_t N = 28;
+    const size_t K = 24;
+
+    float* x_cpu = new float[M * N * K];
+    float* y_cpu = new float[M * N * K];
+    float* y_ref = new float[M * N * K];
+
+    for (size_t i = 0; i < M * N * K; ++i) {
+        x_cpu[i] = i;
+    }
+
+    float* x_gpu;
+    float* y_gpu;
+
+    cuda_check(cudaMalloc((void**)&x_gpu, M * N * K * sizeof(float)));
+    cuda_check(cudaMalloc((void**)&y_gpu, M * N * K * sizeof(float)));
+
+    cuda_check(cudaMemcpy(x_gpu, x_cpu, M * N * K * sizeof(float), cudaMemcpyHostToDevice));
+
+    egblas_stranspose_front(M, N, K, x_gpu, y_gpu);
+
+    cuda_check(cudaMemcpy(y_cpu, y_gpu, M * N * K * sizeof(float), cudaMemcpyDeviceToHost));
+
+    for (size_t m = 0; m < M; ++m) {
+        for (size_t n = 0; n < N; ++n) {
+            for (size_t k = 0; k < K; ++k) {
+                y_ref[n * (M * K) + m * K + k] = x_cpu[m * (N * K) + n * K + k];
+            }
+        }
+    }
+
+    for (size_t i = 0; i < M * N * K; ++i) {
+        REQUIRE(y_cpu[i] == y_ref[i]);
+    }
+
+    cuda_check(cudaFree(x_gpu));
+    cuda_check(cudaFree(y_gpu));
+
+    delete[] x_cpu;
+    delete[] y_cpu;
+    delete[] y_ref;
+}
+
+TEST_CASE("transpose_front/s/2", "[float][bias_batch_sum]") {
+    const size_t M = 1029;
+    const size_t N = 19;
+    const size_t K = 27;
+
+    float* x_cpu = new float[M * N * K];
+    float* y_cpu = new float[M * N * K];
+    float* y_ref = new float[M * N * K];
+
+    for (size_t i = 0; i < M * N * K; ++i) {
+        x_cpu[i] = i;
+    }
+
+    float* x_gpu;
+    float* y_gpu;
+
+    cuda_check(cudaMalloc((void**)&x_gpu, M * N * K * sizeof(float)));
+    cuda_check(cudaMalloc((void**)&y_gpu, M * N * K * sizeof(float)));
+
+    cuda_check(cudaMemcpy(x_gpu, x_cpu, M * N * K * sizeof(float), cudaMemcpyHostToDevice));
+
+    egblas_stranspose_front(M, N, K, x_gpu, y_gpu);
+
+    cuda_check(cudaMemcpy(y_cpu, y_gpu, M * N * K * sizeof(float), cudaMemcpyDeviceToHost));
+
+    for (size_t m = 0; m < M; ++m) {
+        for (size_t n = 0; n < N; ++n) {
+            for (size_t k = 0; k < K; ++k) {
+                y_ref[n * (M * K) + m * K + k] = x_cpu[m * (N * K) + n * K + k];
+            }
+        }
+    }
+
+    for (size_t i = 0; i < M * N * K; ++i) {
+        REQUIRE(y_cpu[i] == y_ref[i]);
+    }
+
+    cuda_check(cudaFree(x_gpu));
+    cuda_check(cudaFree(y_gpu));
+
+    delete[] x_cpu;
+    delete[] y_cpu;
+    delete[] y_ref;
+}
