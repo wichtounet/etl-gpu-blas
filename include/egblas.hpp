@@ -92,6 +92,9 @@
 #include "egblas/mse.hpp"
 #include "egblas/relu_der_out.hpp"
 
+// Convolutions
+#include "egblas/conv_1d.hpp"
+
 // Random
 #include "egblas/dropout.hpp"
 #include "egblas/shuffle.hpp"
