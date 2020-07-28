@@ -76,7 +76,7 @@ void conv1_valid_kernel_run(size_t N, size_t K, T alpha, const T* x, size_t incx
 
     cudaOccupancyMaxPotentialBlockSize(&minGridSize, &blockSize, conv1_valid_kernel<T>, 0, 0);
 
-    int gridSize = (N + blockSize - 1) / blockSize;
+    int gridSize = ((N - K + 1) + blockSize - 1) / blockSize;
 
     if (alpha == T(1)) {
         if (incx == 1 && inck == 1 && incy == 1) {
