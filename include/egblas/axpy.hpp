@@ -91,6 +91,7 @@ void egblas_iaxpy(size_t n, int32_t alpha, const int32_t* x, size_t incx, int32_
  */
 void egblas_laxpy(size_t n, int64_t alpha, const int64_t* x, size_t incx, int64_t* y, size_t incy);
 
+#define EGBLAS_HAS_HAXPY true
 #define EGBLAS_HAS_SAXPY true
 #define EGBLAS_HAS_DAXPY true
 #define EGBLAS_HAS_CAXPY true
