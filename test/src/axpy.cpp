@@ -619,4 +619,74 @@ TEST_CASE("axpy/h/0", "[half][axpy]") {
     delete[] y_cpu;
 }
 
+TEST_CASE("axpy/h/1", "[half][axpy]") {
+    const size_t N = 79;
+
+    __half2* x_cpu = new __half2[N];
+    __half2* y_cpu = new __half2[N];
+
+    for (size_t i = 0; i < N; ++i) {
+        x_cpu[i] = __float2half2_rn(i);
+        y_cpu[i] = __float2half2_rn(3.1f * i);
+    }
+
+    __half2* x_gpu;
+    __half2* y_gpu;
+    cuda_check(cudaMalloc((void**)&x_gpu, N * sizeof(__half2)));
+    cuda_check(cudaMalloc((void**)&y_gpu, N * sizeof(__half2)));
+
+    cuda_check(cudaMemcpy(x_gpu, x_cpu, N * sizeof(__half2), cudaMemcpyHostToDevice));
+    cuda_check(cudaMemcpy(y_gpu, y_cpu, N * sizeof(__half2), cudaMemcpyHostToDevice));
+
+    egblas_haxpy(N, __float2half2_rn(0.5), x_gpu, 1, y_gpu, 1);
+
+    cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(__half2), cudaMemcpyDeviceToHost));
+
+    for (size_t i = 0; i < N; ++i) {
+        REQUIRE(__high2float(y_cpu[i]) == Approx(0.5f * i + 3.1f * i).epsilon(half_eps));
+        REQUIRE(__low2float(y_cpu[i]) == Approx(0.5f * i + 3.1f * i).epsilon(half_eps));
+    }
+
+    cuda_check(cudaFree(x_gpu));
+    cuda_check(cudaFree(y_gpu));
+
+    delete[] x_cpu;
+    delete[] y_cpu;
+}
+
+TEST_CASE("axpy/h/2", "[half][axpy]") {
+    const size_t N = 192;
+
+    __half2* x_cpu = new __half2[N];
+    __half2* y_cpu = new __half2[N];
+
+    for (size_t i = 0; i < N; ++i) {
+        x_cpu[i] = __float2half2_rn(i);
+        y_cpu[i] = __float2half2_rn(-2.1f * i);
+    }
+
+    __half2* x_gpu;
+    __half2* y_gpu;
+    cuda_check(cudaMalloc((void**)&x_gpu, N * sizeof(__half2)));
+    cuda_check(cudaMalloc((void**)&y_gpu, N * sizeof(__half2)));
+
+    cuda_check(cudaMemcpy(x_gpu, x_cpu, N * sizeof(__half2), cudaMemcpyHostToDevice));
+    cuda_check(cudaMemcpy(y_gpu, y_cpu, N * sizeof(__half2), cudaMemcpyHostToDevice));
+
+    egblas_haxpy(N, __float2half2_rn(0.0), x_gpu, 1, y_gpu, 1);
+
+    cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(__half2), cudaMemcpyDeviceToHost));
+
+    for (size_t i = 0; i < N; ++i) {
+        REQUIRE(__high2float(y_cpu[i]) == Approx(-2.1f * i).epsilon(half_eps));
+        REQUIRE(__low2float(y_cpu[i]) == Approx(-2.1f * i).epsilon(half_eps));
+    }
+
+    cuda_check(cudaFree(x_gpu));
+    cuda_check(cudaFree(y_gpu));
+
+    delete[] x_cpu;
+    delete[] y_cpu;
+}
+
 #endif
