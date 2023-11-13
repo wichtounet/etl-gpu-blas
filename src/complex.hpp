@@ -5,9 +5,16 @@
 //  http://opensource.org/licenses/MIT)
 //=======================================================================
 
+#include "cuda_fp16.h"
+
 template<typename T>
 __forceinline__ __device__ T zero(){
     return T(0);
+}
+
+template<>
+__forceinline__ __device__ __half2 zero(){
+    return __float2half2_rn(0.0f);
 }
 
 template<>
