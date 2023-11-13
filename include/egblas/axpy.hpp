@@ -7,7 +7,11 @@
 
 #pragma once
 
+#include <cuda_fp16.h>
 #include <cuComplex.h>
+
+
+void egblas_haxpy(size_t n, __half2 alpha, const __half2* x, size_t incx, __half2* y, size_t incy);
 
 /*!
  * \brief Compute y = alpha * x + y (element wise), in single-precision
