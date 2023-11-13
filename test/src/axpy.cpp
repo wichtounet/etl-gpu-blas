@@ -11,6 +11,7 @@
 #include "cuda.h"
 #include "cuda_runtime.h"
 #include "cuda_runtime_api.h"
+#include "cuda_fp16.h"
 
 #include "egblas.hpp"
 #include "test.hpp"
@@ -572,6 +573,41 @@ TEST_CASE("axpy/l/2", "[long][axpy]") {
         } else {
             REQUIRE(y_cpu[i] == Approx(23 * i));
         }
+    }
+
+    cuda_check(cudaFree(x_gpu));
+    cuda_check(cudaFree(y_gpu));
+
+    delete[] x_cpu;
+    delete[] y_cpu;
+}
+
+TEST_CASE("axpy/h/0", "[half][axpy]") {
+    const size_t N = 137;
+
+    __half2* x_cpu = new __half2[N];
+    __half2* y_cpu = new __half2[N];
+
+    for (size_t i = 0; i < N; ++i) {
+        x_cpu[i] = __float2half2_rn(i);
+        y_cpu[i] = __float2half2_rn(2.1f * i);
+    }
+
+    __half2* x_gpu;
+    __half2* y_gpu;
+    cuda_check(cudaMalloc((void**)&x_gpu, N * sizeof(__half2)));
+    cuda_check(cudaMalloc((void**)&y_gpu, N * sizeof(__half2)));
+
+    cuda_check(cudaMemcpy(x_gpu, x_cpu, N * sizeof(__half2), cudaMemcpyHostToDevice));
+    cuda_check(cudaMemcpy(y_gpu, y_cpu, N * sizeof(__half2), cudaMemcpyHostToDevice));
+
+    egblas_haxpy(N, __float2half2_rn(1.0), x_gpu, 1, y_gpu, 1);
+
+    cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(__half2), cudaMemcpyDeviceToHost));
+
+    for (size_t i = 0; i < N; ++i) {
+        REQUIRE(__high2float(y_cpu[i]) == Approx(1.0f * i + 2.1f * i).epsilon(half_eps));
+        REQUIRE(__low2float(y_cpu[i]) == Approx(1.0f * i + 2.1f * i).epsilon(half_eps));
     }
 
     cuda_check(cudaFree(x_gpu));

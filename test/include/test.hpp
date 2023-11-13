@@ -29,6 +29,7 @@
     }
 
 extern float large_eps;
+extern float half_eps;
 
 /*!
  * \brief Utility for testing on dual (CPU/GPU) arrays

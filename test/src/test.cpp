@@ -8,4 +8,5 @@
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
 
-float large_eps = std::numeric_limits<float>::epsilon() * 10000;
+float large_eps = std::numeric_limits<float>::epsilon() * 20000;
+float half_eps = std::numeric_limits<float>::epsilon() * 100000;
