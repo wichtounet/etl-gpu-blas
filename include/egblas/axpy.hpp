@@ -6,12 +6,24 @@
 //=======================================================================
 
 #pragma once
-
-#include <cuda_fp16.h>
 #include <cuComplex.h>
 
+#ifndef DISABLE_FP16
 
+#include <cuda_fp16.h>
+
+/*!
+ * \brief Compute y = alpha * x + y (element wise), in half-precision
+ * \param n The size of the two vectors
+ * \param alpha The multiplicator
+ * \param x The vector x (GPU memory)
+ * \param incx The stride of x
+ * \param y The vector y (GPU memory)
+ * \param incy The stride of y
+ */
 void egblas_haxpy(size_t n, __half2 alpha, const __half2* x, size_t incx, __half2* y, size_t incy);
+
+#endif
 
 /*!
  * \brief Compute y = alpha * x + y (element wise), in single-precision

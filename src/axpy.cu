@@ -122,6 +122,8 @@ void axpy_kernel0_run(size_t n, T* y, size_t incy) {
 #endif
 }
 
+#ifndef DISABLE_FP16
+
 void egblas_haxpy(size_t n, __half2 alpha, const __half2* x, size_t incx, __half2* y, size_t incy) {
     if (incx == 1 && incy == 1) {
         axpy_kernel_run_flat(n, alpha, x, y);
@@ -129,6 +131,8 @@ void egblas_haxpy(size_t n, __half2 alpha, const __half2* x, size_t incx, __half
         axpy_kernel_run(n, alpha, x, incx, y, incy);
     }
 }
+
+#endif
 
 void egblas_saxpy(size_t n, float alpha, const float* x, size_t incx, float* y, size_t incy) {
     if (alpha == 1.0f) {

@@ -582,6 +582,8 @@ TEST_CASE("axpy/l/2", "[long][axpy]") {
     delete[] y_cpu;
 }
 
+#ifndef DISABLE_FP16
+
 TEST_CASE("axpy/h/0", "[half][axpy]") {
     const size_t N = 137;
 
@@ -616,3 +618,5 @@ TEST_CASE("axpy/h/0", "[half][axpy]") {
     delete[] x_cpu;
     delete[] y_cpu;
 }
+
+#endif
