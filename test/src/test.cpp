@@ -5,6 +5,8 @@
 //  http://opensource.org/licenses/MIT)
 //=======================================================================
 
+#include "catch_complex_approx.hpp"
+
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
 

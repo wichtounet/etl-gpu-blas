@@ -14,6 +14,8 @@
 
 #include <cmath>
 #include <limits>
+#include <string>
+#include <complex>
 
 /*!
  * \brief Utility class to compare two complex numbers with a margin of error
@@ -115,19 +117,11 @@ private:
 
 namespace Catch {
 
-/*!
- * \brief Overload of Catch::toString for TestComplex<float>
- */
-template <>
-inline std::string toString<TestComplex<float>>(const TestComplex<float>& value) {
+inline std::string toString(const TestComplex<float>& value) {
     return value.toString();
 }
 
-/*!
- * \brief Overload of Catch::toString for TestComplex<float>
- */
-template <>
-inline std::string toString<TestComplex<double>>(const TestComplex<double>& value) {
+inline std::string toString(const TestComplex<double>& value) {
     return value.toString();
 }
 

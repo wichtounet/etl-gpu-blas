@@ -15,8 +15,8 @@
 
 #include "egblas.hpp"
 
-#include "catch.hpp"
 #include "catch_complex_approx.hpp"
+#include "catch.hpp"
 
 #define cuda_check(call)                                                                                \
     {                                                                                                   \
