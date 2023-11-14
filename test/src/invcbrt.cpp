@@ -15,8 +15,6 @@
 #include "egblas.hpp"
 #include "test.hpp"
 
-#include "catch.hpp"
-
 template<typename T>
 std::complex<T> invcbrt(std::complex<T> z){
     T z_abs = std::abs(z);

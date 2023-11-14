@@ -15,8 +15,6 @@
 #include "egblas.hpp"
 #include "test.hpp"
 
-#include "catch.hpp"
-
 TEST_CASE("bernoulli/s/0", "[float][axpy]") {
     const size_t N = 137;
 

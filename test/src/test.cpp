@@ -8,7 +8,7 @@
 #include "catch_complex_approx.hpp"
 
 #define CATCH_CONFIG_MAIN
-#include "catch.hpp"
+#include "catch2/catch.hpp"
 
 float large_eps = std::numeric_limits<float>::epsilon() * 20000;
 float half_eps = std::numeric_limits<float>::epsilon() * 100000;

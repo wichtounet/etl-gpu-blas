@@ -15,8 +15,6 @@
 #include "egblas.hpp"
 #include "test.hpp"
 
-#include "catch.hpp"
-
 TEST_CASE("scalar_div/s/0", "[float][scalar_div]") {
     const size_t N = 123;
 

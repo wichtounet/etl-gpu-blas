@@ -15,8 +15,6 @@
 #include "egblas.hpp"
 #include "test.hpp"
 
-#include "catch.hpp"
-
 TEST_CASE("one_if_max/s/0", "[float][one_if_max]") {
     const size_t N = 137;
 

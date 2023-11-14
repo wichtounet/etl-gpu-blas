@@ -15,8 +15,6 @@
 #include "egblas.hpp"
 #include "test.hpp"
 
-#include "catch.hpp"
-
 TEST_CASE("sqrt/s/0", "[float][sqrt]") {
     const size_t N = 137;
 

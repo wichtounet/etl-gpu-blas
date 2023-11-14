@@ -5,4 +5,4 @@
 [submodule "Catch"]
 	path = Catch
 	url = https://github.com/philsquared/Catch.git
-	branch = Catch1.x
+	branch = v2.x

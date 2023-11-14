@@ -15,8 +15,6 @@
 #include "egblas.hpp"
 #include "test.hpp"
 
-#include "catch.hpp"
-
 TEST_CASE("max_reduce/s/0", "[float][max]") {
     const size_t N = 257;
 

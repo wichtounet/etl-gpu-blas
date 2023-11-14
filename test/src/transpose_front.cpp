@@ -15,8 +15,6 @@
 #include "egblas.hpp"
 #include "test.hpp"
 
-#include "catch.hpp"
-
 TEST_CASE("transpose_front/s/0", "[float][bias_batch_sum]") {
     const size_t M = 2;
     const size_t N = 3;

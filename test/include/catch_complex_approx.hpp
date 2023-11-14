@@ -110,19 +110,11 @@ struct TestComplex {
         return oss.str();
     }
 
+    friend std::ostream & operator<<(std::ostream & os, const TestComplex & value) {
+        return os << value.toString();
+    }
+
 private:
     T eps;                 ///< The epsilon for comparison
     std::complex<T> value; ///< The expected value
 };
-
-namespace Catch {
-
-inline std::string toString(const TestComplex<float>& value) {
-    return value.toString();
-}
-
-inline std::string toString(const TestComplex<double>& value) {
-    return value.toString();
-}
-
-} // end of namespace Catch

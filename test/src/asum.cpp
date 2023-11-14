@@ -15,8 +15,6 @@
 #include "egblas.hpp"
 #include "test.hpp"
 
-#include "catch.hpp"
-
 TEST_CASE("asum/s/0", "[float][asum]") {
     const size_t N = 257;
 

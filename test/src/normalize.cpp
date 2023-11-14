@@ -39,8 +39,8 @@ TEST_CASE("normalize_flat/0", "[normalize]") {
 
     s = std::sqrt(s / N);
 
-    REQUIRE(m == Approx(0.0f));
-    REQUIRE(s == Approx(1.0f));
+    REQUIRE(m == Approx(0.0f).scale(1));
+    REQUIRE(s == Approx(1.0f).scale(1));
 
     cuda_check(cudaFree(a_gpu));
 
@@ -81,8 +81,8 @@ TEST_CASE("normalize_sub/0", "[normalize]") {
 
         s = std::sqrt(s / N);
 
-        REQUIRE(m == Approx(0.0f));
-        REQUIRE(s == Approx(1.0f));
+        REQUIRE(m == Approx(0.0f).scale(1));
+        REQUIRE(s == Approx(1.0f).scale(1));
     }
 
     cuda_check(cudaFree(a_gpu));

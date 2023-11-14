@@ -15,8 +15,6 @@
 #include "egblas.hpp"
 #include "test.hpp"
 
-#include "catch.hpp"
-
 TEST_CASE("batch_k_scale_plus2/s/0", "[float][batch_k_scale_plus2]") {
     const size_t B = 2;
     const size_t K = 3;

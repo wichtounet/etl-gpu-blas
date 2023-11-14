@@ -16,8 +16,6 @@
 #include "egblas.hpp"
 #include "test.hpp"
 
-#include "catch.hpp"
-
 TEST_CASE("axpy/s/0", "[float][axpy]") {
     const size_t N = 137;
 

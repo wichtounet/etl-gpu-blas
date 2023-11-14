@@ -15,8 +15,6 @@
 #include "egblas.hpp"
 #include "test.hpp"
 
-#include "catch.hpp"
-
 TEST_CASE("bias_batch_sum4/s/0", "[float][bias_batch_sum4]") {
     const size_t B = 2;
     const size_t N = 3;

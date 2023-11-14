@@ -15,8 +15,6 @@
 #include "egblas.hpp"
 #include "test.hpp"
 
-#include "catch.hpp"
-
 TEST_CASE("sigmoid/s/0", "[float][sigmoid]") {
     const size_t N = 137;
 

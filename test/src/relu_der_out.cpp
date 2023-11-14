@@ -15,8 +15,6 @@
 #include "egblas.hpp"
 #include "test.hpp"
 
-#include "catch.hpp"
-
 TEST_CASE("relu_der_out/s/0", "[float][relu_der_out]") {
     const size_t N = 137;
 

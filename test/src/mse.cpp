@@ -15,8 +15,6 @@
 #include "egblas.hpp"
 #include "test.hpp"
 
-#include "catch.hpp"
-
 TEST_CASE("mse/loss/s/0", "[float][mse]") {
     const size_t N = 100;
 

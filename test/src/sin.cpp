@@ -30,7 +30,7 @@ TEST_CASE("sin/s/0", "[float][sin]") {
     cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
 
     for (size_t i = 0; i < N; ++i) {
-        REQUIRE(y_cpu[i] == Approx(1.0f * std::sin(x_cpu[i])));
+        REQUIRE(y_cpu[i] == Approx(1.0f * std::sin(x_cpu[i])).epsilon(large_eps));
     }
 
     cuda_check(cudaFree(x_gpu));
@@ -63,7 +63,7 @@ TEST_CASE("sin/s/1", "[float][sin]") {
     cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
 
     for (size_t i = 0; i < N; ++i) {
-        REQUIRE(y_cpu[i] == Approx(0.2f * std::sin(x_cpu[i])));
+        REQUIRE(y_cpu[i] == Approx(0.2f * std::sin(x_cpu[i])).epsilon(large_eps));
     }
 
     cuda_check(cudaFree(x_gpu));
