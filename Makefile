@@ -6,8 +6,11 @@ default: release_debug
 include make-utils/flags-gpu.mk
 include make-utils/cpp-utils.mk
 
-# Use compute capabilities 7.0
-CXX_FLAGS += -m64 -arch=sm_70
+# Use compute capabilities 8.0
+CXX_FLAGS += -m64 -arch=sm_80
+
+# Use C++14
+$(eval $(call use_cpp14))
 
 # NVCC optimizations
 RELEASE_FLAGS += --use_fast_math
