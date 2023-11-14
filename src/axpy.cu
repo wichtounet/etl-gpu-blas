@@ -94,9 +94,25 @@ void axpy_kernel1_run(size_t n, const T* x, size_t incx, T* y, size_t incy) {
 #endif
 }
 
-#ifndef DISABLE_FP16
+#ifdef EGBLAS_HAS_HAXPY
 
-void egblas_haxpy(size_t n, __half2 alpha, const __half2* x, size_t incx, __half2* y, size_t incy) {
+void egblas_haxpy(size_t n, fp16 alpha, const fp16* x, size_t incx, fp16* y, size_t incy) {
+    if (__low2float(alpha) == 1.0f && __high2float(alpha) == 1.0f) {
+        axpy_kernel1_run(n, x, incx, y, incy);
+    } else if (__low2float(alpha) == 0.0f && __high2float(alpha) == 0.0f) {
+        return;
+    } else if (incx == 1 && incy == 1) {
+        axpy_kernel_run_flat(n, alpha, x, y);
+    } else {
+        axpy_kernel_run(n, alpha, x, incx, y, incy);
+    }
+}
+
+#endif
+
+#ifdef EGBLAS_HAS_BAXPY
+
+void egblas_baxpy(size_t n, bf16 alpha, const bf16* x, size_t incx, bf16* y, size_t incy) {
     if (__low2float(alpha) == 1.0f && __high2float(alpha) == 1.0f) {
         axpy_kernel1_run(n, x, incx, y, incy);
     } else if (__low2float(alpha) == 0.0f && __high2float(alpha) == 0.0f) {

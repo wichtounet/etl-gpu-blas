@@ -6,14 +6,14 @@
 //=======================================================================
 
 #pragma once
+
 #include <cuComplex.h>
+#include "half.hpp"
 
 #ifndef DISABLE_FP16
 
-#include <cuda_fp16.h>
-
 /*!
- * \brief Compute y = alpha * x + y (element wise), in half-precision
+ * \brief Compute y = alpha * x + y (element wise), in half-precision FP16
  * \param n The size of the two vectors
  * \param alpha The multiplicator
  * \param x The vector x (GPU memory)
@@ -21,8 +21,29 @@
  * \param y The vector y (GPU memory)
  * \param incy The stride of y
  */
-void egblas_haxpy(size_t n, __half2 alpha, const __half2* x, size_t incx, __half2* y, size_t incy);
+void egblas_haxpy(size_t n, fp16 alpha, const fp16* x, size_t incx, fp16* y, size_t incy);
 
+#define EGBLAS_HAS_HAXPY true
+#else
+#define EGBLAS_HAS_HAXPY true
+#endif
+
+#ifndef DISABLE_BF16
+
+/*!
+ * \brief Compute y = alpha * x + y (element wise), in half-precision BF16
+ * \param n The size of the two vectors
+ * \param alpha The multiplicator
+ * \param x The vector x (GPU memory)
+ * \param incx The stride of x
+ * \param y The vector y (GPU memory)
+ * \param incy The stride of y
+ */
+void egblas_baxpy(size_t n, bf16 alpha, const bf16* x, size_t incx, bf16* y, size_t incy);
+
+#define EGBLAS_HAS_BAXPY true
+#else
+#define EGBLAS_HAS_BAXPY false
 #endif
 
 /*!
@@ -91,7 +112,6 @@ void egblas_iaxpy(size_t n, int32_t alpha, const int32_t* x, size_t incx, int32_
  */
 void egblas_laxpy(size_t n, int64_t alpha, const int64_t* x, size_t incx, int64_t* y, size_t incy);
 
-#define EGBLAS_HAS_HAXPY true
 #define EGBLAS_HAS_SAXPY true
 #define EGBLAS_HAS_DAXPY true
 #define EGBLAS_HAS_CAXPY true
