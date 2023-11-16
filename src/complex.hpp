@@ -6,6 +6,7 @@
 //=======================================================================
 
 #include "cuda_fp16.h"
+#include "cuda_bf16.h"
 
 template<typename T>
 __forceinline__ __device__ T zero(){
@@ -15,6 +16,11 @@ __forceinline__ __device__ T zero(){
 template<>
 __forceinline__ __device__ __half2 zero(){
     return __float2half2_rn(0.0f);
+}
+
+template<>
+__forceinline__ __device__ __nv_bfloat162 zero(){
+    return __float2bfloat162_rn(0.0f);
 }
 
 template<>
