@@ -46,20 +46,20 @@ __global__ void axpy_3_kernel1_flat(size_t n, const T* x, const T* y, T* yy) {
 }
 
 template <typename T>
-__global__ void axpy_3_kernel0(size_t n, T* yy, size_t incyy) {
+__global__ void axpy_3_kernel0(size_t n, const T* y, size_t incx, T* yy, size_t incyy) {
     auto index  = threadIdx.x + blockIdx.x * blockDim.x;
 
     if (index < n) {
-        yy[incyy * index] = zero<T>();
+        yy[incyy * index] = y[incx * index];
     }
 }
 
 template <typename T>
-__global__ void axpy_3_kernel0_flat(size_t n, T* yy) {
+__global__ void axpy_3_kernel0_flat(size_t n, const T * y, T* yy) {
     auto index  = threadIdx.x + blockIdx.x * blockDim.x;
 
     if (index < n) {
-        yy[index] = zero<T>();
+        yy[index] = y[index];
     }
 }
 
@@ -108,7 +108,7 @@ void axpy_3_kernel1_run(size_t n, const T* x, size_t incx, const T* y, size_t in
 }
 
 template <typename T>
-void axpy_3_kernel0_run(size_t n, T* yy, size_t incyy) {
+void axpy_3_kernel0_run(size_t n, const T * y, size_t incy, T* yy, size_t incyy) {
     static int blockSize   = 0;
     static int minGridSize = 0;
 
@@ -118,10 +118,10 @@ void axpy_3_kernel0_run(size_t n, T* yy, size_t incyy) {
 
     int gridSize = ((n / incyy) + blockSize - 1) / blockSize;
 
-    if (incyy == 1 ) {
-        axpy_3_kernel0_flat<T><<<gridSize, blockSize>>>(n, yy);
+    if (incy == 1 && incyy == 1 ) {
+        axpy_3_kernel0_flat<T><<<gridSize, blockSize>>>(n, y, yy);
     } else {
-        axpy_3_kernel0<T><<<gridSize, blockSize>>>(n, yy, incyy);
+        axpy_3_kernel0<T><<<gridSize, blockSize>>>(n, y, incy, yy, incyy);
     }
 
 #ifdef EGBLAS_SYNCHRONIZE
@@ -135,7 +135,7 @@ void egblas_haxpy_3(size_t n, fp16 alpha, const fp16* x, size_t incx, const fp16
     if (__low2float(alpha) == 1.0f && __high2float(alpha) == 1.0f) {
         axpy_3_kernel1_run(n, x, incx, y, incy, yy, incyy);
     } else if (__low2float(alpha) == 0.0f) {
-        axpy_3_kernel0_run(n, yy, incyy);
+        axpy_3_kernel0_run(n, y, incy, yy, incyy);
     } else {
         axpy_3_kernel_run(n, alpha, x, incx, y, incy, yy, incyy);
     }
@@ -149,7 +149,7 @@ void egblas_baxpy_3(size_t n, bf16 alpha, const bf16* x, size_t incx, const bf16
     if (__low2float(alpha) == 1.0f && __high2float(alpha) == 1.0f) {
         axpy_3_kernel1_run(n, x, incx, y, incy, yy, incyy);
     } else if (__low2float(alpha) == 0.0f) {
-        axpy_3_kernel0_run(n, yy, incyy);
+        axpy_3_kernel0_run(n, y, incy, yy, incyy);
     } else {
         axpy_3_kernel_run(n, alpha, x, incx, y, incy, yy, incyy);
     }
@@ -161,7 +161,7 @@ void egblas_saxpy_3(size_t n, float alpha, const float* x, size_t incx, const fl
     if (alpha == 1.0f) {
         axpy_3_kernel1_run(n, x, incx, y, incy, yy, incyy);
     } else if (alpha == 0.0f) {
-        axpy_3_kernel0_run(n, yy, incyy);
+        axpy_3_kernel0_run(n, y, incy, yy, incyy);
     } else {
         axpy_3_kernel_run(n, alpha, x, incx, y, incy, yy, incyy);
     }
@@ -171,7 +171,7 @@ void egblas_daxpy_3(size_t n, double alpha, const double* x, size_t incx, const 
     if (alpha == 1.0) {
         axpy_3_kernel1_run(n, x, incx, y, incy, yy, incyy);
     } else if (alpha == 0.0) {
-        axpy_3_kernel0_run(n, yy, incyy);
+        axpy_3_kernel0_run(n, y, incy, yy, incyy);
     } else {
         axpy_3_kernel_run(n, alpha, x, incx, y, incy, yy, incyy);
     }
@@ -181,7 +181,7 @@ void egblas_caxpy_3(size_t n, cuComplex alpha, const cuComplex* x, size_t incx, 
     if (alpha.x == 1.0f && alpha.y == 0.0f) {
         axpy_3_kernel1_run(n, x, incx, y, incy, yy, incyy);
     } else if (alpha.x == 0.0f && alpha.y == 0.0f) {
-        axpy_3_kernel0_run(n, yy, incyy);
+        axpy_3_kernel0_run(n, y, incy, yy, incyy);
     } else {
         axpy_3_kernel_run(n, alpha, x, incx, y, incy, yy, incyy);
     }
@@ -191,7 +191,7 @@ void egblas_zaxpy_3(size_t n, cuDoubleComplex alpha, const cuDoubleComplex* x, s
     if (alpha.x == 1.0 && alpha.y == 0.0) {
         axpy_3_kernel1_run(n, x, incx, y, incy, yy, incyy);
     } else if (alpha.x == 0.0 && alpha.y == 0.0) {
-        axpy_3_kernel0_run(n, yy, incyy);
+        axpy_3_kernel0_run(n, y, incy, yy, incyy);
     } else {
         axpy_3_kernel_run(n, alpha, x, incx, y, incy, yy, incyy);
     }
@@ -201,7 +201,7 @@ void egblas_iaxpy_3(size_t n, int32_t alpha, const int32_t* x, size_t incx, cons
     if (alpha == 1) {
         axpy_3_kernel1_run(n, x, incx, y, incy, yy, incyy);
     } else if (alpha == 0) {
-        axpy_3_kernel0_run(n, yy, incyy);
+        axpy_3_kernel0_run(n, y, incy, yy, incyy);
     } else {
         axpy_3_kernel_run(n, alpha, x, incx, y, incy, yy, incyy);
     }
@@ -211,7 +211,7 @@ void egblas_laxpy_3(size_t n, int64_t alpha, const int64_t* x, size_t incx, cons
     if (alpha == 1) {
         axpy_3_kernel1_run(n, x, incx, y, incy, yy, incyy);
     } else if (alpha == 0) {
-        axpy_3_kernel0_run(n, yy, incyy);
+        axpy_3_kernel0_run(n, y, incy, yy, incyy);
     } else {
         axpy_3_kernel_run(n, alpha, x, incx, y, incy, yy, incyy);
     }

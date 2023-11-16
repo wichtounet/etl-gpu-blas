@@ -12,7 +12,7 @@
  */
 
 template <typename T>
-T fromFloat(float f);
+inline T fromFloat(float f);
 
 #ifndef DISABLE_FP16
 
@@ -21,7 +21,7 @@ T fromFloat(float f);
 using fp16 = __half2;
 
 template<>
-fp16 fromFloat<fp16>(float f){
+inline fp16 fromFloat<fp16>(float f){
     return __float2half2_rn(f);
 }
 
@@ -34,7 +34,7 @@ fp16 fromFloat<fp16>(float f){
 using bf16 = __nv_bfloat162;
 
 template<>
-bf16 fromFloat<bf16>(float f){
+inline bf16 fromFloat<bf16>(float f){
     return __float2bfloat162_rn(f);
 }
 
