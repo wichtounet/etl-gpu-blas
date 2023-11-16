@@ -2,10 +2,6 @@
 	path = make-utils
 	url = https://github.com/wichtounet/make-utils
 	branch = master
-[submodule "Catch"]
-	path = Catch
-	url = https://github.com/philsquared/Catch.git
-	branch = v2.x
 [submodule "doctest"]
 	path = doctest
 	url = https://github.com/doctest/doctest.git
