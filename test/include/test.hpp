@@ -14,6 +14,7 @@
 #include "cuda_runtime_api.h"
 
 #include "egblas.hpp"
+//#include "half.hpp"
 
 #include "catch_complex_approx.hpp"
 #include "doctest/doctest.h"
@@ -32,6 +33,17 @@ using doctest::Approx;
             FAIL("Cuda ERROR"); \
         }                                                                                               \
     }
+
+#if !defined(DISABLE_FP16) && !defined(DISABLE_BF16)
+#define TEST_CASE_HALF(name) TEST_CASE_TEMPLATE(name, T, fp16, bf16)
+#define TEST_HALF
+#elif !defined(DISABLE_FP16)
+#define TEST_CASE_HALF(name) TEST_CASE_TEMPLATE(name, T, fp16)
+#define TEST_HALF
+#elif !defined(DISABLE_BF16)
+#define TEST_CASE_HALF(name) TEST_CASE_TEMPLATE(name, T, bf16)
+#define TEST_HALF
+#endif
 
 extern float large_eps;
 extern float half_eps;

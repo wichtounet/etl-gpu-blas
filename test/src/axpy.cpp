@@ -520,30 +520,34 @@ TEST_CASE_TEMPLATE("axpy/i/2", T, int32_t, int64_t ) {
     delete[] y_cpu;
 }
 
-#ifndef DISABLE_FP16
+#ifdef TEST_HALF
 
-TEST_CASE("axpy/h/0", "[fp16][axpy]") {
+TEST_CASE_HALF("axpy/h/0") {
     const size_t N = 137;
 
-    fp16* x_cpu = new fp16[N];
-    fp16* y_cpu = new fp16[N];
+    T* x_cpu = new T[N];
+    T* y_cpu = new T[N];
 
     for (size_t i = 0; i < N; ++i) {
-        x_cpu[i] = __float2half2_rn(i);
-        y_cpu[i] = __float2half2_rn(2.1f * i);
+        x_cpu[i] = fromFloat<T>(i);
+        y_cpu[i] = fromFloat<T>(2.1f * i);
     }
 
-    fp16* x_gpu;
-    fp16* y_gpu;
-    cuda_check(cudaMalloc((void**)&x_gpu, N * sizeof(fp16)));
-    cuda_check(cudaMalloc((void**)&y_gpu, N * sizeof(fp16)));
+    T* x_gpu;
+    T* y_gpu;
+    cuda_check(cudaMalloc((void**)&x_gpu, N * sizeof(T)));
+    cuda_check(cudaMalloc((void**)&y_gpu, N * sizeof(T)));
 
-    cuda_check(cudaMemcpy(x_gpu, x_cpu, N * sizeof(fp16), cudaMemcpyHostToDevice));
-    cuda_check(cudaMemcpy(y_gpu, y_cpu, N * sizeof(fp16), cudaMemcpyHostToDevice));
+    cuda_check(cudaMemcpy(x_gpu, x_cpu, N * sizeof(T), cudaMemcpyHostToDevice));
+    cuda_check(cudaMemcpy(y_gpu, y_cpu, N * sizeof(T), cudaMemcpyHostToDevice));
 
-    egblas_haxpy(N, __float2half2_rn(1.0), x_gpu, 1, y_gpu, 1);
+    if constexpr (std::is_same_v<T, fp16>) {
+        egblas_haxpy(N, fromFloat<T>(1.0), x_gpu, 1, y_gpu, 1);
+    } else if constexpr (std::is_same_v<T, bf16>) {
+        egblas_baxpy(N, fromFloat<T>(1.0), x_gpu, 1, y_gpu, 1);
+    }
 
-    cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(fp16), cudaMemcpyDeviceToHost));
+    cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(T), cudaMemcpyDeviceToHost));
 
     for (size_t i = 0; i < N; ++i) {
         REQUIRE(__high2float(y_cpu[i]) == Approx(1.0f * i + 2.1f * i).epsilon(half_eps));
@@ -557,28 +561,32 @@ TEST_CASE("axpy/h/0", "[fp16][axpy]") {
     delete[] y_cpu;
 }
 
-TEST_CASE("axpy/h/1", "[fp16][axpy]") {
+TEST_CASE_HALF("axpy/h/1") {
     const size_t N = 79;
 
-    fp16* x_cpu = new fp16[N];
-    fp16* y_cpu = new fp16[N];
+    T* x_cpu = new T[N];
+    T* y_cpu = new T[N];
 
     for (size_t i = 0; i < N; ++i) {
-        x_cpu[i] = __float2half2_rn(i);
-        y_cpu[i] = __float2half2_rn(3.1f * i);
+        x_cpu[i] = fromFloat<T>(i);
+        y_cpu[i] = fromFloat<T>(3.1f * i);
     }
 
-    fp16* x_gpu;
-    fp16* y_gpu;
-    cuda_check(cudaMalloc((void**)&x_gpu, N * sizeof(fp16)));
-    cuda_check(cudaMalloc((void**)&y_gpu, N * sizeof(fp16)));
+    T* x_gpu;
+    T* y_gpu;
+    cuda_check(cudaMalloc((void**)&x_gpu, N * sizeof(T)));
+    cuda_check(cudaMalloc((void**)&y_gpu, N * sizeof(T)));
 
-    cuda_check(cudaMemcpy(x_gpu, x_cpu, N * sizeof(fp16), cudaMemcpyHostToDevice));
-    cuda_check(cudaMemcpy(y_gpu, y_cpu, N * sizeof(fp16), cudaMemcpyHostToDevice));
+    cuda_check(cudaMemcpy(x_gpu, x_cpu, N * sizeof(T), cudaMemcpyHostToDevice));
+    cuda_check(cudaMemcpy(y_gpu, y_cpu, N * sizeof(T), cudaMemcpyHostToDevice));
 
-    egblas_haxpy(N, __float2half2_rn(0.5), x_gpu, 1, y_gpu, 1);
+    if constexpr (std::is_same_v<T, fp16>) {
+        egblas_haxpy(N, fromFloat<T>(0.5), x_gpu, 1, y_gpu, 1);
+    } else if constexpr (std::is_same_v<T, bf16>) {
+        egblas_baxpy(N, fromFloat<T>(0.5), x_gpu, 1, y_gpu, 1);
+    }
 
-    cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(fp16), cudaMemcpyDeviceToHost));
+    cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(T), cudaMemcpyDeviceToHost));
 
     for (size_t i = 0; i < N; ++i) {
         REQUIRE(__high2float(y_cpu[i]) == Approx(0.5f * i + 3.1f * i).epsilon(half_eps));
@@ -592,137 +600,32 @@ TEST_CASE("axpy/h/1", "[fp16][axpy]") {
     delete[] y_cpu;
 }
 
-TEST_CASE("axpy/h/2", "[fp16][axpy]") {
+TEST_CASE_HALF("axpy/h/2") {
     const size_t N = 192;
 
-    fp16* x_cpu = new fp16[N];
-    fp16* y_cpu = new fp16[N];
+    T* x_cpu = new T[N];
+    T* y_cpu = new T[N];
 
     for (size_t i = 0; i < N; ++i) {
-        x_cpu[i] = __float2half2_rn(i);
-        y_cpu[i] = __float2half2_rn(-2.1f * i);
+        x_cpu[i] = fromFloat<T>(i);
+        y_cpu[i] = fromFloat<T>(-2.1f * i);
     }
 
-    fp16* x_gpu;
-    fp16* y_gpu;
-    cuda_check(cudaMalloc((void**)&x_gpu, N * sizeof(fp16)));
-    cuda_check(cudaMalloc((void**)&y_gpu, N * sizeof(fp16)));
+    T* x_gpu;
+    T* y_gpu;
+    cuda_check(cudaMalloc((void**)&x_gpu, N * sizeof(T)));
+    cuda_check(cudaMalloc((void**)&y_gpu, N * sizeof(T)));
 
-    cuda_check(cudaMemcpy(x_gpu, x_cpu, N * sizeof(fp16), cudaMemcpyHostToDevice));
-    cuda_check(cudaMemcpy(y_gpu, y_cpu, N * sizeof(fp16), cudaMemcpyHostToDevice));
+    cuda_check(cudaMemcpy(x_gpu, x_cpu, N * sizeof(T), cudaMemcpyHostToDevice));
+    cuda_check(cudaMemcpy(y_gpu, y_cpu, N * sizeof(T), cudaMemcpyHostToDevice));
 
-    egblas_haxpy(N, __float2half2_rn(0.0), x_gpu, 1, y_gpu, 1);
-
-    cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(fp16), cudaMemcpyDeviceToHost));
-
-    for (size_t i = 0; i < N; ++i) {
-        REQUIRE(__high2float(y_cpu[i]) == Approx(-2.1f * i).epsilon(half_eps));
-        REQUIRE(__low2float(y_cpu[i]) == Approx(-2.1f * i).epsilon(half_eps));
+    if constexpr (std::is_same_v<T, fp16>) {
+        egblas_haxpy(N, fromFloat<T>(0.0), x_gpu, 1, y_gpu, 1);
+    } else if constexpr (std::is_same_v<T, bf16>) {
+        egblas_baxpy(N, fromFloat<T>(0.0), x_gpu, 1, y_gpu, 1);
     }
 
-    cuda_check(cudaFree(x_gpu));
-    cuda_check(cudaFree(y_gpu));
-
-    delete[] x_cpu;
-    delete[] y_cpu;
-}
-
-#endif
-
-#ifndef DISABLE_BF16
-
-TEST_CASE("axpy/b/0", "[bf16][axpy]") {
-    const size_t N = 137;
-
-    bf16* x_cpu = new bf16[N];
-    bf16* y_cpu = new bf16[N];
-
-    for (size_t i = 0; i < N; ++i) {
-        x_cpu[i] = __float2bfloat162_rn(i);
-        y_cpu[i] = __float2bfloat162_rn(2.1f * i);
-    }
-
-    bf16* x_gpu;
-    bf16* y_gpu;
-    cuda_check(cudaMalloc((void**)&x_gpu, N * sizeof(bf16)));
-    cuda_check(cudaMalloc((void**)&y_gpu, N * sizeof(bf16)));
-
-    cuda_check(cudaMemcpy(x_gpu, x_cpu, N * sizeof(bf16), cudaMemcpyHostToDevice));
-    cuda_check(cudaMemcpy(y_gpu, y_cpu, N * sizeof(bf16), cudaMemcpyHostToDevice));
-
-    egblas_baxpy(N, __float2bfloat162_rn(1.0), x_gpu, 1, y_gpu, 1);
-
-    cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(bf16), cudaMemcpyDeviceToHost));
-
-    for (size_t i = 0; i < N; ++i) {
-        REQUIRE(__high2float(y_cpu[i]) == Approx(1.0f * i + 2.1f * i).epsilon(half_eps));
-        REQUIRE(__low2float(y_cpu[i]) == Approx(1.0f * i + 2.1f * i).epsilon(half_eps));
-    }
-
-    cuda_check(cudaFree(x_gpu));
-    cuda_check(cudaFree(y_gpu));
-
-    delete[] x_cpu;
-    delete[] y_cpu;
-}
-
-TEST_CASE("axpy/b/1", "[bf16][axpy]") {
-    const size_t N = 79;
-
-    bf16* x_cpu = new bf16[N];
-    bf16* y_cpu = new bf16[N];
-
-    for (size_t i = 0; i < N; ++i) {
-        x_cpu[i] = __float2bfloat162_rn(i);
-        y_cpu[i] = __float2bfloat162_rn(3.1f * i);
-    }
-
-    bf16* x_gpu;
-    bf16* y_gpu;
-    cuda_check(cudaMalloc((void**)&x_gpu, N * sizeof(bf16)));
-    cuda_check(cudaMalloc((void**)&y_gpu, N * sizeof(bf16)));
-
-    cuda_check(cudaMemcpy(x_gpu, x_cpu, N * sizeof(bf16), cudaMemcpyHostToDevice));
-    cuda_check(cudaMemcpy(y_gpu, y_cpu, N * sizeof(bf16), cudaMemcpyHostToDevice));
-
-    egblas_baxpy(N, __float2bfloat162_rn(0.5), x_gpu, 1, y_gpu, 1);
-
-    cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(bf16), cudaMemcpyDeviceToHost));
-
-    for (size_t i = 0; i < N; ++i) {
-        REQUIRE(__high2float(y_cpu[i]) == Approx(0.5f * i + 3.1f * i).epsilon(half_eps));
-        REQUIRE(__low2float(y_cpu[i]) == Approx(0.5f * i + 3.1f * i).epsilon(half_eps));
-    }
-
-    cuda_check(cudaFree(x_gpu));
-    cuda_check(cudaFree(y_gpu));
-
-    delete[] x_cpu;
-    delete[] y_cpu;
-}
-
-TEST_CASE("axpy/b/2", "[bf16][axpy]") {
-    const size_t N = 192;
-
-    bf16* x_cpu = new bf16[N];
-    bf16* y_cpu = new bf16[N];
-
-    for (size_t i = 0; i < N; ++i) {
-        x_cpu[i] = __float2bfloat162_rn(i);
-        y_cpu[i] = __float2bfloat162_rn(-2.1f * i);
-    }
-
-    bf16* x_gpu;
-    bf16* y_gpu;
-    cuda_check(cudaMalloc((void**)&x_gpu, N * sizeof(bf16)));
-    cuda_check(cudaMalloc((void**)&y_gpu, N * sizeof(bf16)));
-
-    cuda_check(cudaMemcpy(x_gpu, x_cpu, N * sizeof(bf16), cudaMemcpyHostToDevice));
-    cuda_check(cudaMemcpy(y_gpu, y_cpu, N * sizeof(bf16), cudaMemcpyHostToDevice));
-
-    egblas_baxpy(N, __float2bfloat162_rn(0.0), x_gpu, 1, y_gpu, 1);
-
-    cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(bf16), cudaMemcpyDeviceToHost));
+    cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(T), cudaMemcpyDeviceToHost));
 
     for (size_t i = 0; i < N; ++i) {
         REQUIRE(__high2float(y_cpu[i]) == Approx(-2.1f * i).epsilon(half_eps));
