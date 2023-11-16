@@ -16,7 +16,12 @@
 #include "egblas.hpp"
 
 #include "catch_complex_approx.hpp"
-#include "catch2/catch.hpp"
+#include "doctest/doctest.h"
+
+#undef TEST_CASE
+#define TEST_CASE(name, tags) DOCTEST_TEST_CASE(tags " " name)
+
+using doctest::Approx;
 
 #define cuda_check(call)                                                                                \
     {                                                                                                   \
@@ -24,7 +29,7 @@
         if (status != cudaSuccess) {                                                                    \
             std::cerr << "CUDA error: " << cudaGetErrorString(status) << " from " << #call << std::endl \
                       << "from " << __FILE__ << ":" << __LINE__ << std::endl;                           \
-            FAIL();                                                                                     \
+            FAIL("Cuda ERROR"); \
         }                                                                                               \
     }
 

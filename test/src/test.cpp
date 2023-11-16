@@ -5,10 +5,8 @@
 //  http://opensource.org/licenses/MIT)
 //=======================================================================
 
-#include "catch_complex_approx.hpp"
-
-#define CATCH_CONFIG_MAIN
-#include "catch2/catch.hpp"
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include "doctest/doctest.h"
 
 float large_eps = std::numeric_limits<float>::epsilon() * 20000;
 float half_eps = std::numeric_limits<float>::epsilon() * 100000;

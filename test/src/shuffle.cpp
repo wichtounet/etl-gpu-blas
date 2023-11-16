@@ -5,6 +5,8 @@
 //  http://opensource.org/licenses/MIT)
 //=======================================================================
 
+#include<algorithm>
+
 #include "test.hpp"
 
 TEST_CASE("shuffle/0", "[shuffle]") {
