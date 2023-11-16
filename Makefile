@@ -10,7 +10,7 @@ include make-utils/cpp-utils.mk
 CXX_FLAGS += -m64 -arch=sm_80
 
 # Use C++14
-$(eval $(call use_cpp14))
+$(eval $(call use_cpp17))
 
 # NVCC optimizations
 RELEASE_FLAGS += --use_fast_math
