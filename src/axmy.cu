@@ -87,6 +87,34 @@ void axmy_kernel0_run(size_t n, T* y, size_t incy) {
 #endif
 }
 
+#ifdef EGBLAS_HAS_HAXMY
+
+void egblas_haxmy(size_t n, fp16 alpha, const fp16* x, size_t incx, fp16* y, size_t incy) {
+    if (__low2float(alpha) == 1.0f && __high2float(alpha) == 1.0f) {
+        axmy_kernel1_run(n, x, incx, y, incy);
+    } else if (__low2float(alpha) == 0.0f && __high2float(alpha) == 0.0f) {
+        axmy_kernel0_run(n, y, incy);
+    } else {
+        axmy_kernel_run(n, alpha, x, incx, y, incy);
+    }
+}
+
+#endif
+
+#ifdef EGBLAS_HAS_BAXMY
+
+void egblas_baxmy(size_t n, bf16 alpha, const bf16* x, size_t incx, bf16* y, size_t incy) {
+    if (__low2float(alpha) == 1.0f && __high2float(alpha) == 1.0f) {
+        axmy_kernel1_run(n, x, incx, y, incy);
+    } else if (__low2float(alpha) == 0.0f && __high2float(alpha) == 0.0f) {
+        axmy_kernel0_run(n, y, incy);
+    } else {
+        axmy_kernel_run(n, alpha, x, incx, y, incy);
+    }
+}
+
+#endif
+
 void egblas_saxmy(size_t n, float alpha, const float* x, size_t incx, float* y, size_t incy) {
     if (alpha == 1.0f) {
         axmy_kernel1_run(n, x, incx, y, incy);
