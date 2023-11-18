@@ -80,6 +80,29 @@ TEST_CASE("axmy/s/2", "[float][axmy]") {
     }
 }
 
+TEST_CASE("axmy/s/3", "[float][axmy]") {
+    const size_t N = 111;
+
+    dual_array<float> x(N);
+    dual_array<float> y(N);
+
+    for (size_t i = 0; i < N; ++i) {
+        x.cpu()[i] = i;
+        y.cpu()[i] = 2.3f * i;
+    }
+
+    x.cpu_to_gpu();
+    y.cpu_to_gpu();
+
+    egblas_saxmy(N, 0.0, x.gpu(), 1, y.gpu(), 1);
+
+    y.gpu_to_cpu();
+
+    for (size_t i = 0; i < N; ++i) {
+        REQUIRE(y.cpu()[i] == Approx(0.0f));
+    }
+}
+
 TEST_CASE("axmy/d/0", "[double][axmy]") {
     const size_t N = 137;
 
