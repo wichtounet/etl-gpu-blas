@@ -23,7 +23,7 @@
  * \param yy The vector yy (GPU memory)
  * \param incyy The stride of yy
  */
-void egblas_haxpy_3(size_t n, float alpha, const float* x, size_t incx, const float* y, size_t incy, float* yy, size_t incyy);
+void egblas_haxpy_3(size_t n, fp16 alpha, const fp16* x, size_t incx, const fp16* y, size_t incy, fp16* yy, size_t incyy);
 
 #define EGBLAS_HAS_HAXPY_3 true
 #else
@@ -43,7 +43,7 @@ void egblas_haxpy_3(size_t n, float alpha, const float* x, size_t incx, const fl
  * \param yy The vector yy (GPU memory)
  * \param incyy The stride of yy
  */
-void egblas_baxpy_3(size_t n, float alpha, const float* x, size_t incx, const float* y, size_t incy, float* yy, size_t incyy);
+void egblas_baxpy_3(size_t n, bf16 alpha, const bf16* x, size_t incx, const bf16* y, size_t incy, bf16* yy, size_t incyy);
 
 #define EGBLAS_HAS_BAXPY_3 true
 #else
