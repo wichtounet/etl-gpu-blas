@@ -8,6 +8,7 @@
 #pragma once
 
 #include <cuComplex.h>
+
 #include "half.hpp"
 
 #ifndef DISABLE_FP16
