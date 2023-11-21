@@ -273,11 +273,11 @@ TEST_CASE("axdy/z/1", "[double][axdy]") {
     }
 }
 
-TEST_CASE("axdy/i/0", "[int32_t][axdy]") {
+TEST_CASE_TEMPLATE("axdy/i/0", T, int32_t, int64_t) {
     const size_t N = 137;
 
-    dual_array<int32_t> x(N);
-    dual_array<int32_t> y(N);
+    dual_array<T> x(N);
+    dual_array<T> y(N);
 
     for (size_t i = 0; i < N; ++i) {
         x.cpu()[i] = (i + 1);
@@ -287,7 +287,11 @@ TEST_CASE("axdy/i/0", "[int32_t][axdy]") {
     x.cpu_to_gpu();
     y.cpu_to_gpu();
 
-    egblas_iaxdy(N, 1, x.gpu(), 1, y.gpu(), 1);
+    if constexpr (std::is_same_v<T, int32_t>) {
+        egblas_iaxdy(N, 1, x.gpu(), 1, y.gpu(), 1);
+    } else if constexpr (std::is_same_v<T, int64_t>) {
+        egblas_laxdy(N, 1, x.gpu(), 1, y.gpu(), 1);
+    }
 
     y.gpu_to_cpu();
 
@@ -296,11 +300,11 @@ TEST_CASE("axdy/i/0", "[int32_t][axdy]") {
     }
 }
 
-TEST_CASE("axdy/i/1", "[int32_t][axdy]") {
+TEST_CASE_TEMPLATE("axdy/i/1", T, int32_t, int64_t) {
     const size_t N = 333;
 
-    dual_array<int32_t> x(N);
-    dual_array<int32_t> y(N);
+    dual_array<T> x(N);
+    dual_array<T> y(N);
 
     for (size_t i = 0; i < N; ++i) {
         x.cpu()[i] = (i + 1);
@@ -310,7 +314,11 @@ TEST_CASE("axdy/i/1", "[int32_t][axdy]") {
     x.cpu_to_gpu();
     y.cpu_to_gpu();
 
-    egblas_iaxdy(N, 2, x.gpu(), 1, y.gpu(), 1);
+    if constexpr (std::is_same_v<T, int32_t>) {
+        egblas_iaxdy(N, 2, x.gpu(), 1, y.gpu(), 1);
+    } else if constexpr (std::is_same_v<T, int64_t>) {
+        egblas_laxdy(N, 2, x.gpu(), 1, y.gpu(), 1);
+    }
 
     y.gpu_to_cpu();
 
@@ -319,11 +327,11 @@ TEST_CASE("axdy/i/1", "[int32_t][axdy]") {
     }
 }
 
-TEST_CASE("axdy/i/2", "[int32_t][axdy]") {
+TEST_CASE_TEMPLATE("axdy/i/2", T, int32_t, int64_t) {
     const size_t N = 111;
 
-    dual_array<int32_t> x(N);
-    dual_array<int32_t> y(N);
+    dual_array<T> x(N);
+    dual_array<T> y(N);
 
     for (size_t i = 0; i < N; ++i) {
         x.cpu()[i] = (i + 1);
@@ -333,7 +341,11 @@ TEST_CASE("axdy/i/2", "[int32_t][axdy]") {
     x.cpu_to_gpu();
     y.cpu_to_gpu();
 
-    egblas_iaxdy(N, 21, x.gpu(), 3, y.gpu(), 3);
+    if constexpr (std::is_same_v<T, int32_t>) {
+        egblas_iaxdy(N, 21, x.gpu(), 3, y.gpu(), 3);
+    } else if constexpr (std::is_same_v<T, int64_t>) {
+        egblas_laxdy(N, 21, x.gpu(), 3, y.gpu(), 3);
+    }
 
     y.gpu_to_cpu();
 
@@ -342,79 +354,6 @@ TEST_CASE("axdy/i/2", "[int32_t][axdy]") {
             REQUIRE(y.cpu()[i] == Approx((233 * (i + 1)) / (21 * (i + 1))));
         } else {
             REQUIRE(y.cpu()[i] == Approx(233 * (i + 1)));
-        }
-    }
-}
-
-TEST_CASE("axdy/l/0", "[int64_t][axdy]") {
-    const size_t N = 137;
-
-    dual_array<int64_t> x(N);
-    dual_array<int64_t> y(N);
-
-    for (size_t i = 0; i < N; ++i) {
-        x.cpu()[i] = (i + 1);
-        y.cpu()[i] = 21 * (i + 1);
-    }
-
-    x.cpu_to_gpu();
-    y.cpu_to_gpu();
-
-    egblas_laxdy(N, 1, x.gpu(), 1, y.gpu(), 1);
-
-    y.gpu_to_cpu();
-
-    for (size_t i = 0; i < N; ++i) {
-        REQUIRE(y.cpu()[i] == Approx((21 * (i + 1)) / (1 * (i + 1))));
-    }
-}
-
-TEST_CASE("axdy/l/1", "[int64_t][axdy]") {
-    const size_t N = 333;
-
-    dual_array<int64_t> x(N);
-    dual_array<int64_t> y(N);
-
-    for (size_t i = 0; i < N; ++i) {
-        x.cpu()[i] = (i + 1);
-        y.cpu()[i] = 23 * (i + 1);
-    }
-
-    x.cpu_to_gpu();
-    y.cpu_to_gpu();
-
-    egblas_laxdy(N, 2, x.gpu(), 1, y.gpu(), 1);
-
-    y.gpu_to_cpu();
-
-    for (size_t i = 0; i < N; ++i) {
-        REQUIRE(y.cpu()[i] == Approx((23 * (i + 1)) / (2 * (i + 1))));
-    }
-}
-
-TEST_CASE("axdy/l/2", "[int64_t][axdy]") {
-    const size_t N = 111;
-
-    dual_array<int64_t> x(N);
-    dual_array<int64_t> y(N);
-
-    for (size_t i = 0; i < N; ++i) {
-        x.cpu()[i] = (i + 1);
-        y.cpu()[i] = 23 * (i + 1);
-    }
-
-    x.cpu_to_gpu();
-    y.cpu_to_gpu();
-
-    egblas_laxdy(N, 2, x.gpu(), 3, y.gpu(), 3);
-
-    y.gpu_to_cpu();
-
-    for (size_t i = 0; i < N; ++i) {
-        if (i % 3 == 0) {
-            REQUIRE(y.cpu()[i] == Approx((23 * (i + 1)) / (2 * (i + 1))));
-        } else {
-            REQUIRE(y.cpu()[i] == Approx(23 * (i + 1)));
         }
     }
 }
