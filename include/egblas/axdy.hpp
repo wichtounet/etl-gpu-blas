@@ -9,6 +9,44 @@
 
 #include <cuComplex.h>
 
+#include "half.hpp"
+
+#ifndef DISABLE_FP16
+
+/*!
+ * \brief Compute y = y / (alpha * x) (element wise), in half-precision FP16
+ * \param n The size of the two vectors
+ * \param alpha The multiplicator
+ * \param x The vector x (GPU memory)
+ * \param incx The stride of x
+ * \param y The vector y (GPU memory)
+ * \param incy The stride of y
+ */
+void egblas_haxdy(size_t n, fp16 alpha, const fp16* x, size_t incx, fp16* y, size_t incy);
+
+#define EGBLAS_HAS_HAXDY true
+#else
+#define EGBLAS_HAS_HAXDY true
+#endif
+
+#ifndef DISABLE_BF16
+
+/*!
+ * \brief Compute y = y / (alpha * x) (element wise), in half-precision BF16
+ * \param n The size of the two vectors
+ * \param alpha The multiplicator
+ * \param x The vector x (GPU memory)
+ * \param incx The stride of x
+ * \param y The vector y (GPU memory)
+ * \param incy The stride of y
+ */
+void egblas_baxdy(size_t n, bf16 alpha, const bf16* x, size_t incx, bf16* y, size_t incy);
+
+#define EGBLAS_HAS_BAXDY true
+#else
+#define EGBLAS_HAS_BAXDY false
+#endif
+
 /*!
  * \brief Compute y = y / (alpha * x) (element wise), in single-precision
  * \param n The size of the two vectors

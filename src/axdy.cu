@@ -61,6 +61,30 @@ void axdy_kernel1_run(size_t n, const T* x, size_t incx, T* y, size_t incy) {
 #endif
 }
 
+#ifdef EGBLAS_HAS_HAXDY
+
+void egblas_haxdy(size_t n, fp16 alpha, const fp16* x, size_t incx, fp16* y, size_t incy) {
+    if (__low2float(alpha) == 1.0f && __high2float(alpha) == 1.0f) {
+        axdy_kernel1_run(n, x, incx, y, incy);
+    } else {
+        axdy_kernel_run(n, alpha, x, incx, y, incy);
+    }
+}
+
+#endif
+
+#ifdef EGBLAS_HAS_BAXDY
+
+void egblas_baxdy(size_t n, bf16 alpha, const bf16* x, size_t incx, bf16* y, size_t incy) {
+    if (__low2float(alpha) == 1.0f && __high2float(alpha) == 1.0f) {
+        axdy_kernel1_run(n, x, incx, y, incy);
+    } else {
+        axdy_kernel_run(n, alpha, x, incx, y, incy);
+    }
+}
+
+#endif
+
 void egblas_saxdy(size_t n, float alpha, const float* x, size_t incx, float* y, size_t incy) {
     if (alpha == 1.0f) {
         axdy_kernel1_run(n, x, incx, y, incy);
