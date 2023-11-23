@@ -16,7 +16,7 @@ __global__ void axpy_kernel(size_t n, T alpha, const T* x, size_t incx, T* y, si
     auto index  = threadIdx.x + blockIdx.x * blockDim.x;
 
     if (index < n) {
-        y[incy * index] += alpha * x[incx * index];
+        y[incy * index] = y[incy * index] + alpha * x[incx * index];
     }
 }
 
@@ -25,7 +25,7 @@ __global__ void axpy_kernel_flat(size_t n, T alpha, const T* x, T* y) {
     auto index  = threadIdx.x + blockIdx.x * blockDim.x;
 
     if (index < n) {
-        y[index] += alpha * x[index];
+        y[index] = y[index] + alpha * x[index];
     }
 }
 
