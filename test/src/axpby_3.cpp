@@ -279,12 +279,12 @@ TEST_CASE("axpby_3/z/1", "[double][axpby_3]") {
     }
 }
 
-TEST_CASE("axpby_3/i/0", "[int32_t][axpby_3]") {
+TEST_CASE_TEMPLATE("axpby_3/i/0", T, int32_t, int64_t) {
     const size_t N = 137;
 
-    dual_array<int32_t> x(N);
-    dual_array<int32_t> y(N);
-    dual_array<int32_t> yy(N);
+    dual_array<T> x(N);
+    dual_array<T> y(N);
+    dual_array<T> yy(N);
 
     for (size_t i = 0; i < N; ++i) {
         x.cpu()[i] = i;
@@ -294,7 +294,11 @@ TEST_CASE("axpby_3/i/0", "[int32_t][axpby_3]") {
     x.cpu_to_gpu();
     y.cpu_to_gpu();
 
-    egblas_iaxpby_3(N, 1, x.gpu(), 1, 1, y.gpu(), 1, yy.gpu(), 1);
+    if constexpr (std::is_same_v<T, int32_t>) {
+        egblas_iaxpby_3(N, 1, x.gpu(), 1, 1, y.gpu(), 1, yy.gpu(), 1);
+    } else if constexpr (std::is_same_v<T, int64_t>) {
+        egblas_laxpby_3(N, 1, x.gpu(), 1, 1, y.gpu(), 1, yy.gpu(), 1);
+    }
 
     yy.gpu_to_cpu();
 
@@ -303,12 +307,12 @@ TEST_CASE("axpby_3/i/0", "[int32_t][axpby_3]") {
     }
 }
 
-TEST_CASE("axpby_3/i/1", "[int32_t][axpby_3]") {
+TEST_CASE_TEMPLATE("axpby_3/i/1", T, int32_t, int64_t) {
     const size_t N = 333;
 
-    dual_array<int32_t> x(N);
-    dual_array<int32_t> y(N);
-    dual_array<int32_t> yy(N);
+    dual_array<T> x(N);
+    dual_array<T> y(N);
+    dual_array<T> yy(N);
 
     for (size_t i = 0; i < N; ++i) {
         x.cpu()[i] = i;
@@ -318,7 +322,11 @@ TEST_CASE("axpby_3/i/1", "[int32_t][axpby_3]") {
     x.cpu_to_gpu();
     y.cpu_to_gpu();
 
-    egblas_iaxpby_3(N, 2, x.gpu(), 1, 3, y.gpu(), 1, yy.gpu(), 1);
+    if constexpr (std::is_same_v<T, int32_t>) {
+        egblas_iaxpby_3(N, 2, x.gpu(), 1, 3, y.gpu(), 1, yy.gpu(), 1);
+    } else if constexpr (std::is_same_v<T, int64_t>) {
+        egblas_laxpby_3(N, 2, x.gpu(), 1, 3, y.gpu(), 1, yy.gpu(), 1);
+    }
 
     yy.gpu_to_cpu();
 
@@ -327,12 +335,12 @@ TEST_CASE("axpby_3/i/1", "[int32_t][axpby_3]") {
     }
 }
 
-TEST_CASE("axpby_3/i/2", "[int32_t][axpby_3]") {
+TEST_CASE_TEMPLATE("axpby_3/i/2", T, int32_t, int64_t) {
     const size_t N = 111;
 
-    dual_array<int32_t> x(N);
-    dual_array<int32_t> y(N);
-    dual_array<int32_t> yy(N);
+    dual_array<T> x(N);
+    dual_array<T> y(N);
+    dual_array<T> yy(N);
 
     for (size_t i = 0; i < N; ++i) {
         x.cpu()[i] = i;
@@ -344,7 +352,11 @@ TEST_CASE("axpby_3/i/2", "[int32_t][axpby_3]") {
     y.cpu_to_gpu();
     yy.cpu_to_gpu();
 
-    egblas_iaxpby_3(N, 2, x.gpu(), 3, 5, y.gpu(), 3, yy.gpu(), 3);
+    if constexpr (std::is_same_v<T, int32_t>) {
+        egblas_iaxpby_3(N, 2, x.gpu(), 3, 5, y.gpu(), 3, yy.gpu(), 3);
+    } else if constexpr (std::is_same_v<T, int64_t>) {
+        egblas_laxpby_3(N, 2, x.gpu(), 3, 5, y.gpu(), 3, yy.gpu(), 3);
+    }
 
     yy.gpu_to_cpu();
 
@@ -353,84 +365,6 @@ TEST_CASE("axpby_3/i/2", "[int32_t][axpby_3]") {
             REQUIRE(yy.cpu()[i] == Approx(2 * i + 5 * 23 * i));
         } else {
             REQUIRE(yy.cpu()[i] == Approx(3 * i));
-        }
-    }
-}
-
-TEST_CASE("axpby_3/l/0", "[int64_t][axpby_3]") {
-    const size_t N = 137;
-
-    dual_array<int64_t> x(N);
-    dual_array<int64_t> y(N);
-    dual_array<int64_t> yy(N);
-
-    for (size_t i = 0; i < N; ++i) {
-        x.cpu()[i] = i;
-        y.cpu()[i] = 21 * i;
-    }
-
-    x.cpu_to_gpu();
-    y.cpu_to_gpu();
-
-    egblas_laxpby_3(N, 1, x.gpu(), 1, 11, y.gpu(), 1, yy.gpu(), 1);
-
-    yy.gpu_to_cpu();
-
-    for (size_t i = 0; i < N; ++i) {
-        REQUIRE(yy.cpu()[i] == Approx(1 * i + 11 * 21 * i));
-    }
-}
-
-TEST_CASE("axpby_3/l/1", "[int64_t][axpby_3]") {
-    const size_t N = 333;
-
-    dual_array<int64_t> x(N);
-    dual_array<int64_t> y(N);
-    dual_array<int64_t> yy(N);
-
-    for (size_t i = 0; i < N; ++i) {
-        x.cpu()[i] = i;
-        y.cpu()[i] = 23 * i;
-    }
-
-    x.cpu_to_gpu();
-    y.cpu_to_gpu();
-
-    egblas_laxpby_3(N, 2, x.gpu(), 1, 10, y.gpu(), 1, yy.gpu(), 1);
-
-    yy.gpu_to_cpu();
-
-    for (size_t i = 0; i < N; ++i) {
-        REQUIRE(yy.cpu()[i] == Approx(2 * i + 10 * 23 * i));
-    }
-}
-
-TEST_CASE("axpby_3/l/2", "[int64_t][axpby_3]") {
-    const size_t N = 111;
-
-    dual_array<int64_t> x(N);
-    dual_array<int64_t> y(N);
-    dual_array<int64_t> yy(N);
-
-    for (size_t i = 0; i < N; ++i) {
-        x.cpu()[i] = i;
-        y.cpu()[i] = 235 * i;
-        yy.cpu()[i] = i + 1;
-    }
-
-    x.cpu_to_gpu();
-    y.cpu_to_gpu();
-    yy.cpu_to_gpu();
-
-    egblas_laxpby_3(N, 2, x.gpu(), 3, 30, y.gpu(), 3, yy.gpu(), 3);
-
-    yy.gpu_to_cpu();
-
-    for (size_t i = 0; i < N; ++i) {
-        if (i % 3 == 0) {
-            REQUIRE(yy.cpu()[i] == Approx(2 * i + 30 * 235 * i));
-        } else {
-            REQUIRE(yy.cpu()[i] == Approx(i + 1));
         }
     }
 }
