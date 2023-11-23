@@ -402,7 +402,7 @@ TEST_CASE("axpy/z/1", "[double][axpy]") {
     delete[] y_cpu;
 }
 
-TEST_CASE_TEMPLATE("axpy/i/0", T, int32_t, int64_t) {
+TEST_CASE_TEMPLATE("axpy/i/0", T, int8_t, int16_t, int32_t, int64_t) {
     const size_t N = 137;
 
     T* x_cpu = new T[N];
@@ -410,7 +410,7 @@ TEST_CASE_TEMPLATE("axpy/i/0", T, int32_t, int64_t) {
 
     for (size_t i = 0; i < N; ++i) {
         x_cpu[i] = i;
-        y_cpu[i] = 21 * i;
+        y_cpu[i] = T(3) * T(i);
     }
 
     T* x_gpu;
@@ -421,7 +421,11 @@ TEST_CASE_TEMPLATE("axpy/i/0", T, int32_t, int64_t) {
     cuda_check(cudaMemcpy(x_gpu, x_cpu, N * sizeof(T), cudaMemcpyHostToDevice));
     cuda_check(cudaMemcpy(y_gpu, y_cpu, N * sizeof(T), cudaMemcpyHostToDevice));
 
-    if constexpr (std::is_same_v<T, int32_t>) {
+    if constexpr (std::is_same_v<T, int8_t>) {
+        egblas_oaxpy(N, 1, x_gpu, 1, y_gpu, 1);
+    } else if constexpr (std::is_same_v<T, int16_t>) {
+        egblas_waxpy(N, 1, x_gpu, 1, y_gpu, 1);
+    } else if constexpr (std::is_same_v<T, int32_t>) {
         egblas_iaxpy(N, 1, x_gpu, 1, y_gpu, 1);
     } else if constexpr (std::is_same_v<T, int64_t>) {
         egblas_laxpy(N, 1, x_gpu, 1, y_gpu, 1);
@@ -430,7 +434,7 @@ TEST_CASE_TEMPLATE("axpy/i/0", T, int32_t, int64_t) {
     cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(T), cudaMemcpyDeviceToHost));
 
     for (size_t i = 0; i < N; ++i) {
-        REQUIRE(y_cpu[i] == Approx(1 * i + 21 * i));
+        REQUIRE(y_cpu[i] == T(T(T(3) * T(i)) + T(i)));
     }
 
     cuda_check(cudaFree(x_gpu));
@@ -440,7 +444,7 @@ TEST_CASE_TEMPLATE("axpy/i/0", T, int32_t, int64_t) {
     delete[] y_cpu;
 }
 
-TEST_CASE_TEMPLATE("axpy/i/1", T, int32_t, int64_t) {
+TEST_CASE_TEMPLATE("axpy/i/1", T, int8_t, int16_t, int32_t, int64_t) {
     const size_t N = 333;
 
     T* x_cpu = new T[N];
@@ -448,7 +452,7 @@ TEST_CASE_TEMPLATE("axpy/i/1", T, int32_t, int64_t) {
 
     for (size_t i = 0; i < N; ++i) {
         x_cpu[i] = i;
-        y_cpu[i] = 23 * i;
+        y_cpu[i] = T(3) * T(i);
     }
 
     T* x_gpu;
@@ -459,7 +463,11 @@ TEST_CASE_TEMPLATE("axpy/i/1", T, int32_t, int64_t) {
     cuda_check(cudaMemcpy(x_gpu, x_cpu, N * sizeof(T), cudaMemcpyHostToDevice));
     cuda_check(cudaMemcpy(y_gpu, y_cpu, N * sizeof(T), cudaMemcpyHostToDevice));
 
-    if constexpr (std::is_same_v<T, int32_t>) {
+    if constexpr (std::is_same_v<T, int8_t>) {
+        egblas_oaxpy(N, 2, x_gpu, 1, y_gpu, 1);
+    } else if constexpr (std::is_same_v<T, int16_t>) {
+        egblas_waxpy(N, 2, x_gpu, 1, y_gpu, 1);
+    } else if constexpr (std::is_same_v<T, int32_t>) {
         egblas_iaxpy(N, 2, x_gpu, 1, y_gpu, 1);
     } else if constexpr (std::is_same_v<T, int64_t>) {
         egblas_laxpy(N, 2, x_gpu, 1, y_gpu, 1);
@@ -468,7 +476,7 @@ TEST_CASE_TEMPLATE("axpy/i/1", T, int32_t, int64_t) {
     cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(T), cudaMemcpyDeviceToHost));
 
     for (size_t i = 0; i < N; ++i) {
-        REQUIRE(y_cpu[i] == Approx(2 * i + 23 * i));
+        REQUIRE(y_cpu[i] == T(T(2) * T(i) + T(T(3) * T(i))));
     }
 
     cuda_check(cudaFree(x_gpu));
@@ -478,7 +486,7 @@ TEST_CASE_TEMPLATE("axpy/i/1", T, int32_t, int64_t) {
     delete[] y_cpu;
 }
 
-TEST_CASE_TEMPLATE("axpy/i/2", T, int32_t, int64_t ) {
+TEST_CASE_TEMPLATE("axpy/i/2", T, int8_t, int16_t, int32_t, int64_t ) {
     const size_t N = 111;
 
     T* x_cpu = new T[N];
@@ -486,7 +494,7 @@ TEST_CASE_TEMPLATE("axpy/i/2", T, int32_t, int64_t ) {
 
     for (size_t i = 0; i < N; ++i) {
         x_cpu[i] = i;
-        y_cpu[i] = 23 * i;
+        y_cpu[i] = T(3) * T(i);
     }
 
     T* x_gpu;
@@ -497,7 +505,11 @@ TEST_CASE_TEMPLATE("axpy/i/2", T, int32_t, int64_t ) {
     cuda_check(cudaMemcpy(x_gpu, x_cpu, N * sizeof(T), cudaMemcpyHostToDevice));
     cuda_check(cudaMemcpy(y_gpu, y_cpu, N * sizeof(T), cudaMemcpyHostToDevice));
 
-    if constexpr (std::is_same_v<T, int32_t>) {
+    if constexpr (std::is_same_v<T, int8_t>) {
+        egblas_oaxpy(N, 2, x_gpu, 3, y_gpu, 3);
+    } else if constexpr (std::is_same_v<T, int16_t>) {
+        egblas_waxpy(N, 2, x_gpu, 3, y_gpu, 3);
+    } else if constexpr (std::is_same_v<T, int32_t>) {
         egblas_iaxpy(N, 2, x_gpu, 3, y_gpu, 3);
     } else if constexpr (std::is_same_v<T, int64_t>) {
         egblas_laxpy(N, 2, x_gpu, 3, y_gpu, 3);
@@ -507,9 +519,9 @@ TEST_CASE_TEMPLATE("axpy/i/2", T, int32_t, int64_t ) {
 
     for (size_t i = 0; i < N; ++i) {
         if (i % 3 == 0) {
-            REQUIRE(y_cpu[i] == Approx(2 * i + 23 * i));
+            REQUIRE(y_cpu[i] == T(T(2) * T(i) + T(3) * T(i)));
         } else {
-            REQUIRE(y_cpu[i] == Approx(23 * i));
+            REQUIRE(y_cpu[i] == T(T(3) * T(i)));
         }
     }
 

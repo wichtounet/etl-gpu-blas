@@ -91,6 +91,28 @@ void egblas_caxpy(size_t n, cuComplex alpha, const cuComplex* x, size_t incx, cu
 void egblas_zaxpy(size_t n, cuDoubleComplex alpha, const cuDoubleComplex* x, size_t incx, cuDoubleComplex* y, size_t incy);
 
 /*!
+ * \brief Compute y = alpha * x + y (element wise), in 8 bits integer
+ * \param n The size of the two vectors
+ * \param alpha The multiplicator
+ * \param x The vector x (GPU memory)
+ * \param incx The stride of x
+ * \param y The vector y (GPU memory)
+ * \param incy The stride of y
+ */
+void egblas_oaxpy(size_t n, int8_t alpha, const int8_t* x, size_t incx, int8_t* y, size_t incy);
+
+/*!
+ * \brief Compute y = alpha * x + y (element wise), in 16 bits integer
+ * \param n The size of the two vectors
+ * \param alpha The multiplicator
+ * \param x The vector x (GPU memory)
+ * \param incx The stride of x
+ * \param y The vector y (GPU memory)
+ * \param incy The stride of y
+ */
+void egblas_waxpy(size_t n, int16_t alpha, const int16_t* x, size_t incx, int16_t* y, size_t incy);
+
+/*!
  * \brief Compute y = alpha * x + y (element wise), in 32 bits integer
  * \param n The size of the two vectors
  * \param alpha The multiplicator
