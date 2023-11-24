@@ -81,8 +81,8 @@ void release(T* x_cpu, T* x_gpu){
     cuda_check(cudaFree(x_gpu));
 }
 
-template<typename T>
-inline void report(std::string_view name, const T& t0, size_t repeat, size_t N, bool us_unit = true){
+template<typename T, typename TP>
+inline void report(std::string_view name, const TP& t0, size_t repeat, size_t N, bool us_unit = true){
     cudaDeviceSynchronize();
 
     auto t1 = timer::now();
@@ -92,13 +92,17 @@ inline void report(std::string_view name, const T& t0, size_t repeat, size_t N, 
 
     if (us_unit) {
         std::cout << name << "(" << N << "): Tot: " << us << "us Avg: " << us_avg << "us Throughput: "
-            << (1e6 / double(us_avg)) * N << "E/s" << std::endl;
+                  << (1e6 / double(us_avg)) * N << "E/s Bandwidth: "
+                  << (1e6 / double(us_avg)) * (N * sizeof(T)) << "B/s"
+                  << std::endl;
     } else { // ms_unit
-        auto ms = (us / 1000.0);
+        auto ms     = (us / 1000.0);
         auto ms_avg = ms / double(repeat);
 
         std::cout << name << "(" << N << "): Tot: " << ms << "ms Avg: " << ms_avg << "ms Throughput: "
-            << (1e6 / double(us_avg)) * N << "E/s" << std::endl;
+                  << (1e6 / double(us_avg)) * N << "E/s Bandwidth: " 
+                  << (1e6 / double(us_avg)) * (N * sizeof(T)) << "B/s"
+                  << std::endl;
     }
 }
 
@@ -114,7 +118,7 @@ void bench_sum(size_t N,size_t repeat = 100){
         egblas_ssum(x_gpu, N, 1);
     }
 
-    report("sum", t0, repeat, N, false);
+    report<float>("sum", t0, repeat, N, false);
 
     cuda_check(cudaMemcpy(x_cpu, x_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
 
@@ -144,7 +148,7 @@ void bench_asum(size_t N,size_t repeat = 100){
         egblas_sasum(x_gpu, N, 1);
     }
 
-    report("asum", t0, repeat, N, false);
+    report<float>("asum", t0, repeat, N, false);
 
     cuda_check(cudaMemcpy(x_cpu, x_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
 
@@ -178,7 +182,7 @@ void bench_cublas_asum(size_t N,size_t repeat = 100){
         cublas_check(cublasSasum(handle, N, x_gpu, 1, &prod));
     }
 
-    report("cublas_asum", t0, repeat, N, false);
+    report<float>("cublas_asum", t0, repeat, N, false);
 
     cuda_check(cudaMemcpy(x_cpu, x_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
 
@@ -210,7 +214,7 @@ void bench_max(size_t N,size_t repeat = 100){
         egblas_smax(x_gpu, N, 1);
     }
 
-    report("max", t0, repeat, N, false);
+    report<float>("max", t0, repeat, N, false);
 
     cuda_check(cudaMemcpy(x_cpu, x_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
 
@@ -240,7 +244,7 @@ void bench_stddev(size_t N,size_t repeat = 100){
         egblas_sstddev(x_gpu, N, 1);
     }
 
-    report("stddev", t0, repeat, N);
+    report<float>("stddev", t0, repeat, N);
 
     cuda_check(cudaMemcpy(x_cpu, x_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
 
@@ -273,7 +277,7 @@ void bench_cce_loss(size_t N,size_t repeat = 100){
         egblas_cce_sloss(N, 1.0f/ float(N), x_gpu, 1, y_gpu, 1);
     }
 
-    report("cce_loss", t0, repeat, N, false);
+    report<float>("cce_loss", t0, repeat, N, false);
 
     release(x_cpu, x_gpu);
     release(y_cpu, y_gpu);
@@ -305,7 +309,7 @@ void bench_cce_error(size_t N,size_t repeat = 100){
         egblas_cce_serror(N, 10, 1.0f/ float(N), x_gpu, y_gpu);
     }
 
-    report("cce_error", t0, repeat, N * 10, false);
+    report<float>("cce_error", t0, repeat, N * 10, false);
 
     release(x_cpu, x_gpu);
     release(y_cpu, y_gpu);
@@ -339,7 +343,7 @@ void bench_cce(size_t N,size_t repeat = 100){
         egblas_cce_serror(N, 10, 1.0f/ float(N), x_gpu, y_gpu);
     }
 
-    report("cce_both", t0, repeat, N * 10, false);
+    report<float>("cce_both", t0, repeat, N * 10, false);
 
     release(x_cpu, x_gpu);
     release(y_cpu, y_gpu);
@@ -371,7 +375,7 @@ void bench_scce(size_t N,size_t repeat = 100){
         egblas_scce(N, 10, 1.0f / float(N), 1.0f / float(N), x_gpu, y_gpu);
     }
 
-    report("scce", t0, repeat, N * 10, false);
+    report<float>("scce", t0, repeat, N * 10, false);
 
     release(x_cpu, x_gpu);
     release(y_cpu, y_gpu);
@@ -403,7 +407,7 @@ void bench_bce_loss(size_t N,size_t repeat = 100){
         egblas_bce_sloss(N, 1.0f/ float(N), x_gpu, 1, y_gpu, 1);
     }
 
-    report("bce_loss", t0, repeat, N, false);
+    report<float>("bce_loss", t0, repeat, N, false);
 
     release(x_cpu, x_gpu);
     release(y_cpu, y_gpu);
@@ -435,7 +439,7 @@ void bench_bce_error(size_t N,size_t repeat = 100){
         egblas_bce_serror(N, 1.0f/ float(N), x_gpu, 1, y_gpu, 1);
     }
 
-    report("bce_error", t0, repeat, N, false);
+    report<float>("bce_error", t0, repeat, N, false);
 
     release(x_cpu, x_gpu);
     release(y_cpu, y_gpu);
@@ -469,7 +473,7 @@ void bench_bce(size_t N,size_t repeat = 100){
         egblas_bce_sloss(N, 1.0f/ float(N), x_gpu, 1, y_gpu, 1);
     }
 
-    report("bce_both", t0, repeat, N, false);
+    report<float>("bce_both", t0, repeat, N, false);
 
     release(x_cpu, x_gpu);
     release(y_cpu, y_gpu);
@@ -501,7 +505,7 @@ void bench_sbce(size_t N,size_t repeat = 100){
         egblas_sbce(N, 1.0f/ float(N), 1.0f/ float(N), x_gpu, 1, y_gpu, 1);
     }
 
-    report("sbce", t0, repeat, N, false);
+    report<float>("sbce", t0, repeat, N, false);
 
     release(x_cpu, x_gpu);
     release(y_cpu, y_gpu);
@@ -530,7 +534,7 @@ void bench_normalize_flat(size_t N, size_t repeat = 100) {
         egblas_snormalize_flat(N, x_gpu, 1);
     }
 
-    report("normalize_flat", t0, repeat, N);
+    report<float>("normalize_flat", t0, repeat, N);
 
     cuda_check(cudaMemcpy(x_cpu, x_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
 
@@ -560,7 +564,7 @@ void bench_normalize_sub(size_t N, size_t N2, size_t repeat = 100) {
         egblas_snormalize_sub(N, x_gpu, N2, 1);
     }
 
-    report("normalize_sub", t0, repeat, N);
+    report<float>("normalize_sub", t0, repeat, N);
 
     cuda_check(cudaMemcpy(x_cpu, x_gpu, N * N2 * sizeof(float), cudaMemcpyDeviceToHost));
 
@@ -590,7 +594,7 @@ void bench_inv_dropout(size_t N,size_t repeat = 100){
         egblas_sinv_dropout_seed(N, 0.5f, 1.0f, x_gpu, 1, 42);
     }
 
-    report("inv_dropout", t0, repeat, N);
+    report<float>("inv_dropout", t0, repeat, N);
 
     cuda_check(cudaMemcpy(x_cpu, x_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
 
@@ -648,7 +652,7 @@ void bench_axpy(std::string_view name, size_t N,size_t repeat = 100){
         }
     }
 
-    report(name, t0, repeat, N);
+    report<T>(name, t0, repeat, N);
 
     cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(T), cudaMemcpyDeviceToHost));
 
@@ -688,7 +692,7 @@ void bench_cublas_saxpy(size_t N,size_t repeat = 100){
         cublas_check(cublasSaxpy(handle, N, &alpha, x_gpu, 1, y_gpu, 1));
     }
 
-    report("cublas_saxpy", t0, repeat, N);
+    report<float>("cublas_saxpy", t0, repeat, N);
 
     cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
 
@@ -724,7 +728,7 @@ void bench_sigmoid(float alpha, size_t N,size_t repeat = 10){
         egblas_ssigmoid(N, alpha, x_gpu, 1, y_gpu, 1);
     }
 
-    report("sigmoid", t0, repeat, N);
+    report<float>("sigmoid", t0, repeat, N);
 
     cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
 
@@ -777,7 +781,7 @@ void bench_cudnn_sigmoid_lazy(float alpha, size_t N,size_t repeat = 10){
         cudnn_check(cudnnActivationForward(handle, func_tensor, &alpha, x_tensor, x_gpu, &beta, y_tensor, y_gpu));
     }
 
-    report("cudnn_sigmoid_lazy", t0, repeat, N);
+    report<float>("cudnn_sigmoid_lazy", t0, repeat, N);
 
     cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
 
@@ -850,7 +854,7 @@ void bench_cudnn_sigmoid(float alpha, size_t N,size_t repeat = 100){
         cudnn_check(cudnnDestroyActivationDescriptor(func_tensor));
     }
 
-    report("cudnn_sigmoid", t0, repeat, N);
+    report<float>("cudnn_sigmoid", t0, repeat, N);
 
     cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
 
@@ -892,7 +896,7 @@ void bench_saxpby(size_t N,size_t repeat = 100){
         egblas_saxpby(N, 2.54f, x_gpu, 1, 3.49f, y_gpu, 1);
     }
 
-    report("saxpby", t0, repeat, N);
+    report<float>("saxpby", t0, repeat, N);
 
     cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
 
@@ -928,7 +932,7 @@ void bench_saxmy_3(size_t N,size_t repeat = 100){
         egblas_saxmy_3(N, 1.0f, x_gpu, 1, y_gpu, 1, yy_gpu, 1);
     }
 
-    report("saxmy_3", t0, repeat, N);
+    report<float>("saxmy_3", t0, repeat, N);
 
     cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
 
@@ -963,7 +967,7 @@ void bench_sqrt(size_t N,size_t repeat = 100){
         egblas_ssqrt(N, 1.0f, x_gpu, 1, y_gpu, 1);
     }
 
-    report("sqrt", t0, repeat, N);
+    report<float>("sqrt", t0, repeat, N);
 
     cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
 
@@ -994,7 +998,7 @@ void bench_shuffle(size_t N,size_t repeat = 100){
         egblas_shuffle_seed(N, x_gpu, 4, 42);
     }
 
-    report("shuffle", t0, repeat, N);
+    report<float>("shuffle", t0, repeat, N);
 
     cuda_check(cudaMemcpy(x_cpu, x_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
 
@@ -1025,7 +1029,7 @@ void bench_par_shuffle(size_t N,size_t repeat = 100){
         egblas_par_shuffle_seed(N, x_gpu, 4, y_gpu, 4, 42);
     }
 
-    report("par_shuffle", t0, repeat, N);
+    report<float>("par_shuffle", t0, repeat, N);
 
     cuda_check(cudaMemcpy(x_cpu, x_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
     cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
@@ -1055,7 +1059,7 @@ void bench_big_shuffle(size_t N, size_t repeat = 100) {
         egblas_shuffle_seed(N, x_gpu, 4 * 1024, 42);
     }
 
-    report("big_shuffle", t0, repeat, N);
+    report<float>("big_shuffle", t0, repeat, N);
 
     cuda_check(cudaMemcpy(x_cpu, x_gpu, N * 1024 * sizeof(float), cudaMemcpyDeviceToHost));
 
@@ -1084,7 +1088,7 @@ void bench_par_big_shuffle(size_t N,size_t repeat = 100){
         egblas_par_shuffle_seed(N, x_gpu, 4 * 1024, y_gpu, 8, 42);
     }
 
-    report("par_big_shuffle", t0, repeat, N);
+    report<float>("par_big_shuffle", t0, repeat, N);
 
     cuda_check(cudaMemcpy(x_cpu, x_gpu, N * 1024 * sizeof(float), cudaMemcpyDeviceToHost));
     cuda_check(cudaMemcpy(y_cpu, y_gpu, N * 1024 * sizeof(float), cudaMemcpyDeviceToHost));
@@ -1131,7 +1135,7 @@ void bench_cudnn_bias_batch_sum(size_t B, size_t N, size_t repeat = 100){
         cudnn_check(cudnnConvolutionBackwardBias(handle, &alpha, x_tensor, x_gpu, &beta, y_tensor, y_gpu));
     }
 
-    report("cudnn_bias_batch_sum", t0, repeat, B * N);
+    report<float>("cudnn_bias_batch_sum", t0, repeat, B * N);
 
     cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
 
@@ -1169,7 +1173,7 @@ void bench_bias_batch_sum(size_t B, size_t N, size_t repeat = 100){
         egblas_sbias_batch_sum(B, N, x_gpu, 1, y_gpu, 1);
     }
 
-    report("bias_batch_sum", t0, repeat, B * N);
+    report<float>("bias_batch_sum", t0, repeat, B * N);
 
     cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
 
@@ -1200,7 +1204,7 @@ void bench_bias_batch_mean(size_t B, size_t N, size_t repeat = 100){
         egblas_sbias_batch_mean(B, N, x_gpu, 1, y_gpu, 1);
     }
 
-    report("bias_batch_mean", t0, repeat, B * N);
+    report<float>("bias_batch_mean", t0, repeat, B * N);
 
     cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
 
@@ -1247,7 +1251,7 @@ void bench_cudnn_bias_batch_sum4(size_t B, size_t N, size_t W, size_t repeat = 1
         cudnn_check(cudnnConvolutionBackwardBias(handle, &alpha, x_tensor, x_gpu, &beta, y_tensor, y_gpu));
     }
 
-    report("cudnn_bias_batch_sum4", t0, repeat, B * N);
+    report<float>("cudnn_bias_batch_sum4", t0, repeat, B * N);
 
     cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
 
@@ -1319,7 +1323,7 @@ void bench_bias_batch_sum4(size_t B, size_t N, size_t W, size_t repeat = 100){
         egblas_sbias_batch_sum4(B, N, W, W, x_gpu, y_gpu);
     }
 
-    report("bias_batch_sum4", t0, repeat, B * N);
+    report<float>("bias_batch_sum4", t0, repeat, B * N);
 
     cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
 
@@ -1384,7 +1388,7 @@ void bench_bias_batch_mean4(size_t B, size_t N, size_t W, size_t repeat = 100){
         egblas_sbias_batch_mean4(B, N, W, W, x_gpu, y_gpu);
     }
 
-    report("bias_batch_mean4", t0, repeat, B * N);
+    report<float>("bias_batch_mean4", t0, repeat, B * N);
 
     cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
 
@@ -1428,7 +1432,7 @@ void bench_bias_add4(size_t B, size_t N, size_t W, size_t repeat = 100){
         egblas_sbias_add_4d(B, N, W, W, x_gpu, 1, b_gpu, 1, y_gpu, 1);
     }
 
-    report("bias_add4", t0, repeat, B * N * W * W);
+    report<float>("bias_add4", t0, repeat, B * N * W * W);
 
     cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
 
@@ -1461,7 +1465,7 @@ void bench_transpose_front(size_t M, size_t N, size_t K, size_t repeat = 100){
         egblas_stranspose_front(M, N, K, x_gpu, y_gpu);
     }
 
-    report("transpose_front", t0, repeat, M * N * K);
+    report<float>("transpose_front", t0, repeat, M * N * K);
 
     cuda_check(cudaMemcpy(y_cpu, y_gpu, M * N * K * sizeof(float), cudaMemcpyDeviceToHost));
 
