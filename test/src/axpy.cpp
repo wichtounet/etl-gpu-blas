@@ -403,7 +403,7 @@ TEST_CASE("axpy/z/1", "[double][axpy]") {
 }
 
 TEST_CASE_TEMPLATE("axpy/i/0", T, int8_t, int16_t, int32_t, int64_t) {
-    const size_t N = 137;
+    const size_t N = 256;
 
     T* x_cpu = new T[N];
     T* y_cpu = new T[N];
