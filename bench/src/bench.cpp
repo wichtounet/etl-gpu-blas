@@ -53,8 +53,9 @@ namespace {
 using timer = std::chrono::high_resolution_clock;
 using microseconds =  std::chrono::microseconds;
 
-float* prepare_cpu(size_t N, float s){
-    float* x_cpu = new float[N];
+template <typename T = float>
+T* prepare_cpu(size_t N, T s){
+    T* x_cpu = new T[N];
 
     for (size_t i = 0; i < N; ++i) {
         x_cpu[i] = s * (i + 1);
@@ -63,23 +64,25 @@ float* prepare_cpu(size_t N, float s){
     return x_cpu;
 }
 
-float* prepare_gpu(size_t N, float* x_cpu){
-    float* x_gpu;
+template <typename T = float>
+T* prepare_gpu(size_t N, T* x_cpu){
+    T* x_gpu;
 
-    cuda_check(cudaMalloc((void**)&x_gpu, N * sizeof(float)));
-    cuda_check(cudaMemcpy(x_gpu, x_cpu, N * sizeof(float), cudaMemcpyHostToDevice));
+    cuda_check(cudaMalloc((void**)&x_gpu, N * sizeof(T)));
+    cuda_check(cudaMemcpy(x_gpu, x_cpu, N * sizeof(T), cudaMemcpyHostToDevice));
 
     return x_gpu;
 }
 
-void release(float* x_cpu, float* x_gpu){
+template <typename T>
+void release(T* x_cpu, T* x_gpu){
     delete[] x_cpu;
 
     cuda_check(cudaFree(x_gpu));
 }
 
 template<typename T>
-inline void report(const std::string& name, const T& t0, size_t repeat, size_t N, bool us_unit = true){
+inline void report(std::string_view name, const T& t0, size_t repeat, size_t N, bool us_unit = true){
     cudaDeviceSynchronize();
 
     auto t1 = timer::now();
@@ -605,22 +608,27 @@ void bench_inv_dropout(){
     std::cout << std::endl;
 }
 
-void bench_saxpy(size_t N,size_t repeat = 100){
-    auto* x_cpu = prepare_cpu(N, 2.0f);
-    auto* y_cpu = prepare_cpu(N, 3.0f);
+template <typename T>
+void bench_axpy(std::string_view name, size_t N,size_t repeat = 100){
+    auto* x_cpu = prepare_cpu<T>(N, T(2));
+    auto* y_cpu = prepare_cpu<T>(N, T(3));
 
-    auto* x_gpu = prepare_gpu(N, x_cpu);
-    auto* y_gpu = prepare_gpu(N, y_cpu);
+    auto* x_gpu = prepare_gpu<T>(N, x_cpu);
+    auto* y_gpu = prepare_gpu<T>(N, y_cpu);
 
-    egblas_saxpy(N, 2.1f, x_gpu, 1, y_gpu, 1);
-
-    auto t0 = timer::now();
-
-    for(size_t i = 0; i < repeat; ++i){
+    if constexpr (std::is_same_v<T, float>) {
         egblas_saxpy(N, 2.1f, x_gpu, 1, y_gpu, 1);
     }
 
-    report("saxpy", t0, repeat, N);
+    auto t0 = timer::now();
+
+    for (size_t i = 0; i < repeat; ++i) {
+        if constexpr (std::is_same_v<T, float>) {
+            egblas_saxpy(N, 2.1f, x_gpu, 1, y_gpu, 1);
+        }
+    }
+
+    report(name, t0, repeat, N);
 
     cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
 
@@ -628,14 +636,15 @@ void bench_saxpy(size_t N,size_t repeat = 100){
     release(y_cpu, y_gpu);
 }
 
-void bench_saxpy(){
-    bench_saxpy(100);
-    bench_saxpy(1000);
-    bench_saxpy(10000);
-    bench_saxpy(100000);
-    bench_saxpy(1000000);
-    bench_saxpy(10000000);
-    bench_saxpy(100000000);
+template <typename T>
+void bench_axpy(std::string_view name){
+    bench_axpy<T>(name, 100);
+    bench_axpy<T>(name, 1000);
+    bench_axpy<T>(name, 10000);
+    bench_axpy<T>(name, 100000);
+    bench_axpy<T>(name, 1000000);
+    bench_axpy<T>(name, 10000000);
+    bench_axpy<T>(name, 100000000);
     std::cout << std::endl;
 }
 
@@ -1515,7 +1524,7 @@ int main(int argc, char* argv[]){
     }
 
     if (sub == "axpy" || sub == "all") {
-        bench_saxpy();
+        bench_axpy<float>("saxpy");
         bench_cublas_saxpy();
         bench_saxpby();
         bench_saxmy_3();
