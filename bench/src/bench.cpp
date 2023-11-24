@@ -618,6 +618,16 @@ void bench_axpy(std::string_view name, size_t N,size_t repeat = 100){
 
     if constexpr (std::is_same_v<T, float>) {
         egblas_saxpy(N, 2.1f, x_gpu, 1, y_gpu, 1);
+    } else if constexpr (std::is_same_v<T, double>) {
+        egblas_daxpy(N, 2.1, x_gpu, 1, y_gpu, 1);
+    } else if constexpr (std::is_same_v<T, int8_t>) {
+        egblas_oaxpy(N, 2, x_gpu, 1, y_gpu, 1);
+    } else if constexpr (std::is_same_v<T, int16_t>) {
+        egblas_waxpy(N, 2, x_gpu, 1, y_gpu, 1);
+    } else if constexpr (std::is_same_v<T, int32_t>) {
+        egblas_iaxpy(N, 2, x_gpu, 1, y_gpu, 1);
+    } else if constexpr (std::is_same_v<T, int64_t>) {
+        egblas_laxpy(N, 2, x_gpu, 1, y_gpu, 1);
     }
 
     auto t0 = timer::now();
@@ -625,12 +635,22 @@ void bench_axpy(std::string_view name, size_t N,size_t repeat = 100){
     for (size_t i = 0; i < repeat; ++i) {
         if constexpr (std::is_same_v<T, float>) {
             egblas_saxpy(N, 2.1f, x_gpu, 1, y_gpu, 1);
+        } else if constexpr (std::is_same_v<T, double>) {
+            egblas_daxpy(N, 2.1, x_gpu, 1, y_gpu, 1);
+        } else if constexpr (std::is_same_v<T, int8_t>) {
+            egblas_oaxpy(N, 2, x_gpu, 1, y_gpu, 1);
+        } else if constexpr (std::is_same_v<T, int16_t>) {
+            egblas_waxpy(N, 2, x_gpu, 1, y_gpu, 1);
+        } else if constexpr (std::is_same_v<T, int32_t>) {
+            egblas_iaxpy(N, 2, x_gpu, 1, y_gpu, 1);
+        } else if constexpr (std::is_same_v<T, int64_t>) {
+            egblas_laxpy(N, 2, x_gpu, 1, y_gpu, 1);
         }
     }
 
     report(name, t0, repeat, N);
 
-    cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(float), cudaMemcpyDeviceToHost));
+    cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(T), cudaMemcpyDeviceToHost));
 
     release(x_cpu, x_gpu);
     release(y_cpu, y_gpu);
@@ -1524,7 +1544,12 @@ int main(int argc, char* argv[]){
     }
 
     if (sub == "axpy" || sub == "all") {
+        bench_axpy<int8_t>("oaxpy");
+        bench_axpy<int16_t>("waxpy");
+        bench_axpy<int32_t>("iaxpy");
+        bench_axpy<int64_t>("laxpy");
         bench_axpy<float>("saxpy");
+        bench_axpy<double>("daxpy");
         bench_cublas_saxpy();
         bench_saxpby();
         bench_saxmy_3();
