@@ -12,7 +12,11 @@
 #include "cuda_runtime.h"
 #include "cuda_runtime_api.h"
 #include "cublas_v2.h"
+
+#if __has_include("cudnn.h")
+#define ENABLE_CUDNN
 #include "cudnn.h"
+#endif
 
 #include "egblas.hpp"
 
@@ -710,6 +714,8 @@ void bench_sigmoid(float alpha){
     std::cout << std::endl;
 }
 
+#ifdef ENABLE_CUDNN
+
 void bench_cudnn_sigmoid_lazy(float alpha, size_t N,size_t repeat = 10){
     auto* x_cpu = prepare_cpu(N, 2.0f);
     auto* y_cpu = prepare_cpu(N, 3.0f);
@@ -839,6 +845,8 @@ void bench_cudnn_sigmoid(float alpha){
     bench_cudnn_sigmoid(alpha, 100000000);
     std::cout << std::endl;
 }
+
+#endif
 
 void bench_saxpby(size_t N,size_t repeat = 100){
     auto* x_cpu = prepare_cpu(N, 2.2f);
@@ -1063,6 +1071,8 @@ void bench_par_big_shuffle(){
     std::cout << std::endl;
 }
 
+#ifdef ENABLE_CUDNN
+
 void bench_cudnn_bias_batch_sum(size_t B, size_t N, size_t repeat = 100){
     auto* x_cpu = prepare_cpu(B * N, 2.0f);
     auto* y_cpu = prepare_cpu(N, 3.0f);
@@ -1112,6 +1122,8 @@ void bench_cudnn_bias_batch_sum(){
     bench_cudnn_bias_batch_sum(256, 10000);
     std::cout << std::endl;
 }
+
+#endif
 
 void bench_bias_batch_sum(size_t B, size_t N, size_t repeat = 100){
     auto* x_cpu = prepare_cpu(B * N, 2.0f);
@@ -1175,6 +1187,7 @@ void bench_bias_batch_mean(){
     std::cout << std::endl;
 }
 
+#ifdef ENABLE_CUDNN
 
 void bench_cudnn_bias_batch_sum4(size_t B, size_t N, size_t W, size_t repeat = 100){
     auto* x_cpu = prepare_cpu(B * N * W * W, 2.0f);
@@ -1259,6 +1272,8 @@ void bench_cudnn_bias_batch_sum4(){
     bench_cudnn_bias_batch_sum4(300, 16, 256);
     std::cout << std::endl;
 }
+
+#endif
 
 void bench_bias_batch_sum4(size_t B, size_t N, size_t W, size_t repeat = 100){
     auto* x_cpu = prepare_cpu(B * N * W * W, 2.0f);
@@ -1480,12 +1495,16 @@ int main(int argc, char* argv[]){
     if (sub == "sigmoid" || sub == "all") {
         std::cout << "alpha=1.0f" << std::endl;
         bench_sigmoid(1.0f);
+#ifdef ENABLE_CUDNN
         bench_cudnn_sigmoid(1.0f);
         bench_cudnn_sigmoid_lazy(1.0f);
+#endif
         std::cout << "alpha=2.17f" << std::endl;
         bench_sigmoid(2.17f);
+#ifdef ENABLE_CUDNN
         bench_cudnn_sigmoid(2.17f);
         bench_cudnn_sigmoid_lazy(2.17f);
+#endif
     }
 
     if (sub == "shuffle" || sub == "all") {
@@ -1509,13 +1528,17 @@ int main(int argc, char* argv[]){
     if (sub == "bias_batch") {
         bench_bias_batch_sum();
         bench_bias_batch_mean();
+#ifdef ENABLE_CUDNN
         bench_cudnn_bias_batch_sum();
+#endif
     }
 
     if (sub == "bias_batch4") {
         bench_bias_batch_sum4();
         //bench_bias_batch_mean4();
+#ifdef ENABLE_CUDNN
         bench_cudnn_bias_batch_sum4();
+#endif
     }
 
     if (sub == "bias_add4") {

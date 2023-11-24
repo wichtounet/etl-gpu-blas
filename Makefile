@@ -54,7 +54,7 @@ $(eval $(call add_executable,egblas_test,$(TEST_FILES)))
 $(eval $(call add_executable_set,egblas_test,egblas_test))
 
 # Create bench executables
-$(eval $(call add_executable,egblas_bench,$(BENCH_FILES), -lcublas -lcudnn))
+$(eval $(call add_executable,egblas_bench,$(BENCH_FILES), -lcublas))
 $(eval $(call add_executable_set,egblas_bench,egblas_bench))
 
 # Create the shared library
