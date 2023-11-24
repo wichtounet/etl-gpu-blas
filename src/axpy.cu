@@ -29,6 +29,28 @@ __global__ void axpy_kernel_flat(size_t n, T alpha, const T* x, T* y) {
     }
 }
 
+template <>
+__global__ void axpy_kernel_flat(size_t n, char4 alpha, const char4* x, char4* y) {
+    auto index  = threadIdx.x + blockIdx.x * blockDim.x;
+
+    if (index < n) {
+        y[index].x = y[index].x + alpha.x * x[index].x;
+        y[index].y = y[index].y + alpha.y * x[index].y;
+        y[index].z = y[index].z + alpha.z * x[index].z;
+        y[index].w = y[index].w + alpha.w * x[index].w;
+    }
+}
+
+template <>
+__global__ void axpy_kernel_flat(size_t n, char2 alpha, const char2* x, char2* y) {
+    auto index  = threadIdx.x + blockIdx.x * blockDim.x;
+
+    if (index < n) {
+        y[index].x = y[index].x + alpha.x * x[index].x;
+        y[index].y = y[index].y + alpha.y * x[index].y;
+    }
+}
+
 template <typename T>
 __global__ void axpy_kernel1(size_t n, const T* x, size_t incx, T* y, size_t incy) {
     auto index  = threadIdx.x + blockIdx.x * blockDim.x;
@@ -189,7 +211,15 @@ void egblas_oaxpy(size_t n, int8_t alpha, const int8_t* x, size_t incx, int8_t* 
         return;
     } else {
         if (incx == 1 && incy == 1) {
-            axpy_kernel_run_flat(n, alpha, x, y);
+            if (n % 4 == 0) {
+                char4 a{alpha, alpha, alpha, alpha};
+                axpy_kernel_run_flat(n / 4, a, reinterpret_cast<const char4*>(x), reinterpret_cast<char4*>(y));
+            } else if (n % 2 == 0) {
+                char2 a{alpha, alpha};
+                axpy_kernel_run_flat(n / 2, a, reinterpret_cast<const char2*>(x), reinterpret_cast<char2*>(y));
+            } else {
+                axpy_kernel_run_flat(n, alpha, x, y);
+            }
         } else {
             axpy_kernel_run(n, alpha, x, incx, y, incy);
         }
