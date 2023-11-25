@@ -106,6 +106,34 @@ void axpby_kernel0_run(size_t n, T* y, size_t incy) {
 #endif
 }
 
+#ifdef EGBLAS_HAS_HAXPBY
+
+void egblas_haxpby(size_t n, fp16 alpha, const fp16* x, size_t incx, fp16 beta, fp16* y, size_t incy) {
+    if (__low2float(alpha) == 1.0f && __high2float(alpha) == 1.0f && __low2float(beta) == 1.0f && __high2float(beta) == 1.0f) {
+        axpby_kernel1_run(n, x, incx, y, incy);
+    } else if (__low2float(alpha) == 0.0f && __high2float(alpha) == 0.0f && __low2float(beta) == 0.0f && __high2float(beta) == 0.0f) {
+        axpby_kernel0_run(n, y, incy);
+    } else {
+        axpby_kernel_run(n, alpha, x, incx, beta, y, incy);
+    }
+}
+
+#endif
+
+#ifdef EGBLAS_HAS_BAXPBY
+
+void egblas_baxpby(size_t n, bf16 alpha, const bf16* x, size_t incx, bf16 beta, bf16* y, size_t incy) {
+    if (__low2float(alpha) == 1.0f && __high2float(alpha) == 1.0f && __low2float(beta) == 1.0f && __high2float(beta) == 1.0f) {
+        axpby_kernel1_run(n, x, incx, y, incy);
+    } else if (__low2float(alpha) == 0.0f && __high2float(alpha) == 0.0f && __low2float(beta) == 0.0f && __high2float(beta) == 0.0f) {
+        axpby_kernel0_run(n, y, incy);
+    } else {
+        axpby_kernel_run(n, alpha, x, incx, beta, y, incy);
+    }
+}
+
+#endif
+
 void egblas_saxpby(size_t n, float alpha, const float* x, size_t incx, float beta, float* y, size_t incy) {
     if (alpha == 1.0f && beta == 1.0f) {
         axpby_kernel1_run(n, x, incx, y, incy);
