@@ -9,6 +9,50 @@
 
 #include <cuComplex.h>
 
+#include "half.hpp"
+
+#ifndef DISABLE_FP16
+
+/*!
+ * \brief Compute yy = alpha * x + beta * y (element wise), in single-precision
+ * \param n The size of the two vectors
+ * \param alpha The x multiplicator
+ * \param x The vector x (GPU memory)
+ * \param incx The stride of x
+ * \param beta The y multiplicator
+ * \param y The vector y (GPU memory)
+ * \param incy The stride of y
+ * \param yy The vector yy (GPU memory)
+ * \param incy The stride of yy
+ */
+void egblas_haxpby_3(size_t n, fp16 alpha, const fp16* x, size_t incx, fp16 beta, fp16* y, size_t incy, fp16* yy, size_t incyy);
+
+#define EGBLAS_HAS_HAXPBY_3 true
+#else
+#define EGBLAS_HAS_HAXPBY_3 true
+#endif
+
+#ifndef DISABLE_BF16
+
+/*!
+ * \brief Compute yy = alpha * x + beta * y (element wise), in single-precision
+ * \param n The size of the two vectors
+ * \param alpha The x multiplicator
+ * \param x The vector x (GPU memory)
+ * \param incx The stride of x
+ * \param beta The y multiplicator
+ * \param y The vector y (GPU memory)
+ * \param incy The stride of y
+ * \param yy The vector yy (GPU memory)
+ * \param incy The stride of yy
+ */
+void egblas_baxpby_3(size_t n, bf16 alpha, const bf16* x, size_t incx, bf16 beta, bf16* y, size_t incy, bf16* yy, size_t incyy);
+
+#define EGBLAS_HAS_BAXPBY_3 true
+#else
+#define EGBLAS_HAS_BAXPBY_3 false
+#endif
+
 /*!
  * \brief Compute yy = alpha * x + beta * y (element wise), in single-precision
  * \param n The size of the two vectors
