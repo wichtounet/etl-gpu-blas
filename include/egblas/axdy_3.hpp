@@ -28,7 +28,7 @@ void egblas_haxdy_3(size_t n, fp16 alpha, const fp16* x, size_t incx, const fp16
 
 #define EGBLAS_HAS_HAXDY_3 true
 #else
-#define EGBLAS_HAS_HAXDY_3 true
+#define EGBLAS_HAS_HAXDY_3 false
 #endif
 
 #ifndef DISABLE_BF16

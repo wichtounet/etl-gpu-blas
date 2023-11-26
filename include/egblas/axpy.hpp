@@ -26,7 +26,7 @@ void egblas_haxpy(size_t n, fp16 alpha, const fp16* x, size_t incx, fp16* y, siz
 
 #define EGBLAS_HAS_HAXPY true
 #else
-#define EGBLAS_HAS_HAXPY true
+#define EGBLAS_HAS_HAXPY false
 #endif
 
 #ifndef DISABLE_BF16
