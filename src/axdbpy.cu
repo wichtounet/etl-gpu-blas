@@ -50,6 +50,22 @@ void axdbpy_kernel_run(size_t n, T alpha, const T* x, size_t incx, T beta, T* y,
 #endif
 }
 
+#ifdef EGBLAS_HAS_HAXDBPY
+
+void egblas_haxdbpy(size_t n, fp16 alpha, const fp16* x, size_t incx, fp16 beta, fp16* y, size_t incy) {
+    axdbpy_kernel_run(n, alpha, x, incx, beta, y, incy);
+}
+
+#endif
+
+#ifdef EGBLAS_HAS_BAXDBPY
+
+void egblas_baxdbpy(size_t n, bf16 alpha, const bf16* x, size_t incx, bf16 beta, bf16* y, size_t incy) {
+    axdbpy_kernel_run(n, alpha, x, incx, beta, y, incy);
+}
+
+#endif
+
 void egblas_saxdbpy(size_t n, float alpha, const float* x, size_t incx, float beta, float* y, size_t incy) {
     axdbpy_kernel_run(n, alpha, x, incx, beta, y, incy);
 }
