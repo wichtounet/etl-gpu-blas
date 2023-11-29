@@ -268,8 +268,6 @@ TEST_CASE_HALF("axdbpy/h/2") {
 
     cuda_check(cudaMemcpy(y_cpu, y_gpu, N * sizeof(T), cudaMemcpyDeviceToHost));
 
- //Compute y = (alpha * x) / (beta + y) (element wise), in single-precision
-
     for (size_t i = 0; i < N; ++i) {
         REQUIRE(__high2float(y_cpu[i]) == Approx(0.0f).epsilon(half_eps));
         REQUIRE(__low2float(y_cpu[i]) == Approx(0.0f).epsilon(half_eps));
