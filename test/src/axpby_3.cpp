@@ -423,8 +423,6 @@ TEST_CASE_HALF("axpby_3/h/1") {
 
     yy.gpu_to_cpu();
 
- //brief Compute yy = alpha * x + beta * y (element wise), in single-precision
-
     for (size_t i = 0; i < N; ++i) {
         REQUIRE(__high2float(yy.cpu()[i]) == Approx((-0.1f * (i + 1.0f)) + (0.2f * (1.2f * i + 0.2f))).epsilon(half_eps));
         REQUIRE(__low2float(yy.cpu()[i]) == Approx((-0.1f * (i + 1.0f)) + (0.2f * (1.2f * i + 0.2f))).epsilon(half_eps));
