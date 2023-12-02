@@ -32,8 +32,10 @@ CXX_FLAGS += -Ilib/include
 CXX_FLAGS += $(EXTRA_CXX_FLAGS)
 
 # Support for CUDA
-CXX_FLAGS += $(shell pkg-config --cflags cuda)
-LD_FLAGS += $(shell pkg-config --libs cuda)
+CXX_FLAGS += $(shell pkg-config --cflags cuda-12.2)
+CXX_FLAGS += $(shell pkg-config --cflags cudart-12.2)
+LD_FLAGS += $(shell pkg-config --libs cuda-12.2)
+LD_FLAGS += $(shell pkg-config --libs cudart-12.2)
 
 # Compile folders
 $(eval $(call folder_compile_gpu,src))
@@ -54,7 +56,7 @@ $(eval $(call add_executable,egblas_test,$(TEST_FILES)))
 $(eval $(call add_executable_set,egblas_test,egblas_test))
 
 # Create bench executables
-$(eval $(call add_executable,egblas_bench,$(BENCH_FILES), -lcublas))
+$(eval $(call add_executable,egblas_bench,$(BENCH_FILES), $(shell pkg-config --libs cublas-12.2) $(shell pkg-config --libs cudnn)))
 $(eval $(call add_executable_set,egblas_bench,egblas_bench))
 
 # Create the shared library
