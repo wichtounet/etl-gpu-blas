@@ -173,3 +173,94 @@ TEST_CASE("apxdbpy_3/z/0", "[double][apxdbpy_3]") {
     delete[] x_cpu;
     delete[] y_cpu;
 }
+
+#ifdef TEST_HALF
+
+TEST_CASE_HALF("apxdbpy_3/h/0") {
+    const size_t N = 137;
+
+    dual_array<T> x(N);
+    dual_array<T> y(N);
+    dual_array<T> yy(N);
+
+    for (size_t i = 0; i < N; ++i) {
+        x.cpu()[i] = fromFloat<T>(i);
+        y.cpu()[i] = fromFloat<T>(2.1f * i);
+    }
+
+    x.cpu_to_gpu();
+    y.cpu_to_gpu();
+
+    if constexpr (std::is_same_v<T, fp16>) {
+        egblas_hapxdbpy_3(N, fromFloat<T>(1.0), x.gpu(), 1, fromFloat<T>(1.0f), y.gpu(), 1, yy.gpu(), 1);
+    } else if constexpr (std::is_same_v<T, bf16>) {
+        egblas_bapxdbpy_3(N, fromFloat<T>(1.0), x.gpu(), 1, fromFloat<T>(1.0f), y.gpu(), 1, yy.gpu(), 1);
+    }
+
+    yy.gpu_to_cpu();
+
+    for (size_t i = 0; i < N; ++i) {
+        REQUIRE(__high2float(yy.cpu()[i]) == Approx((1.0f + i) / (1.0f + 2.1f * i)).epsilon(half_eps));
+        REQUIRE(__low2float(yy.cpu()[i]) == Approx((1.0f + i) / (1.0f + 2.1f * i)).epsilon(half_eps));
+    }
+}
+
+TEST_CASE_HALF("apxdbpy_3/h/1") {
+    const size_t N = 339;
+
+    dual_array<T> x(N);
+    dual_array<T> y(N);
+    dual_array<T> yy(N);
+
+    for (size_t i = 0; i < N; ++i) {
+        x.cpu()[i] = fromFloat<T>(i);
+        y.cpu()[i] = fromFloat<T>(9.1f * i);
+    }
+
+    x.cpu_to_gpu();
+    y.cpu_to_gpu();
+
+    if constexpr (std::is_same_v<T, fp16>) {
+        egblas_hapxdbpy_3(N, fromFloat<T>(-2.1), x.gpu(), 1, fromFloat<T>(0.5), y.gpu(), 1, yy.gpu(), 1);
+    } else if constexpr (std::is_same_v<T, bf16>) {
+        egblas_bapxdbpy_3(N, fromFloat<T>(-2.1), x.gpu(), 1, fromFloat<T>(0.5), y.gpu(), 1, yy.gpu(), 1);
+    }
+
+    yy.gpu_to_cpu();
+
+    for (size_t i = 0; i < N; ++i) {
+        REQUIRE(__high2float(yy.cpu()[i]) == Approx((-2.1f + i) / (0.5f + 9.1f * i)).epsilon(half_eps));
+        REQUIRE(__low2float(yy.cpu()[i]) == Approx((-2.1f + i) / (0.5f + 9.1f * i)).epsilon(half_eps));
+    }
+}
+
+TEST_CASE_HALF("apxdbpy_3/h/2") {
+    const size_t N = 256;
+
+    dual_array<T> x(N);
+    dual_array<T> y(N);
+    dual_array<T> yy(N);
+
+    for (size_t i = 0; i < N; ++i) {
+        x.cpu()[i] = fromFloat<T>(i);
+        y.cpu()[i] = fromFloat<T>(4.1f * i + 0.1f);
+    }
+
+    x.cpu_to_gpu();
+    y.cpu_to_gpu();
+
+    if constexpr (std::is_same_v<T, fp16>) {
+        egblas_hapxdbpy_3(N, fromFloat<T>(0), x.gpu(), 1, fromFloat<T>(0.0), y.gpu(), 1, yy.gpu(), 1);
+    } else if constexpr (std::is_same_v<T, bf16>) {
+        egblas_bapxdbpy_3(N, fromFloat<T>(0), x.gpu(), 1, fromFloat<T>(0.0), y.gpu(), 1, yy.gpu(), 1);
+    }
+
+    yy.gpu_to_cpu();
+
+    for (size_t i = 0; i < N; ++i) {
+        REQUIRE(__high2float(yy.cpu()[i]) == Approx((i) / (4.1f * i + 0.1f)).epsilon(half_eps));
+        REQUIRE(__low2float(yy.cpu()[i]) == Approx((i) / (4.1f * i + 0.1f)).epsilon(half_eps));
+    }
+}
+
+#endif

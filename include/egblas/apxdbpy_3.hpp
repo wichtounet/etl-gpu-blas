@@ -9,6 +9,46 @@
 
 #include <cuComplex.h>
 
+#include "half.hpp"
+
+#ifndef DISABLE_FP16
+
+/*!
+ * \brief Compute y = (alpha + x) / (beta + y) (element wise), in half-precision FP16
+ * \param n The size of the two vectors
+ * \param alpha The multiplicator
+ * \param x The vector x (GPU memory)
+ * \param incx The stride of x
+ * \param beta The addition
+ * \param y The vector y (GPU memory)
+ * \param incy The stride of y
+ */
+void egblas_hapxdbpy_3(size_t n, fp16 alpha, const fp16* x, size_t incx, fp16 beta, const fp16* y, size_t incy, fp16* yy, size_t incyy);
+
+#define EGBLAS_HAS_HAPXDBPY_3 true
+#else
+#define EGBLAS_HAS_HAPXDBPY_3 false
+#endif
+
+#ifndef DISABLE_BF16
+
+/*!
+ * \brief Compute y = (alpha + x) / (beta + y) (element wise), in half-precision BF16
+ * \param n The size of the two vectors
+ * \param alpha The multiplicator
+ * \param x The vector x (GPU memory)
+ * \param incx The stride of x
+ * \param beta The addition
+ * \param y The vector y (GPU memory)
+ * \param incy The stride of y
+ */
+void egblas_bapxdbpy_3(size_t n, bf16 alpha, const bf16* x, size_t incx, bf16 beta, const bf16* y, size_t incy, bf16* yy, size_t incyy);
+
+#define EGBLAS_HAS_BAPXDBPY_3 true
+#else
+#define EGBLAS_HAS_BAPXDBPY_3 false
+#endif
+
 /*!
  * \brief Compute y = (alpha + x) / (beta + y) (element wise), in single-precision
  * \param n The size of the two vectors

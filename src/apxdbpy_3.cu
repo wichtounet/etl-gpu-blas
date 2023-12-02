@@ -35,6 +35,22 @@ void apxdbpy_3_kernel_run(size_t n, T alpha, const T* x, size_t incx, T beta, co
 #endif
 }
 
+#ifdef EGBLAS_HAS_HAPXDBPY_3
+
+void egblas_hapxdbpy_3(size_t n, fp16 alpha, const fp16* x, size_t incx, fp16 beta, const fp16* y, size_t incy, fp16* yy, size_t incyy) {
+    apxdbpy_3_kernel_run(n, alpha, x, incx, beta, y, incy, yy, incyy);
+}
+
+#endif
+
+#ifdef EGBLAS_HAS_BAPXDBPY_3
+
+void egblas_bapxdbpy_3(size_t n, bf16 alpha, const bf16* x, size_t incx, bf16 beta, const bf16* y, size_t incy, bf16* yy, size_t incyy) {
+    apxdbpy_3_kernel_run(n, alpha, x, incx, beta, y, incy, yy, incyy);
+}
+
+#endif
+
 void egblas_sapxdbpy_3(size_t n, float alpha, const float* x, size_t incx, float beta, const float* y, size_t incy, float* yy, size_t incyy) {
     apxdbpy_3_kernel_run(n, alpha, x, incx, beta, y, incy, yy, incyy);
 }
